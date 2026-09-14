@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getSessionUser } from '@/lib/auth';
-import MasterTemplate from '@/components/template/MasterTemplate';
-import { defaultContent } from '@/lib/types';
+import TemplateShowcase from '@/components/home/TemplateShowcase';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title:'Wishly — Create unforgettable digital celebrations', description:'Create interactive websites for birthdays, anniversaries, proposals, weddings, graduations and every meaningful moment.' };
@@ -12,14 +11,11 @@ const features=[['✨','Signature experiences','Cinematic templates with interac
 export default async function Home(){const u=await getSessionUser().catch(()=>null);return <main className="min-h-screen overflow-hidden"><nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6"><Link href="/" className="text-xl font-black">✨ Wishly</Link><div className="hidden gap-6 text-sm text-zinc-400 md:flex"><Link href="/templates">Templates</Link><Link href="/features">Features</Link><Link href="/pricing">Pricing</Link><Link href="/demo">Live Demo</Link></div><Link className="btn" href={u?'/dashboard':'/signup'}>{u?'Dashboard':'Create yours'}</Link></nav>
 <section className="mx-auto max-w-7xl px-6 pb-24 pt-20 text-center md:pt-28"><div className="mx-auto mb-7 w-fit rounded-full border border-pink-400/20 bg-pink-400/10 px-4 py-2 text-xs font-bold uppercase tracking-[.25em] text-pink-300">CREATE • PERSONALIZE • CELEBRATE</div><h1 className="mx-auto max-w-5xl text-5xl font-black leading-[.95] tracking-tight md:text-8xl">Make a moment<br/><span className="text-pink-400">feel unforgettable.</span></h1><p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-zinc-400">Build a beautiful digital experience for birthdays, love stories, proposals, milestones, surprises and every reason worth celebrating.</p><div className="mt-9 flex flex-wrap justify-center gap-3"><Link className="btn px-6 py-3" href={u?'/builder/new':'/signup'}>Start creating free →</Link><Link className="btn2 px-6 py-3" href="/demo">Explore the master experience</Link></div></section>
 <section className="mx-auto max-w-7xl px-6 pb-24">
-  <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-    <div><p className="text-sm font-bold uppercase tracking-[.24em] text-pink-400">Live master template</p><h2 className="mt-2 text-4xl font-black md:text-5xl">See exactly what your celebration can become.</h2><p className="mt-3 max-w-2xl text-zinc-400">This is the real Master Template—not a mockup. Start from this experience, personalize it in Studio, and publish your own link.</p></div>
-    <Link className="btn2" href="/demo">Open full demo ↗</Link>
+  <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
+    <div><p className="text-sm font-bold uppercase tracking-[.24em] text-pink-400">Template collection</p><h2 className="mt-2 text-4xl font-black md:text-5xl">Choose the feeling before you start.</h2><p className="mt-3 max-w-2xl text-zinc-400">The Master Template sits alongside a full collection of ready-to-edit experiences. Pick one, then make every detail yours.</p></div>
+    <Link className="btn2" href="/templates">View all templates ↗</Link>
   </div>
-  <div className="overflow-hidden rounded-[28px] border border-white/10 bg-black shadow-2xl shadow-pink-500/10">
-    <div className="flex items-center justify-between border-b border-white/10 bg-white/[.04] px-4 py-3 text-xs text-zinc-400"><span>MASTER TEMPLATE · DEMO</span><span className="rounded-full bg-pink-400/10 px-2.5 py-1 font-semibold text-pink-300">Editable in Studio</span></div>
-    <div className="h-[760px] bg-black"><MasterTemplate demo content={defaultContent} /></div>
-  </div>
+  <TemplateShowcase loggedIn={!!u}/>
 </section>
 <section className="mx-auto max-w-7xl px-6 pb-24"><div className="mb-8"><p className="text-sm font-bold uppercase tracking-widest text-pink-400">Every occasion</p><h2 className="mt-2 text-4xl font-black">Not just birthdays.</h2></div><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{occasions.map(([e,t,d])=><div className="card p-6" key={t}><div className="text-3xl">{e}</div><h3 className="mt-4 text-xl font-bold">{t}</h3><p className="mt-2 text-sm leading-6 text-zinc-400">{d}</p></div>)}</div></section>
 <section className="mx-auto max-w-7xl px-6 pb-24"><div className="mb-8"><p className="text-sm font-bold uppercase tracking-widest text-pink-400">Built like a product</p><h2 className="mt-2 text-4xl font-black">Everything the moment needs.</h2></div><div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{features.map(([i,t,d])=><div className="card p-6" key={t}><div className="text-2xl">{i}</div><h3 className="mt-4 font-bold">{t}</h3><p className="mt-2 text-sm leading-6 text-zinc-400">{d}</p></div>)}</div></section>

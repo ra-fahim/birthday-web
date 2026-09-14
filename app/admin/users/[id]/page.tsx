@@ -4,6 +4,7 @@ import {redirect} from 'next/navigation';
 import {requireAdmin} from '@/lib/auth';
 import {db} from '@/lib/db';
 import DeleteAdminWebsiteButton from './DeleteAdminWebsiteButton';
+import DeleteConfirmModal from '@/components/ui/DeleteConfirmModal';
 
 export default async function User360({params}:{params:{id:string}}){
   try{await requireAdmin();}catch{redirect('/login?error=admin_required');}
@@ -15,7 +16,7 @@ export default async function User360({params}:{params:{id:string}}){
   ]);
   return <main className="mx-auto max-w-7xl px-6 py-10">
     <Link href="/admin/users" className="text-zinc-400 underline">← Users</Link>
-    <div className="mt-3"><h1 className="text-4xl font-black">User 360°</h1><p className="mt-2 text-zinc-400">Everything this user has on the platform — profile, projects, live links and uploaded media.</p></div>
+    <div className="mt-3 flex flex-wrap items-end justify-between gap-4"><div><h1 className="text-4xl font-black">User 360°</h1><p className="mt-2 text-zinc-400">Everything this user has on the platform — profile, projects, live links and uploaded media.</p></div>{user.role!=='admin' && <DeleteConfirmModal label="Delete user" title="Delete this user and all of their websites?" description="This permanently removes the account, its celebration websites and all linked uploads." confirmText="Delete user permanently" onConfirm={async()=>{const r=await fetch(`/api/admin/users/${user.id}`,{method:'DELETE'});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'Could not delete user');window.location.href='/admin/users';}} />}</div>
     <section className="mt-6 grid gap-4 md:grid-cols-4">
       <div className="card p-5"><span className="text-xs text-zinc-500">NAME</span><b className="mt-2 block">{user.name||'—'}</b></div>
       <div className="card p-5"><span className="text-xs text-zinc-500">EMAIL</span><b className="mt-2 block break-all">{user.email}</b></div>
