@@ -3,19 +3,22 @@ import Link from 'next/link';
 import { defaultContent } from '@/lib/types';
 import { MasterTemplate } from '@/components/template/MasterTemplate';
 import ExperienceTemplate from '@/components/template/ExperienceTemplates';
-import { templateCatalog } from '@/lib/templates';
 
-const TEMPLATES = templateCatalog.filter(t => ['master','master-proposal','romantic','cute','luxury','anime','gaming','minimal','elegant','festival'].includes(t.slug)).map(t => [t.slug,t.name,t.description] as const);
+const TEMPLATES = [
+  ['master','Magic Bloom','Cinematic master experience','🎂'],['romantic','Midnight Love','Soft & intimate','🌹'],['cute','Pastel Dream','Playful & sweet','🧸'],
+  ['luxury','Royal Celebration','Editorial & premium','✨'],['anime','Neon Story','Energetic & electric','⚡'],['gaming','Level Up','Bold & game-like','🎮'],
+  ['minimal','Pure Moment','Quiet & modern','◌'],['elegant','Ever After','Classic & graceful','🕊️'],['festival','Color Parade','Bright & joyful','🎊'],
+] as const;
 
 export default function TemplateShowcase({ loggedIn }: { loggedIn: boolean }) {
-  const content = { ...defaultContent, name: 'Natu', gallery: [], reasons: ['Your smile','Your kindness','Your beautiful heart'] };
+  const content = { ...defaultContent, name: 'Riya', gallery: [], reasons: ['Your smile','Your kindness','Your beautiful heart'] };
   const href = (id:string) => loggedIn ? `/builder/new?template=${id}` : `/signup?next=${encodeURIComponent(`/builder/new?template=${id}`)}`;
   return <div className="home-template-grid">
-    {TEMPLATES.map(([id,name,desc]) => <article key={id} className={`home-template-card ${id==='master'?'home-template-card-master':''}`}>
+    {TEMPLATES.map(([id,name,desc,emoji]) => <article key={id} className={`home-template-card ${id==='master'?'home-template-card-master':''}`}>
       <div className="home-template-preview">
-        <div className="home-template-topbar"><span>{id==='master'?'MASTER':id==='master-proposal'?'PROPOSAL':'TEMPLATE'}</span><b>{id==='master'?'🎂':id==='master-proposal'?'💌':'✦'}</b></div>
+        <div className="home-template-topbar"><span>{id==='master'?'MASTER':'TEMPLATE'}</span><b>{emoji}</b></div>
         <div className="home-template-canvas">
-          {id==='master' ? <MasterTemplate demo content={content} /> : id==='master-proposal' ? <div className="grid h-full place-items-center bg-[radial-gradient(circle_at_50%_35%,rgba(192,128,129,.32),transparent_55%)] text-center px-8"><div><div className="text-7xl">💌</div><div className="mt-4 text-4xl font-serif italic text-white">To My Dearest</div><p className="mt-3 text-sm tracking-widest uppercase text-pink-200/70">Master proposal</p></div></div> : <ExperienceTemplate variant={id} content={{...content, proposalMasterRecipient:'Natu'}} />}
+          {id==='master' ? <MasterTemplate demo content={content} /> : <ExperienceTemplate variant={id} content={content} />}
         </div>
         <div className="home-template-overlay" />
       </div>

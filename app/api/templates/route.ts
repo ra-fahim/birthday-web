@@ -6,12 +6,11 @@ import { db } from '@/lib/db';
 import { templateCatalog } from '@/lib/templates';
 
 export async function GET() {
-  const builtIn = templateCatalog.map((x, i) => ({ ...x, id: String(i), active: true, config: {} }));
   try {
     const existing = await db.template.findMany({ where: { active: true } });
-    const known = new Set(existing.map((x:any) => x.slug));
-    return NextResponse.json([...existing, ...builtIn.filter(x => !known.has(x.slug))]);
+    if (existing.length) return NextResponse.json(existing);
   } catch {
-    return NextResponse.json(builtIn);
+    // Fall back to the built-in catalog until Supabase is configured.
   }
+  return NextResponse.json(templateCatalog.map((x, i) => ({ ...x, id: String(i), active: true, config: {} })));
 }

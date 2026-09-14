@@ -8,7 +8,6 @@ import ExperienceTemplate from '@/components/template/ExperienceTemplates';
 import { SingleMediaUpload, GalleryUpload } from './MediaUploader';
 import FeatureControls from './FeatureControls';
 import { TimelineEditor, MemoriesEditor, WishlistEditor, GuestbookToggle } from './ContentListEditors';
-import { templateCatalog, getTemplatesForOccasion } from '@/lib/templates';
 
 const OCCASIONS = [
   ['birthday', '🎂', 'Birthday'], ['anniversary', '💕', 'Anniversary'], ['proposal', '💍', 'Proposal'],
@@ -16,14 +15,32 @@ const OCCASIONS = [
   ['thank-you', '💐', 'Thank You'], ['surprise', '🎁', 'Surprise'], ['friendship', '🤝', 'Friendship'], ['festival', '🎊', 'Festival'],
 ] as const;
 
-const TEMPLATES = templateCatalog.map(t => [t.slug, t.name, t.description] as const);
+const TEMPLATES = [
+  ['master', 'Magic Bloom', 'The cinematic master experience'],
+  ['birthday', 'Birthday Story', 'A dedicated birthday celebration'],
+  ['anniversary', 'Anniversary Story', 'A dedicated anniversary experience'],
+  ['proposal', 'Proposal Story', 'A dedicated proposal experience'],
+  ['wedding-proposal', 'Wedding Proposal', 'Cinematic proposal question experience'],
+  ['wedding', 'Wedding Story', 'A dedicated wedding experience'],
+  ['sorry', 'Sorry Story', 'A thoughtful apology experience'],
+  ['miss-you', 'Miss You Story', 'A warm long-distance message'],
+  ['thank-you', 'Thank You Story', 'A gratitude-focused experience'],
+  ['congratulations', 'Congratulations Story', 'A celebration of a big win'],
+  ['graduation', 'Graduation Story', 'A next-chapter celebration'],
+  ['friendship', 'Friendship Story', 'A tribute to a special friend'],
+  ['surprise', 'Surprise Story', 'A playful reveal experience'],
+  ['festival', 'Festival Story', 'A bright colorful celebration'],
+  ['romantic', 'Midnight Love', 'Soft, intimate and romantic'], ['cute', 'Pastel Dream', 'Playful, bright and adorable'],
+  ['luxury', 'Royal Celebration', 'Editorial luxury and elegance'], ['anime', 'Neon Story', 'Anime-inspired energy'],
+  ['gaming', 'Level Up', 'Arcade / gamer celebration'], ['minimal', 'Pure Moment', 'Quiet, clean and modern'],
+  ['elegant', 'Ever After', 'Classic, graceful and timeless'], 
+] as const;
 
-const OCCASION_TEMPLATE: Record<string,string> = Object.fromEntries(
-  Array.from(new Set(templateCatalog.map(t => t.category))).map(category => {
-    const first = getTemplatesForOccasion(category)[0];
-    return [category, first?.slug || ''];
-  })
-);
+const OCCASION_TEMPLATE: Record<string,string> = {
+  birthday:'birthday', anniversary:'anniversary', proposal:'wedding-proposal', wedding:'wedding',
+  graduation:'graduation', congratulations:'congratulations', 'thank-you':'thank-you',
+  surprise:'surprise', friendship:'friendship', festival:'festival', sorry:'sorry', 'miss-you':'miss-you'
+};
 
 const EFFECTS = [['countdown','Countdown'],['confetti','Confetti'],['fireworks','Fireworks'],['hearts','Floating hearts'],['balloons','Balloons']] as const;
 
@@ -176,7 +193,7 @@ export default function Builder() {
 
         <div className="builder-selector-grid">
           <div><span>Occasion</span><select value={occasion} onChange={e => { const nextOccasion = e.target.value; setOccasion(nextOccasion); setTemplateId(OCCASION_TEMPLATE[nextOccasion] || 'master'); setDirty(true); }}>{OCCASIONS.map(([value, emoji, label]) => <option value={value} key={value}>{emoji} {label}</option>)}</select></div>
-          <div><span>Experience</span><select value={templateId} onChange={e => { const next=e.target.value; setTemplateId(next); setC(prev=>({...prev, occasion: templateCatalog.find(t=>t.slug===next)?.category || occasion, templateId: next })); setOccasion(templateCatalog.find(t=>t.slug===next)?.category || occasion); setDirty(true); }}>{getTemplatesForOccasion(occasion).map(t => <option value={t.slug} key={t.slug}>{t.name}</option>)}</select></div>
+          <div><span>Experience</span><select value={templateId} onChange={e => { setTemplateId(e.target.value); setDirty(true); }}>{TEMPLATES.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></div>
         </div>
 
         <nav className="builder-nav">
@@ -206,7 +223,7 @@ export default function Builder() {
             {tab === 'overview' && <>
               <Section eyebrow="IDENTITY" title="Who is this celebration for?" description="These details personalize the experience without changing the master template structure.">
                 <div className="builder-grid-2">
-                  <Field label="Person / recipient name"><input value={c.name} onChange={e => update({ name: e.target.value })} placeholder="e.g. Natu" /></Field>
+                  <Field label="Person / recipient name"><input value={c.name} onChange={e => update({ name: e.target.value })} placeholder="e.g. Riya" /></Field>
                   <Field label="Date"><input type="date" value={c.birthday} onChange={e => update({ birthday: e.target.value })} /></Field>
                   <Field label="Relationship"><input value={c.relationship} onChange={e => update({ relationship: e.target.value })} placeholder="Best friend, partner, sister…" /></Field>
                   <Field label="Public button text"><input value={c.buttonText} onChange={e => update({ buttonText: e.target.value })} placeholder="Make a wish" /></Field>
@@ -265,7 +282,7 @@ export default function Builder() {
 
             {tab === 'gallery' && <Section eyebrow="MEMORIES" title="Photo gallery" description="Upload the actual photos used by the cinematic photo scene. No fake placeholder cards are required."><GalleryUpload items={c.gallery} onChange={gallery => update({ gallery })} websiteId={id} /><div className="builder-note mt-4">{c.gallery.length ? `${c.gallery.length} photo${c.gallery.length > 1 ? 's' : ''} ready for the experience.` : 'No photos yet — upload your memories to make this section yours.'}</div></Section>}
 
-            {tab === 'music' && (templateId === 'master-proposal' ? <Section eyebrow="SOUNDTRACK" title="Our Soundtrack" description="Paste a YouTube video/playlist, Spotify playlist/track, direct MP3 URL, or another playable media URL. The original soundtrack design stays the same."><Field label="Music / playlist URL"><input value={c.musicUrl} onChange={e=>update({musicUrl:e.target.value})} placeholder="https://www.youtube.com/playlist?list=... or https://open.spotify.com/playlist/..." /></Field><div className="builder-note mt-4">YouTube video or playlist, Spotify playlist/track, or direct audio URLs are supported. Spotify uses its official embedded player; direct MP3/hosted audio uses the original player controls.</div></Section> : <Section eyebrow="SOUNDTRACK" title="Background music" description="Upload the track that plays through the cinematic experience."><SingleMediaUpload kind="audio" url={c.musicUrl} onChange={musicUrl => update({ musicUrl })} websiteId={id} /><div className="builder-note mt-4">Audio playback still respects browser autoplay rules; visitors may need to tap once before sound starts.</div></Section>)}
+            {tab === 'music' && <Section eyebrow="SOUNDTRACK" title="Background music" description="Upload the track that plays through the cinematic experience."><SingleMediaUpload kind="audio" url={c.musicUrl} onChange={musicUrl => update({ musicUrl })} websiteId={id} /><div className="builder-note mt-4">Audio playback still respects browser autoplay rules; visitors may need to tap once before sound starts.</div></Section>}
 
             {tab === 'video' && <Section eyebrow="MOVING MEMORIES" title="Special video" description="Upload one video for the master experience. The video scene remains in the same position in the story."><SingleMediaUpload kind="video" url={c.videoUrl} onChange={videoUrl => update({ videoUrl })} websiteId={id} /><div className="builder-grid-2 mt-4"><Field label="Video section title"><input value="A Special Video Message" readOnly /></Field><Field label="Status"><input value={c.videoUrl ? 'Ready to play' : 'No video uploaded'} readOnly /></Field></div></Section>}
 
@@ -287,33 +304,6 @@ export default function Builder() {
             {tab === 'memories' && <Section eyebrow="LITTLE THINGS" title="Memories" description="Short memory snippets that visitors can discover in the experience."><MemoriesEditor content={c} onChange={next => { setC(next); setDirty(true); }} /></Section>}
             {tab === 'wishlist' && <Section eyebrow="WISHES" title="Wishlist" description="Add gift ideas or future wishes that visitors can see."><WishlistEditor content={c} onChange={next => { setC(next); setDirty(true); }} /></Section>}
             {tab === 'guestbook' && <Section eyebrow="COMMUNITY" title="Guestbook" description="Let visitors leave messages on the published experience."><GuestbookToggle content={c} onChange={next => { setC(next); setDirty(true); }} /></Section>}
-
-            {templateId === 'master-proposal' && tab === 'overview' && <Section eyebrow="MASTER PROPOSAL" title="Customize your proposal experience" description="This template keeps the supplied Valentine-style cinematic experience while letting the creator change the important words, story, memories, date ticket and final letter.">
-              <div className="builder-grid-2">
-                <Field label="Recipient name"><input value={c.proposalMasterRecipient} onChange={e=>update({proposalMasterRecipient:e.target.value,name:e.target.value})} placeholder="e.g. Natu" /></Field>
-                <Field label="From / sender"><input value={c.proposalMasterSender} onChange={e=>update({proposalMasterSender:e.target.value})} placeholder="Your name" /></Field>
-                <Field label="Intro title"><input value={c.proposalMasterIntroTitle} onChange={e=>update({proposalMasterIntroTitle:e.target.value})} /></Field>
-                <Field label="Intro subtitle"><input value={c.proposalMasterIntroSubtitle} onChange={e=>update({proposalMasterIntroSubtitle:e.target.value})} /></Field>
-                <Field label="Hero title"><input value={c.proposalMasterHeroTitle} onChange={e=>update({proposalMasterHeroTitle:e.target.value})} /></Field>
-                <Field label="Hero subtitle"><input value={c.proposalMasterHeroSubtitle} onChange={e=>update({proposalMasterHeroSubtitle:e.target.value})} /></Field>
-                <Field label="Scroll label"><input value={c.proposalMasterScrollLabel} onChange={e=>update({proposalMasterScrollLabel:e.target.value})} /></Field>
-                <Field label="Ticket recipient email (optional default)"><input value={c.proposalMasterTicketEmail} onChange={e=>update({proposalMasterTicketEmail:e.target.value})} type="email" placeholder="you@gmail.com" /></Field>
-              </div>
-            </Section>}
-            {templateId === 'master-proposal' && tab === 'opening' && <Section eyebrow="MASTER PROPOSAL" title="Page section titles" description="Change the main section headings without changing the original visual language.">
-              <div className="builder-grid-2">
-                {([['proposalMasterMuseumTitle','Museum title'],['proposalMasterMuseumSubtitle','Museum subtitle'],['proposalMasterSoundtrackTitle','Soundtrack title'],['proposalMasterSoundtrackSubtitle','Soundtrack subtitle'],['proposalMasterComfortTitle','Comfort title'],['proposalMasterDateTitle','Date planner title'],['proposalMasterDateSubtitle','Date planner subtitle'],['proposalMasterGardenTitle','Garden title'],['proposalMasterGardenSubtitle','Garden subtitle'],['proposalMasterNotesTitle','Notes title'],['proposalMasterNotesSubtitle','Notes subtitle'],['proposalMasterBucketTitle','Bucket list title'],['proposalMasterBucketSubtitle','Bucket list subtitle']] as const).map(([key,label])=><Field key={key} label={label}><input value={String(c[key])} onChange={e=>update({[key]:e.target.value} as Partial<BirthdayContent>)} /></Field>)}
-              </div>
-            </Section>}
-            {templateId === 'master-proposal' && tab === 'story' && <Section eyebrow="MASTER PROPOSAL" title="Five story chapters" description="Edit every chapter shown while scrolling through the experience.">
-              <div className="space-y-4">
-                {c.proposalMasterStory.map((item,i)=><div key={i} className="rounded-2xl border border-white/10 p-4 bg-white/[.03]"><div className="builder-grid-2"><Field label={`Chapter ${i+1} number`}><input value={item.number} onChange={e=>{const next=[...c.proposalMasterStory];next[i]={...next[i],number:e.target.value};update({proposalMasterStory:next});}} /></Field><Field label="Title"><input value={item.title} onChange={e=>{const next=[...c.proposalMasterStory];next[i]={...next[i],title:e.target.value};update({proposalMasterStory:next});}} /></Field></div><Field label="Story"><textarea rows={5} value={item.body} onChange={e=>{const next=[...c.proposalMasterStory];next[i]={...next[i],body:e.target.value};update({proposalMasterStory:next});}} /></Field></div>)}
-              </div>
-            </Section>}
-            {templateId === 'master-proposal' && tab === 'letter' && <Section eyebrow="MASTER PROPOSAL" title="Final letter" description="This becomes the closing emotional section of the page.">
-              <div className="space-y-4"><Field label="Final section title"><input value={c.proposalMasterFinalTitle} onChange={e=>update({proposalMasterFinalTitle:e.target.value})} /></Field>{c.proposalMasterFinalParagraphs.map((item,i)=><Field key={i} label={`Paragraph ${i+1}`}><textarea rows={4} value={item} onChange={e=>{const next=[...c.proposalMasterFinalParagraphs];next[i]=e.target.value;update({proposalMasterFinalParagraphs:next});}} /></Field>)}<Field label="Sign-off"><input value={c.proposalMasterFinalSignoff} onChange={e=>update({proposalMasterFinalSignoff:e.target.value})} /></Field></div>
-            </Section>}
-            {templateId === 'master-proposal' && tab === 'advanced' && <Section eyebrow="MASTER PROPOSAL" title="Ticket settings" description="The published page asks for a Gmail/email and sends the ticket automatically through your configured SMTP server."><div className="builder-grid-2"><Field label="Default ticket button text"><input value={c.proposalMasterTicketButton} onChange={e=>update({proposalMasterTicketButton:e.target.value})} /></Field><Field label="Default ticket email"><input type="email" value={c.proposalMasterTicketEmail} onChange={e=>update({proposalMasterTicketEmail:e.target.value})} placeholder="you@gmail.com" /></Field></div></Section>}
 
             {tab === 'growth' && <FeatureControls content={c} onChange={next => { setC(next); setDirty(true); }} websiteId={id} siteSlug={slug} siteStatus={status} />}
 

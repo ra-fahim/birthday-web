@@ -1,7 +1,6 @@
 'use client';
 import type { BirthdayContent } from '@/lib/types';
 import WeddingProposalTemplate from './WeddingProposalTemplate';
-import MasterProposalTemplate from './MasterProposalTemplate';
 
 const presets: Record<string,{label:string;eyebrow:string;headline:string;accent:string;surface:string;emoji:string}> = {
   birthday:{label:'Birthday',eyebrow:'A day made just for you',headline:'Celebrate the person who makes every day brighter.',accent:'#ec4899',surface:'#1b1020',emoji:'🎂'},
@@ -26,7 +25,6 @@ const presets: Record<string,{label:string;eyebrow:string;headline:string;accent
 };
 
 export default function ExperienceTemplate({variant='romantic',content}:{variant?:string;content:BirthdayContent}){
- if (variant === 'master-proposal') return <MasterProposalTemplate content={content} />;
  if (variant === 'wedding-proposal') return <WeddingProposalTemplate content={content} />;
  const p=presets[variant]||presets.romantic; const gallery=content.gallery||[];
  return <div style={{minHeight:'100%',background:p.surface,color:variant==='minimal'||variant==='elegant'?'#111827':'white',fontFamily:'ui-sans-serif,system-ui'}}>
