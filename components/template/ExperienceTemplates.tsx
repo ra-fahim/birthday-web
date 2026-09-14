@@ -13,7 +13,6 @@ const presets: Record<string,{label:string;eyebrow:string;headline:string;accent
   graduation:{label:'Graduation',eyebrow:'The next chapter starts now',headline:'Look how far you have come. Now go even further.',accent:'#38bdf8',surface:'#0b1520',emoji:'🎓'},
   friendship:{label:'Friendship',eyebrow:'For my favorite human',headline:'Life is better, louder and brighter with you in it.',accent:'#fb7185',surface:'#1a1014',emoji:'🤝'},
   surprise:{label:'Surprise',eyebrow:'One little secret',headline:'Something wonderful has been waiting just for you.',accent:'#8b5cf6',surface:'#120f1d',emoji:'🎁'},
-  festival:{label:'Festival',eyebrow:'Let the celebration begin',headline:'More color, more laughter, more reasons to celebrate.',accent:'#db2777',surface:'#1a0e19',emoji:'🎊'},
   romantic:{label:'Romantic',eyebrow:'A love note in motion',headline:'For someone who makes ordinary days unforgettable.',accent:'#f43f5e',surface:'#fff1f2',emoji:'🌹'},
   cute:{label:'Cute',eyebrow:'Tiny moments. Big smiles.',headline:'A pocket-sized celebration made just for you.',accent:'#f59e0b',surface:'#fffbeb',emoji:'🧸'},
   luxury:{label:'Luxury',eyebrow:'An elegant celebration',headline:'A timeless moment, beautifully presented.',accent:'#a78bfa',surface:'#111827',emoji:'✨'},
