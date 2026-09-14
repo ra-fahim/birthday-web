@@ -109,15 +109,12 @@ export function GalleryUpload({
     <div className="space-y-3">
       <div className="grid grid-cols-3 gap-2">
         {items.map((item, i) => (
-          <div key={item.url + i} className="group relative overflow-hidden rounded-lg border border-white/10">
-            <img src={item.url} alt="" className="h-24 w-full object-cover" />
-            <button
+          <div key={item.url + i} className="group overflow-hidden rounded-lg border border-white/10 bg-black/20">
+            <div className="relative"><img src={item.url} alt={item.caption || ''} className="h-24 w-full object-cover" /><button
               type="button"
               onClick={() => remove(i)}
               className="absolute right-1 top-1 rounded-full bg-black/70 px-2 py-0.5 text-xs text-white opacity-0 transition group-hover:opacity-100"
-            >
-              ✕
-            </button>
+            >✕</button></div><input className="!rounded-none !border-0 !border-t !border-white/10 !bg-transparent !text-xs" placeholder="Caption (optional)" value={item.caption || ''} onChange={e=>onChange(items.map((x,idx)=>idx===i?{...x,caption:e.target.value}:x))} />
           </div>
         ))}
       </div>
