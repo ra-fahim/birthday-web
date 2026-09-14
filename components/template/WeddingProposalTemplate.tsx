@@ -3,95 +3,89 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { BirthdayContent } from '@/lib/types';
 
-type Props = { content: BirthdayContent };
+export default function WeddingProposalTemplate({ content }: { content: BirthdayContent }) {
+  const [screen, setScreen] = useState<'intro'|'letter'|'heart'|'proposal'|'finale'>('intro');
+  const [taps, setTaps] = useState(0);
+  const [noMoves, setNoMoves] = useState(0);
+  const [muted, setMuted] = useState(true);
+  const [burst, setBurst] = useState(0);
+  const [replaying, setReplaying] = useState(false);
 
-let sourcePromise: Promise<string> | null = null;
-
-function loadSource() {
-  if (!sourcePromise) {
-    sourcePromise = fetch('/templates/wedding-proposal-original.html', { cache: 'force-cache' })
-      .then((response) => {
-        if (!response.ok) throw new Error('Unable to load wedding proposal template');
-        return response.text();
-      });
-  }
-  return sourcePromise;
-}
-
-function escapeHtml(value: string) {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
-
-function buildHtml(source: string, content: BirthdayContent) {
   const receiver = content.name || 'You';
   const sender = content.profile?.displayName || content.relationship || 'Someone who loves you';
-  const eyebrow = content.proposalEyebrow || 'A little something · made with love';
-  const intro = content.proposalIntroText || "I've been holding onto a question for a while now.\nBut before I ask it… walk with me a little. 💫";
-  const startButton = content.proposalStartButton || 'Begin ✦';
-  const letter = content.proposalLetterText || content.letter?.join('\n') || content.message || '';
-  const continueButton = content.proposalContinueButton || 'Continue ❤️';
-  const questionTemplate = content.proposalQuestion || 'You are my greatest adventure, my safest home, and my one true love.\n      Will you make me the happiest person in the universe and marry me,\n      <span class="js-receiver"></span>?';
-  const question = questionTemplate.replaceAll('{name}', `<span class="js-receiver">${escapeHtml(receiver)}</span>`);
-  const yesButton = content.proposalYesButton || 'Yes, I will 💍';
-  const noButton = content.proposalNoButton || 'No';
-
-  let html = source;
-  html = html.replace(/const RECEIVER_NAME = "[\s\S]*?";/, `const RECEIVER_NAME = ${JSON.stringify(receiver)};`);
-  html = html.replace(/const SENDER_NAME\s*=\s*"[\s\S]*?";/, `const SENDER_NAME   = ${JSON.stringify(sender)};`);
-  html = html.replace(/<p class="eyebrow">A little something · made with love<\/p>/, `<p class="eyebrow">${escapeHtml(eyebrow)}</p>`);
-  html = html.replace(/<p class="sub">[\s\S]*?<\/p>/, `<p class="sub">${escapeHtml(intro).replaceAll('\n', '<br>')}</p>`);
-  html = html.replace(/<button class="btn btn-primary" id="startBtn">[\s\S]*?<\/button>/, `<button class="btn btn-primary" id="startBtn">${escapeHtml(startButton)}</button>`);
-  html = html.replace(/const LETTER_TEXT =[\s\S]*?;\n\nlet typing/, `const LETTER_TEXT = ${JSON.stringify(letter)};\n\nlet typing`);
-  html = html.replace(/<button class="btn btn-primary" id="continueBtn">[\s\S]*?<\/button>/, `<button class="btn btn-primary" id="continueBtn">${escapeHtml(continueButton)}</button>`);
-  html = html.replace(/<h1>You are my greatest adventure,[\s\S]*?<\/h1>/, `<h1>${question}</h1>`);
-  html = html.replace(/<button class="btn btn-primary" id="yesBtn">[\s\S]*?<\/button>/, `<button class="btn btn-primary" id="yesBtn">${escapeHtml(yesButton)}</button>`);
-  html = html.replace(/<button class="btn btn-ghost" id="noBtn">[\s\S]*?<\/button>/, `<button class="btn btn-ghost" id="noBtn">${escapeHtml(noButton)}</button>`);
-  return html;
-}
-
-export default function WeddingProposalTemplate({ content }: Props) {
-  const [source, setSource] = useState('');
+  const letter = useMemo(() => content.proposalLetterText || content.letter?.join('\n') || content.message, [content]);
+  const question = useMemo(() => (content.proposalQuestion || 'Will you make me the happiest person in the universe and marry me, {name}?').replaceAll('{name}', receiver), [content.proposalQuestion, receiver]);
 
   useEffect(() => {
-    let active = true;
-    loadSource()
-      .then((text) => {
-        if (active) setSource(text);
-      })
-      .catch(() => {
-        if (active) setSource('');
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+    if (replaying) setTimeout(() => setReplaying(false), 50);
+  }, [replaying]);
 
-  // Debounce preview rebuilds so editing a field does not restart the original animation on every keystroke.
-  const [previewContent, setPreviewContent] = useState(content);
-  useEffect(() => {
-    const timer = window.setTimeout(() => setPreviewContent(content), 350);
-    return () => window.clearTimeout(timer);
-  }, [content]);
-
-  const html = useMemo(() => (source ? buildHtml(source, previewContent) : ''), [source, previewContent]);
-
-  if (!html) {
-    return <div aria-label="Loading template" style={{ width: '100%', height: '100%', minHeight: 720, background: '#07000b' }} />;
-  }
+  const nextBurst = () => setBurst(v => v + 1);
+  const start = () => { nextBurst(); setScreen('letter'); };
+  const continueToHeart = () => { nextBurst(); setScreen('heart'); };
+  const tapHeart = () => {
+    const next = Math.min(5, taps + 1);
+    setTaps(next);
+    nextBurst();
+    if (next >= 5) setTimeout(() => setScreen('proposal'), 550);
+  };
+  const moveNo = () => setNoMoves(v => Math.min(6, v + 1));
+  const yes = () => { nextBurst(); setScreen('finale'); };
+  const replay = () => { setTaps(0); setNoMoves(0); setScreen('intro'); setReplaying(true); };
 
   return (
-    <iframe
-      title="Wedding Proposal template"
-      srcDoc={html}
-      sandbox="allow-scripts allow-same-origin"
-      loading="eager"
-      style={{ width: '100%', height: '100%', minHeight: 720, border: 0, display: 'block', background: '#07000b' }}
-      referrerPolicy="no-referrer"
-    />
+    <div className={`wp-root ${replaying ? 'wp-replay' : ''}`} style={{ ['--wp-accent' as string]: content.primaryColor || '#ff2d55' }}>
+      <div className="wp-aurora"><span className="wp-blob wp-b1"/><span className="wp-blob wp-b2"/><span className="wp-blob wp-b3"/></div>
+      <div className="wp-grain"/>
+      <button className={`wp-sound ${muted ? 'muted' : ''}`} onClick={() => setMuted(v => !v)} aria-label="Toggle sound">{muted ? '🔇' : '🔊'}</button>
+      <div className="wp-burst-layer" key={burst}>{Array.from({length: 14}).map((_,i)=><span key={i} className="wp-particle" style={{ ['--i' as string]: i }}/>)}</div>
+
+      {screen === 'intro' && <section className="wp-screen wp-show">
+        <div className="wp-intro">
+          <p className="wp-eyebrow">{content.proposalEyebrow}</p>
+          <h1 className="wp-script">Hey <span>{receiver}</span></h1>
+          <p className="wp-sub">{content.proposalIntroText}</p>
+          <button className="wp-btn wp-primary" onClick={start}>{content.proposalStartButton}</button>
+          <p className="wp-hint">🎧 Best experienced with sound on</p>
+        </div>
+      </section>}
+
+      {screen === 'letter' && <section className="wp-screen wp-show">
+        <div className="wp-card">
+          <div className="wp-seal">💌</div>
+          <p className="wp-letter">{letter}</p>
+          <button className="wp-btn wp-primary" onClick={continueToHeart}>{content.proposalContinueButton}</button>
+        </div>
+      </section>}
+
+      {screen === 'heart' && <section className="wp-screen wp-show">
+        <div className="wp-tap-wrap">
+          <h2 className="wp-tap-title">Tap to fill my heart with love</h2>
+          <button className="wp-heart" onClick={tapHeart} aria-label={`Fill heart ${taps} of 5`}>
+            <span className="wp-heart-fill" style={{ height: `${Math.max(8, taps * 20)}%` }}/><span className="wp-heart-shape">♥</span>
+          </button>
+          <p className="wp-tap-count"><b>{taps}</b> / 5</p>
+        </div>
+      </section>}
+
+      {screen === 'proposal' && <section className="wp-screen wp-show">
+        <div className="wp-card wp-proposal-card">
+          <p className="wp-eyebrow">One last thing…</p>
+          <h2>{question}</h2>
+          <div className="wp-actions">
+            <button className="wp-btn wp-primary" onClick={yes} style={{ transform: `scale(${1 + Math.min(noMoves * 0.06, .36)})` }}>{content.proposalYesButton}</button>
+            {noMoves < 6 && <button className="wp-btn wp-ghost" onPointerEnter={moveNo} onClick={moveNo} style={{ transform: `scale(${Math.max(.48, 1 - noMoves * .08)}) translate(${noMoves * 18}px, ${noMoves * 8}px)` }}>{noMoves ? ['Are you sure?','Really sure?','Think again 🥺','Last chance…','You can’t catch me 😜','Okay… only Yes left 💘'][Math.min(noMoves-1,5)] : content.proposalNoButton}</button>}
+          </div>
+        </div>
+      </section>}
+
+      {screen === 'finale' && <section className="wp-screen wp-show">
+        <div className="wp-finale">
+          <h2 className="wp-final-title">I Love You,<br/><span>{receiver}</span> ❤️</h2>
+          <p className="wp-final-sub">Yours forever, {sender}</p>
+          <button className="wp-btn wp-ghost" onClick={replay}>Replay ↺</button>
+        </div>
+      </section>}
+    </div>
   );
 }

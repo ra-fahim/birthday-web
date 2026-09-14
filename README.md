@@ -33,3 +33,7 @@ Run `npm run build`. The project contains a Supabase-only preflight script and n
 
 ## Product direction
 The platform is now structured around a flagship Master Template plus unique alternative experiences, multiple celebration occasions, theme customization, publishing, analytics, guestbook/reactions, and member-to-member chat. Run `supabase/migrations/005_social_chat.sql` after the existing migrations to enable chat.
+
+## Master proposal ticket email
+
+The `master-proposal` experience includes a Date Planner. Visitors choose a date option, preferred time, and their Gmail/email address. The Send Ticket action posts to `/api/proposal-ticket` and sends the ticket through the server-side SMTP configuration in `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_APP_PASSWORD`, and `EMAIL_FROM`. It does not open a `mailto:` link.

@@ -2,26 +2,11 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getSessionUser } from '@/lib/auth';
 import TemplateShowcase from '@/components/home/TemplateShowcase';
-import { templatesByCategory } from '@/lib/templates';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title:'Wishly — Create unforgettable digital celebrations', description:'Create interactive websites for birthdays, anniversaries, proposals, weddings, graduations and every meaningful moment.' };
 
-const occasionMeta: Record<string,[string,string,string]> = {
-  birthday:['🎂','Birthday','Turn a birthday into an interactive surprise.'],
-  proposal:['💍','Proposal','Create a proposal they will never forget.'],
-  anniversary:['💕','Anniversary','Celebrate your story, your way.'],
-  wedding:['💒','Wedding','Make the day feel timeless.'],
-  sorry:['🥺','Sorry','Say what matters, beautifully.'],
-  'miss-you':['💌','Miss You','Make the distance feel a little smaller.'],
-  'thank-you':['💐','Thank You','Turn gratitude into something beautiful.'],
-  congratulations:['🏆','Congratulations','Give achievements a page worth remembering.'],
-  graduation:['🎓','Graduation','Make the milestone feel monumental.'],
-  friendship:['🤝','Friendship','Celebrate the people who stay.'],
-  surprise:['🎁','Surprise','Build the reveal around them.'],
-  festival:['🎊','Festival','Bring the celebration to life.'],
-};
-const occasions=Object.keys(templatesByCategory).filter(k=>occasionMeta[k]).map(k=>occasionMeta[k]);
+const occasions=[['🎂','Birthday','Turn a birthday into an interactive surprise.'],['💕','Anniversary','Celebrate your story, your way.'],['💍','Proposal','Create a proposal they will never forget.'],['🎓','Graduation','Make the milestone feel monumental.'],['🏆','Congratulations','Give achievements a page worth remembering.'],['💐','Thank You','Turn gratitude into something beautiful.']];
 const features=[['✨','Signature experiences','Cinematic templates with interactions, motion and surprise moments.'],['🎨','Make it yours','Change colors, fonts, photos, music and the details that matter.'],['📸','Memories in one place','Gallery, video, timeline, wishes and keepsakes in a single experience.'],['💬','Connect','Visitors can react, leave wishes and message the creator.'],['📊','Know the moment','See views, shares, reactions and engagement from your dashboard.'],['🔗','Share anywhere','Publish a clean link and share it through social, chat or QR.']];
 export default async function Home(){const u=await getSessionUser().catch(()=>null);return <main className="min-h-screen overflow-hidden"><nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6"><Link href="/" className="text-xl font-black">✨ Wishly</Link><div className="hidden gap-6 text-sm text-zinc-400 md:flex"><Link href="/templates">Templates</Link><Link href="/features">Features</Link><Link href="/pricing">Pricing</Link><Link href="/demo">Live Demo</Link></div><Link className="btn" href={u?'/dashboard':'/signup'}>{u?'Dashboard':'Create yours'}</Link></nav>
 <section className="mx-auto max-w-7xl px-6 pb-24 pt-20 text-center md:pt-28"><div className="mx-auto mb-7 w-fit rounded-full border border-pink-400/20 bg-pink-400/10 px-4 py-2 text-xs font-bold uppercase tracking-[.25em] text-pink-300">CREATE • PERSONALIZE • CELEBRATE</div><h1 className="mx-auto max-w-5xl text-5xl font-black leading-[.95] tracking-tight md:text-8xl">Make a moment<br/><span className="text-pink-400">feel unforgettable.</span></h1><p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-zinc-400">Build a beautiful digital experience for birthdays, love stories, proposals, milestones, surprises and every reason worth celebrating.</p><div className="mt-9 flex flex-wrap justify-center gap-3"><Link className="btn px-6 py-3" href={u?'/builder/new':'/signup'}>Start creating free →</Link><Link className="btn2 px-6 py-3" href="/demo">Explore the master experience</Link></div></section>

@@ -1,51 +1,39 @@
-export type TemplateDefinition = {
+export type TemplateCatalogItem = {
   slug: string;
   name: string;
   description: string;
   category: string;
-  emoji: string;
-  accent: string;
-  kind: 'master' | 'wedding-proposal' | 'miss-you-1';
-  originalHtml?: string;
 };
 
-// Single source of truth for templates that are actually installed and visible.
-// A template only appears anywhere in the product when it is registered here.
-export const templateCatalog: TemplateDefinition[] = [
-  {
-    slug: 'master',
-    name: 'Magic Bloom',
-    description: 'The original cinematic master experience.',
-    category: 'birthday',
-    emoji: '🎂',
-    accent: '#ec4899',
-    kind: 'master',
-    originalHtml: '/master-template.html',
-  },
-  {
-    slug: 'wedding-proposal',
-    name: 'Wedding Proposal',
-    description: 'The exact Wedding Proposal experience you supplied.',
-    category: 'proposal',
-    emoji: '💍',
-    accent: '#ff2d55',
-    kind: 'wedding-proposal',
-    originalHtml: '/templates/wedding-proposal-original.html',
-  },
-  {
-    slug: 'miss-you-1',
-    name: 'Miss You 1',
-    description: 'The original cherry-blossom Love Letter experience supplied for the Miss You section.',
-    category: 'miss-you',
-    emoji: '💌',
-    accent: '#ff6b9d',
-    kind: 'miss-you-1',
-    originalHtml: '/templates/miss-you-1/index.html',
-  },
-];
+export const templateCatalog: TemplateCatalogItem[] = [
+  ['master','Master Template','Original HTML experience','birthday'],
+  ['birthday','Birthday Story','Dedicated birthday celebration','birthday'],
+  ['anniversary','Anniversary Story','Dedicated anniversary experience','anniversary'],
+  ['proposal','Proposal Story','Dedicated proposal experience','proposal'],
+  ['master-proposal','Master proposal','A full cinematic love-letter proposal experience','proposal'],
+  ['wedding-proposal','Wedding Proposal','A cinematic proposal question experience','wedding'],
+  ['wedding','Wedding Story','Dedicated wedding experience','wedding'],
+  ['sorry','Sorry Story','Thoughtful apology experience','sorry'],
+  ['miss-you','Miss You Story','Warm long-distance message','miss-you'],
+  ['thank-you','Thank You Story','Gratitude-focused experience','thank-you'],
+  ['congratulations','Congratulations Story','Big-win celebration','congratulations'],
+  ['graduation','Graduation Story','Next-chapter celebration','graduation'],
+  ['friendship','Friendship Story','Friendship tribute','friendship'],
+  ['surprise','Surprise Story','Playful reveal experience','surprise'],
+  ['festival','Festival Story','Colorful celebration','festival'],
+  ['romantic','Romantic','Soft romantic style','romantic'],
+  ['cute','Cute','Playful style','cute'],
+  ['luxury','Luxury','Premium elegant style','luxury'],
+  ['anime','Anime','Anime-inspired style','anime'],
+  ['gaming','Gaming','Gaming style','gaming'],
+  ['minimal','Minimal','Clean minimal style','minimal'],
+  ['elegant','Elegant','Classic elegant style','elegant'],
+].map(([slug,name,description,category]) => ({slug,name,description,category}));
 
-export const templateBySlug = Object.fromEntries(templateCatalog.map((template) => [template.slug, template])) as Record<string, TemplateDefinition>;
-export const templatesByCategory = templateCatalog.reduce<Record<string, TemplateDefinition[]>>((acc, template) => {
-  (acc[template.category] ||= []).push(template);
-  return acc;
-}, {});
+export function getTemplatesForOccasion(occasion: string) {
+  return templateCatalog.filter((template) => template.category === occasion);
+}
+
+export function getTemplate(slug: string) {
+  return templateCatalog.find((template) => template.slug === slug) || null;
+}
