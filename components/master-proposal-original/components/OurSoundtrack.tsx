@@ -317,7 +317,7 @@ export const OurSoundtrack: React.FC<OurSoundtrackProps> = ({ isIntroComplete = 
     if (ytId || ytPlaylistId) {
       audioRef.current?.pause();
       (async () => {
-        const player = await getOrCreateYouTubePlayer(ytId);
+        const player = await getOrCreateYouTubePlayer(currentSong.audioUrl);
         if (isPlaying) {
           setError(false);
           player.playVideo();
