@@ -1,30 +1,15 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getSessionUser } from '@/lib/auth';
-import { db } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
+export const metadata: Metadata = { title:'Wishly — Create unforgettable digital celebrations', description:'Create interactive websites for birthdays, anniversaries, proposals, weddings, graduations and every meaningful moment.' };
 
-export async function generateMetadata(): Promise<Metadata> {
-  let title = 'Birthday Builder — Create beautiful interactive birthday websites';
-  let description = 'Create beautiful interactive birthday websites.';
-  let ogImage: string | undefined;
-  try {
-    const row = await db.setting.findUnique({ where: { key: 'seo_defaults' } });
-    if (row?.value?.title) title = row.value.title;
-    if (row?.value?.description) description = row.value.description;
-    if (row?.value?.ogImage) ogImage = row.value.ogImage;
-  } catch {}
-  return { title, description, openGraph: { title, description, images: ogImage ? [ogImage] : undefined } };
-}
-
-export default async function Home(){
-  const u = await getSessionUser().catch(() => null);
-  return <main className="min-h-screen"><nav className="mx-auto flex max-w-6xl items-center justify-between p-6"><b className="text-xl">🎂 Birthday Builder</b><div className="flex gap-4 text-sm">
-    <Link href="/demo">Live Demo</Link>
-    <Link href="/templates">Templates</Link>
-    <Link href="/features">Features</Link>
-    <Link href="/pricing">Pricing</Link>
-    {u ? <Link href="/dashboard" className="font-semibold text-pink-400">Dashboard</Link> : <Link href="/login">Login</Link>}
-  </div></nav><section className="mx-auto max-w-6xl px-6 py-24 text-center"><p className="text-pink-400">CREATE • CUSTOMIZE • SHARE</p><h1 className="mt-4 text-6xl font-black">Build a birthday website<br/>they will never forget.</h1><p className="mx-auto mt-6 max-w-2xl text-zinc-400">Turn your memories, messages, photos and wishes into a cinematic interactive birthday experience.</p><div className="mt-8 flex justify-center gap-3">{u ? <Link className="btn" href="/dashboard">Go to Dashboard</Link> : <Link className="btn" href="/signup">Create Website</Link>}<Link className="btn2" href="/demo">See Live Demo</Link></div></section><section className="mx-auto grid max-w-6xl gap-4 px-6 pb-24 md:grid-cols-3">{['Interactive cake & candles','Photo, video, music & memories','Publish instantly with a shareable URL'].map(x=><div className="card p-6" key={x}><h3 className="font-bold">{x}</h3><p className="mt-2 text-sm text-zinc-400">Everything is connected to the builder and published website.</p></div>)}</section><footer className="border-t border-white/10 p-8 text-center text-sm text-zinc-500">Birthday Builder • Made for unforgettable moments</footer></main>;
-}
+const occasions=[['🎂','Birthday','Turn a birthday into an interactive surprise.'],['💕','Anniversary','Celebrate your story, your way.'],['💍','Proposal','Create a proposal they will never forget.'],['🎓','Graduation','Make the milestone feel monumental.'],['🏆','Congratulations','Give achievements a page worth remembering.'],['💐','Thank You','Turn gratitude into something beautiful.']];
+const features=[['✨','Signature experiences','Cinematic templates with interactions, motion and surprise moments.'],['🎨','Make it yours','Change colors, fonts, photos, music and the details that matter.'],['📸','Memories in one place','Gallery, video, timeline, wishes and keepsakes in a single experience.'],['💬','Connect','Visitors can react, leave wishes and message the creator.'],['📊','Know the moment','See views, shares, reactions and engagement from your dashboard.'],['🔗','Share anywhere','Publish a clean link and share it through social, chat or QR.']];
+export default async function Home(){const u=await getSessionUser().catch(()=>null);return <main className="min-h-screen overflow-hidden"><nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6"><Link href="/" className="text-xl font-black">✨ Wishly</Link><div className="hidden gap-6 text-sm text-zinc-400 md:flex"><Link href="/templates">Templates</Link><Link href="/features">Features</Link><Link href="/pricing">Pricing</Link><Link href="/demo">Live Demo</Link></div><Link className="btn" href={u?'/dashboard':'/signup'}>{u?'Dashboard':'Create yours'}</Link></nav>
+<section className="mx-auto max-w-7xl px-6 pb-24 pt-20 text-center md:pt-28"><div className="mx-auto mb-7 w-fit rounded-full border border-pink-400/20 bg-pink-400/10 px-4 py-2 text-xs font-bold uppercase tracking-[.25em] text-pink-300">CREATE • PERSONALIZE • CELEBRATE</div><h1 className="mx-auto max-w-5xl text-5xl font-black leading-[.95] tracking-tight md:text-8xl">Make a moment<br/><span className="text-pink-400">feel unforgettable.</span></h1><p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-zinc-400">Build a beautiful digital experience for birthdays, love stories, proposals, milestones, surprises and every reason worth celebrating.</p><div className="mt-9 flex flex-wrap justify-center gap-3"><Link className="btn px-6 py-3" href={u?'/builder/new':'/signup'}>Start creating free →</Link><Link className="btn2 px-6 py-3" href="/demo">Explore the master experience</Link></div></section>
+<section className="mx-auto max-w-7xl px-6 pb-24"><div className="card overflow-hidden p-2"><div className="grid min-h-[420px] place-items-center rounded-[22px] bg-gradient-to-br from-pink-500/20 via-purple-500/10 to-cyan-500/10 p-8 text-center"><div><div className="text-7xl">🎂</div><p className="mt-6 text-sm uppercase tracking-[.3em] text-pink-300">The Master Experience</p><h2 className="mt-3 text-4xl font-black md:text-6xl">One unforgettable template.<br/>Your story inside it.</h2><p className="mx-auto mt-5 max-w-xl text-zinc-400">The core experience stays beautifully designed. You personalize the meaningful parts—photos, colors, music, date, name and more.</p></div></div></div></section>
+<section className="mx-auto max-w-7xl px-6 pb-24"><div className="mb-8"><p className="text-sm font-bold uppercase tracking-widest text-pink-400">Every occasion</p><h2 className="mt-2 text-4xl font-black">Not just birthdays.</h2></div><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{occasions.map(([e,t,d])=><div className="card p-6" key={t}><div className="text-3xl">{e}</div><h3 className="mt-4 text-xl font-bold">{t}</h3><p className="mt-2 text-sm leading-6 text-zinc-400">{d}</p></div>)}</div></section>
+<section className="mx-auto max-w-7xl px-6 pb-24"><div className="mb-8"><p className="text-sm font-bold uppercase tracking-widest text-pink-400">Built like a product</p><h2 className="mt-2 text-4xl font-black">Everything the moment needs.</h2></div><div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{features.map(([i,t,d])=><div className="card p-6" key={t}><div className="text-2xl">{i}</div><h3 className="mt-4 font-bold">{t}</h3><p className="mt-2 text-sm leading-6 text-zinc-400">{d}</p></div>)}</div></section>
+<section className="mx-auto max-w-5xl px-6 pb-28 text-center"><div className="rounded-[32px] border border-pink-400/20 bg-pink-400/10 p-10 md:p-16"><p className="text-sm font-bold uppercase tracking-widest text-pink-300">Your next story starts here</p><h2 className="mt-4 text-4xl font-black md:text-6xl">Create something they’ll keep.</h2><Link className="btn mt-8 inline-flex" href={u?'/builder/new':'/signup'}>Create your experience</Link></div></section><footer className="border-t border-white/10 px-6 py-8 text-center text-sm text-zinc-500">Wishly — digital wishes & celebrations.</footer></main>}

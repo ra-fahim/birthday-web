@@ -29,3 +29,7 @@ Create/sign up a user, then set that user's `profiles.role` to `admin` in Supaba
 
 ## Verification
 Run `npm run build`. The project contains a Supabase-only preflight script and no Supabase build step.
+
+
+## Product direction
+The platform is now structured around a flagship Master Template plus unique alternative experiences, multiple celebration occasions, theme customization, publishing, analytics, guestbook/reactions, and member-to-member chat. Run `supabase/migrations/005_social_chat.sql` after the existing migrations to enable chat.

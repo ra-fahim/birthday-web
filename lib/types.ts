@@ -3,6 +3,7 @@ export type Recipient={id:string;name:string;email?:string;relationship?:string;
 export type GroupMember={name:string;role?:string;message:string;avatarUrl?:string};
 export type Badge={id:string;label:string;icon:string;description?:string};
 export type BirthdayContent={
+ occasion:string; templateId?:string;
  name:string; birthday:string; greeting:string; message:string; relationship:string;
  heroTitle:string; heroSubtitle:string; reasons:string[]; gallery:GalleryItem[]; videoUrl:string;
  letter:string[]; secret:string; musicUrl:string; theme:string; font:string; primaryColor:string;
@@ -24,6 +25,7 @@ export type BirthdayContent={
  googlePhotosEnabled:boolean;
 };
 export const defaultContent:BirthdayContent={
+ occasion:'birthday', templateId:'master',
  name:'Riya',birthday:'2026-12-25',greeting:'Happy Birthday',message:'You make every ordinary moment feel special.',relationship:'Best Friend',
  heroTitle:'A special day for someone special',heroSubtitle:'Made with love by Birthday Builder.',reasons:['Your smile','Your kindness','Your beautiful heart'],gallery:[],videoUrl:'',
  letter:['Dear Riya,','Thank you for being part of my life.','May your year be full of beautiful memories.'],secret:'You found the secret! 🎁',musicUrl:'',

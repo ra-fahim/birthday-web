@@ -1,13 +1,13 @@
 import { supabaseRest } from './supabase-rest';
 
 type Where = Record<string, any>;
-type Model = 'user'|'profile'|'website'|'template'|'templateCategory'|'gallery'|'music'|'video'|'timeline'|'memory'|'wishlistItem'|'guestbook'|'analyticsEvent'|'media'|'notification'|'emailTemplate'|'setting'|'demoSite'|'recipientEvent'|'collaborativeWish'|'reaction'|'referral';
+type Model = 'user'|'profile'|'website'|'template'|'templateCategory'|'gallery'|'music'|'video'|'timeline'|'memory'|'wishlistItem'|'guestbook'|'analyticsEvent'|'media'|'notification'|'emailTemplate'|'setting'|'demoSite'|'recipientEvent'|'collaborativeWish'|'reaction'|'referral'|'conversation'|'message';
 const tables: Record<Model,string> = {
   user:'profiles', profile:'profiles', website:'websites', template:'templates', templateCategory:'template_categories', gallery:'gallery', music:'music', video:'videos',
   timeline:'timeline', memory:'memories', wishlistItem:'wishlist_items', guestbook:'guestbook', analyticsEvent:'analytics_events',
-  media:'media', notification:'notifications', emailTemplate:'email_templates', setting:'settings', demoSite:'demo_sites', recipientEvent:'recipient_events', collaborativeWish:'collaborative_wishes', reaction:'reactions', referral:'referrals'
+  media:'media', notification:'notifications', emailTemplate:'email_templates', setting:'settings', demoSite:'demo_sites', recipientEvent:'recipient_events', collaborativeWish:'collaborative_wishes', reaction:'reactions', referral:'referrals', conversation:'conversations', message:'messages'
 };
-const columns: Record<string,string> = { user:'*', profile:'*', website:'*', template:'*', templateCategory:'*', gallery:'*', music:'*', video:'*', timeline:'*', memory:'*', wishlistItem:'*', guestbook:'*', analyticsEvent:'*', media:'*', notification:'*', emailTemplate:'*', setting:'*', demoSite:'*', recipientEvent:'*', collaborativeWish:'*', reaction:'*', referral:'*' };
+const columns: Record<string,string> = { user:'*', profile:'*', website:'*', template:'*', templateCategory:'*', gallery:'*', music:'*', video:'*', timeline:'*', memory:'*', wishlistItem:'*', guestbook:'*', analyticsEvent:'*', media:'*', notification:'*', emailTemplate:'*', setting:'*', demoSite:'*', recipientEvent:'*', collaborativeWish:'*', reaction:'*', referral:'*', conversation:'*', message:'*' };
 
 function enc(v:any){return encodeURIComponent(String(v));}
 function query(where:Where={}, extra='') {

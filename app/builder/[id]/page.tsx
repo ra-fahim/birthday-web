@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { defaultContent, BirthdayContent } from '@/lib/types';
 import { MasterTemplate } from '@/components/template/MasterTemplate';
+import ExperienceTemplate from '@/components/template/ExperienceTemplates';
 import { SingleMediaUpload, GalleryUpload } from './MediaUploader';
 import FeatureControls from './FeatureControls';
 import RecipientAnalytics from './RecipientAnalytics';
@@ -24,12 +25,16 @@ export default function Builder() {
   const [msg, setMsg] = useState('');
   const [slug, setSlug] = useState('');
   const [status, setStatus] = useState('draft');
+  const [templateId, setTemplateId] = useState('master');
+  const [occasion, setOccasion] = useState('birthday');
 
   useEffect(() => {
     fetch('/api/websites/' + id).then(r => r.json()).then(j => {
       if (j.content) setC({ ...defaultContent, ...j.content });
       if (j.slug) setSlug(j.slug);
       if (j.status) setStatus(j.status);
+      if (j.templateId) setTemplateId(j.templateId);
+      if (j.content?.occasion) setOccasion(j.content.occasion);
     });
   }, [id]);
 
@@ -38,7 +43,7 @@ export default function Builder() {
     const r = await fetch('/api/websites/' + id, {
       method: 'PUT',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ content: c, status: publish ? 'published' : 'draft' }),
+      body: JSON.stringify({ content: { ...c, occasion, templateId }, templateId, status: publish ? 'published' : 'draft' }),
     });
     const j = await r.json();
     setMsg(r.ok ? (publish ? 'Published!' : 'Saved!') : (j.error || 'Error'));
@@ -55,6 +60,8 @@ export default function Builder() {
             <button className="btn2" onClick={() => router.push('/dashboard')}>Exit</button>
           </div>
 
+          <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3"><div><p className="text-xs uppercase tracking-wider text-zinc-500">Experience</p><select className="mt-1" value={occasion} onChange={e=>setOccasion(e.target.value)}><option value="birthday">🎂 Birthday</option><option value="anniversary">💕 Anniversary</option><option value="proposal">💍 Proposal</option><option value="wedding">💒 Wedding</option><option value="graduation">🎓 Graduation</option><option value="congratulations">🏆 Congratulations</option><option value="thank-you">💐 Thank You</option><option value="surprise">🎁 Surprise</option><option value="friendship">🤝 Friendship</option><option value="festival">🎊 Festival</option></select></div><div><p className="text-xs uppercase tracking-wider text-zinc-500">Template</p><select className="mt-1" value={templateId} onChange={e=>setTemplateId(e.target.value)}><option value="master">Magic Bloom — Master</option><option value="romantic">Midnight Love</option><option value="cute">Pastel Dream</option><option value="luxury">Royal Celebration</option><option value="anime">Neon Story</option><option value="gaming">Level Up</option><option value="minimal">Pure Moment</option><option value="elegant">Ever After</option><option value="festival">Color Parade</option></select></div></div>
+
           <div className="mt-4 flex flex-wrap gap-2">
             {TABS.map(x => (
               <button key={x} className={`rounded-full px-3 py-2 text-xs ${tab === x ? 'bg-pink-500' : 'bg-white/10'}`} onClick={() => setTab(x)}>{x}</button>
@@ -63,7 +70,7 @@ export default function Builder() {
 
           {tab === 'Basic' && (
             <div className="mt-5 space-y-3">
-              {fields.slice(0, 5).map(([k, l]) => (
+              {fields.filter(([k]) => !['message','greeting'].includes(String(k))).slice(0, 5).map(([k, l]) => (
                 <label className="block text-sm" key={String(k)}>{l}
                   <input className="mt-1" value={String(c[k] ?? '')} onChange={e => setC({ ...c, [k]: e.target.value } as BirthdayContent)} />
                 </label>
@@ -121,7 +128,7 @@ export default function Builder() {
               )}
               {tab === 'Theme' && (
                 <>
-                  <input type="color" value={c.primaryColor} onChange={e => setC({ ...c, primaryColor: e.target.value })} />
+                  <label className="block text-sm">Accent color<input type="color" value={c.primaryColor} onChange={e => setC({ ...c, primaryColor: e.target.value })} /></label><label className="block text-sm">Font<select value={c.font} onChange={e=>setC({...c,font:e.target.value})}><option value="sans">Quicksand</option><option value="script">Dancing Script</option><option value="bubble">Bubblegum Sans</option><option value="comic">Comic Neue</option><option value="caveat">Caveat</option></select></label>
                   <select value={c.theme} onChange={e => setC({ ...c, theme: e.target.value })}>
                     <option>romantic</option><option>cute</option><option>luxury</option><option>anime</option>
                     <option>gaming</option><option>minimal</option><option>elegant</option><option>festival</option>
@@ -152,7 +159,7 @@ export default function Builder() {
 
         <section className="card overflow-hidden">
           <div className="border-b border-white/10 p-4 text-sm text-zinc-400">Live Preview</div>
-          <div className="h-[calc(100vh-6rem)] overflow-y-auto"><MasterTemplate content={c} /></div>
+          <div className="h-[calc(100vh-6rem)] overflow-y-auto">{templateId === 'master' ? <MasterTemplate content={c} /> : <ExperienceTemplate variant={templateId} content={c} />}</div>
         </section>
       </div>
     </main>

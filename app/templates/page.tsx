@@ -1,27 +1,4 @@
 import Link from 'next/link';
 import { getSessionUser } from '@/lib/auth';
-
-export const dynamic = 'force-dynamic';
-
-export default async function Page(){
-  const u = await getSessionUser().catch(() => null);
-  const ctaHref = u ? '/builder/new' : '/signup';
-  return <main className="mx-auto max-w-5xl px-6 py-20">
-    <Link href="/">← Home</Link>
-    <h1 className="mt-10 text-5xl font-black">Templates</h1>
-    <p className="mt-5 max-w-2xl text-zinc-400">Right now every website is built on the Master Template — the same cinematic, interactive experience you can preview in the Live Demo (countdown, cake &amp; candles, photo gallery, letter, music and more). Pick it to start building, or preview it first.</p>
-    <div className="mt-8 grid gap-4 md:grid-cols-2">
-      <div className="card overflow-hidden">
-        <div className="border-b border-white/10 p-4"><b>Master Template</b><p className="text-sm text-zinc-400">Countdown • Cake &amp; candles • Gallery • Letter • Music • Guestbook</p></div>
-        <div className="flex gap-2 p-4">
-          <Link className="btn" href={ctaHref}>Use this template</Link>
-          <Link className="btn2" href="/demo">Preview</Link>
-        </div>
-      </div>
-      <div className="card p-5 text-zinc-400">
-        <b className="text-white">More templates — coming soon</b>
-        <p className="mt-2 text-sm">Romantic, Cute, Luxury, Anime, Gaming, Minimal, Elegant and Festival variations are on the roadmap as separate, selectable designs.</p>
-      </div>
-    </div>
-  </main>;
-}
+const templates=[['master','Magic Bloom','The original cinematic master experience. Cake, candles, surprise interactions and your memories.','🎂'],['romantic','Midnight Love','A cinematic, intimate story for anniversaries, love notes and unforgettable nights.','🌹'],['cute','Pastel Dream','Playful cards, soft shapes and joyful micro-interactions for sweet celebrations.','🧸'],['luxury','Royal Celebration','Editorial typography, dark surfaces and premium details for milestone moments.','✨'],['anime','Neon Story','Electric gradients, chapter-like storytelling and energetic motion for main-character moments.','⚡'],['gaming','Level Up','Achievement cards, progress energy and a playful HUD-inspired celebration.','🎮'],['minimal','Pure Moment','Quiet, spacious and modern—when the message should feel effortless.','◌'],['elegant','Ever After','Warm, classic and graceful for weddings, anniversaries and family milestones.','🕊️'],['festival','Color Parade','Bold color, confetti energy and a joyful visual rhythm for big celebrations.','🎊']];
+export default async function Page(){const u=await getSessionUser().catch(()=>null);return <main className="mx-auto max-w-7xl px-6 py-10"><Link href="/">← Home</Link><header className="py-16"><p className="text-sm font-bold uppercase tracking-widest text-pink-400">Template gallery</p><h1 className="mt-3 text-5xl font-black md:text-7xl">Every design has its own personality.</h1><p className="mt-5 max-w-2xl text-lg text-zinc-400">The Master Template is the flagship. The other experiences are intentionally different—not copies with a new color.</p></header><div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{templates.map(([id,name,d,emoji],i)=><article className={`card overflow-hidden ${id==='master'?'ring-1 ring-pink-400/40':''}`} key={id}><div className="grid h-52 place-items-center bg-gradient-to-br from-pink-500/20 via-purple-500/10 to-cyan-500/10 text-7xl">{emoji}</div><div className="p-6"><div className="flex items-center justify-between gap-3"><h2 className="text-xl font-black">{name}</h2>{id==='master'&&<span className="rounded-full bg-pink-400/10 px-2 py-1 text-[10px] font-bold uppercase text-pink-300">Master</span>}</div><p className="mt-3 text-sm leading-6 text-zinc-400">{d}</p><Link className="btn2 mt-5 inline-flex" href={u?'/builder/new':'/signup'}>Use this design</Link></div></article>)}</div></main>}
