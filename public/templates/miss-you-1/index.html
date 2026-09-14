@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Meta Tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="A romantic love letter, recording every day we spend together">
+  <meta name="author" content="qzydustin">
+  <meta name="theme-color" content="#ffe">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Love Letter">
+  <meta property="og:description" content="A romantic love letter, recording every day we spend together">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://love.qzydustin.com">
+
+  <!-- Title & Resources -->
+  <title>Love Letter</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <script>
+    // Wishly runtime bridge: preserves the original Miss You experience while allowing saved Studio data.
+    (() => {
+      try {
+        const raw = new URLSearchParams(location.search).get('config');
+        window.__WISHLY_MISSYOU_CONFIG = raw ? JSON.parse(decodeURIComponent(raw)) : {};
+      } catch (_) {
+        window.__WISHLY_MISSYOU_CONFIG = {};
+      }
+      document.addEventListener('DOMContentLoaded', () => {
+        const data = window.__WISHLY_MISSYOU_CONFIG || {};
+        const audio = document.querySelector('#bgm source');
+        if (audio && data.musicUrl) {
+          audio.src = data.musicUrl;
+          document.getElementById('bgm')?.load();
+        }
+      });
+    })();
+  </script>
+  <div id="floating-hearts" aria-hidden="true"></div>
+  <button id="start-screen" type="button" aria-label="Start Miss You experience" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;border:0;background:rgba(255,238,255,.98);color:#228567;font:600 22px/1.2 sans-serif;cursor:pointer;letter-spacing:.04em;">
+    <span id="start-text">Miss You</span>
+  </button>
+  <script src="config.js"></script>
+</head>
+<body>
+  <!-- Background Music -->
+  <audio loop id="bgm" preload="auto" aria-label="Background music">
+    <source src="bgm.mp3" type="audio/mpeg">
+  </audio>
+  
+  <!-- Main Container -->
+  <div id="viewport">
+    <div id="main">
+      <!-- Love Letter Content -->
+      <div id="letter" role="article"></div>
+      
+      <!-- Time Counter -->
+      <div id="clock-box" role="timer">
+        <div id="clock-text"></div>
+        <div id="clock"></div>
+      </div>
+      
+      <!-- Ground Canvas -->
+      <canvas id="ground-canvas" aria-hidden="true"></canvas>
+
+      <!-- Static Canvas (tree) -->
+      <canvas id="static-canvas" aria-hidden="true"></canvas>
+
+      <!-- Dynamic Canvas (falling hearts) -->
+      <canvas id="canvas" aria-label="Animated tree with hearts"></canvas>
+    </div>
+  </div>
+  
+  <!-- Main Script -->
+  <script src="js/geometry.js"></script>
+  <script src="js/animation.js"></script>
+  <script src="js/tree.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

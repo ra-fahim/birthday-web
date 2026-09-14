@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { defaultContent, BirthdayContent } from '@/lib/types';
 import { MasterTemplate } from '@/components/template/MasterTemplate';
-import ExperienceTemplate from '@/components/template/ExperienceTemplates';
+import ExperienceTemplate, { getMissYouDefaults } from '@/components/template/ExperienceTemplates';
 import { SingleMediaUpload, GalleryUpload } from './MediaUploader';
 import FeatureControls from './FeatureControls';
 import { TimelineEditor, MemoriesEditor, WishlistEditor, GuestbookToggle } from './ContentListEditors';
@@ -164,9 +164,13 @@ export default function Builder() {
 
   const currentOccasion = OCCASIONS.find(x => x[0] === occasion) || OCCASIONS[0];
   const occasionTemplates = useMemo(() => templatesForOccasion(occasion), [occasion]);
+  const missYouConfig = useMemo(() => ({ ...getMissYouDefaults(), ...(c.templateConfig || {}) }), [c.templateConfig]);
+  const updateMissYou = (patch: Record<string, unknown>) => update({ templateConfig: { ...missYouConfig, ...patch } });
   const visibleTabs = templateId === 'wedding-proposal'
     ? TABS.filter(([value]) => value === 'overview' || value === 'opening')
-    : TABS.filter(([value]) => value !== 'social' || templateId === 'master');
+    : templateId === 'miss-you-1'
+      ? TABS.filter(([value]) => value === 'overview' || value === 'story' || value === 'music')
+      : TABS.filter(([value]) => value !== 'social' || templateId === 'master');
   const activeTab = visibleTabs.find(x => x[0] === tab) || visibleTabs[0];
   useEffect(() => {
     if (!visibleTabs.some(([value]) => value === tab)) setTab('overview');
@@ -197,7 +201,7 @@ export default function Builder() {
         </div>
 
         <div className="builder-selector-grid">
-          <div><span>Occasion</span><select value={occasion} onChange={e => { const nextOccasion = e.target.value; setOccasion(nextOccasion); setTemplateId(firstTemplateForOccasion(nextOccasion)); setDirty(true); }}>{OCCASIONS.map(([value, emoji, label]) => <option value={value} key={value}>{emoji} {label}</option>)}</select></div>
+          <div><span>Occasion</span><select value={occasion} onChange={e => { const nextOccasion = e.target.value; const nextTemplate = firstTemplateForOccasion(nextOccasion); setOccasion(nextOccasion); setTemplateId(nextTemplate); if (nextTemplate === 'miss-you-1' && !c.templateConfig) setC(prev => ({ ...prev, templateConfig: getMissYouDefaults() })); setDirty(true); }}>{OCCASIONS.map(([value, emoji, label]) => <option value={value} key={value}>{emoji} {label}</option>)}</select></div>
           <div><span>Experience</span><select value={templateId} disabled={!occasionTemplates.length} onChange={e => { setTemplateId(e.target.value); setDirty(true); }}>
             {!occasionTemplates.length && <option value="">No {currentOccasion[2]} template added yet</option>}
             {occasionTemplates.map((t) => <option value={t.slug} key={t.slug}>{t.name}</option>)}
@@ -227,7 +231,34 @@ export default function Builder() {
                 <textarea rows={selectedElement.key==='heroSubtitle'||selectedElement.key==='secret'?3:2} value={String((c as any)[selectedElement.key]||'')} onChange={e=>update({[selectedElement.key]:e.target.value} as Partial<BirthdayContent>)} />
               ) : null}
             </section>}
-            {tab === 'overview' && (templateId === 'wedding-proposal' ? <>
+            {templateId === 'miss-you-1' && tab === 'overview' && <>
+              <Section eyebrow="MISS YOU 1" title="Make it yours" description="Only the content the original Miss You experience actually uses is editable here. The design and animation stay exactly as supplied.">
+                <div className="builder-grid-2">
+                  <Field label="Person 1 name"><input value={String(missYouConfig.name1 || '')} onChange={e => updateMissYou({ name1: e.target.value })} /></Field>
+                  <Field label="Person 2 name"><input value={String(missYouConfig.name2 || '')} onChange={e => updateMissYou({ name2: e.target.value })} /></Field>
+                  <Field label="Together text"><input value={String(missYouConfig.together || '')} onChange={e => updateMissYou({ together: e.target.value })} /></Field>
+                  <Field label="Start date"><input type="datetime-local" value={String(missYouConfig.memorialDate || '').slice(0,16)} onChange={e => updateMissYou({ memorialDate: e.target.value ? new Date(e.target.value).toISOString() : '' })} /></Field>
+                  <Field label="Opening text"><input value={String(missYouConfig.seedText || '')} onChange={e => updateMissYou({ seedText: e.target.value })} /></Field>
+                </div>
+              </Section>
+            </>}
+
+            {templateId === 'miss-you-1' && tab === 'story' && <>
+              <Section eyebrow="LETTER CONTENT" title="Your Miss You letter" description="Edit the exact three-part letter used by the original template.">
+                {(['paragraph1','paragraph2','paragraph3'] as const).map((key, idx) => <ArrayEditor key={key} title={`Paragraph ${idx + 1}`} items={Array.isArray(missYouConfig[key]) ? missYouConfig[key] as string[] : []} placeholder="Write one line…" multiline onChange={items => updateMissYou({ [key]: items })} />)}
+              </Section>
+              <Section eyebrow="COUNTER" title="Time labels" description="These are the only counter labels used by this template.">
+                <div className="builder-grid-2">
+                  <Field label="Prefix"><input value={String(missYouConfig.timePrefix || '')} onChange={e => updateMissYou({ timePrefix: e.target.value })} /></Field>
+                  <Field label="Days"><input value={String(missYouConfig.dayLabel || '')} onChange={e => updateMissYou({ dayLabel: e.target.value })} /></Field>
+                  <Field label="Hours"><input value={String(missYouConfig.hourLabel || '')} onChange={e => updateMissYou({ hourLabel: e.target.value })} /></Field>
+                  <Field label="Minutes"><input value={String(missYouConfig.minuteLabel || '')} onChange={e => updateMissYou({ minuteLabel: e.target.value })} /></Field>
+                  <Field label="Seconds"><input value={String(missYouConfig.secondLabel || '')} onChange={e => updateMissYou({ secondLabel: e.target.value })} /></Field>
+                </div>
+              </Section>
+            </>}
+
+            {tab === 'overview' && templateId !== 'miss-you-1' && (templateId === 'wedding-proposal' ? <>
               <div className="builder-quickstart"><div className="builder-quick-card"><b>1. Personalize</b><span>Set the recipient and sender names.</span></div><div className="builder-quick-card"><b>2. Edit the proposal</b><span>Only the words used by this original HTML are editable.</span></div><div className="builder-quick-card"><b>3. Share</b><span>Save it and create one live link.</span></div></div>
               <Section eyebrow="IDENTITY" title="Who is this proposal for?" description="Only the values used by the Wedding Proposal template are shown.">
                 <div className="builder-grid-2">
@@ -291,13 +322,15 @@ export default function Builder() {
               <Section eyebrow="PRIVATE LINKS" title="Recipient-specific personalization" description="Create multiple private versions of the same experience from Growth → Personalized links."><div className="builder-protected"><span>🔗</span><div><b>Same design, different recipient</b><p>Each recipient can receive a unique link and a private personal note without changing the master layout.</p></div></div></Section>
             </>)}
 
-            {tab === 'story' && <Section eyebrow="THE HEART OF THE STORY" title="Reasons" description="These are the cards visitors reveal one by one. Unlike the old version, every reason is now editable here and updates the live preview immediately.">
+            {tab === 'story' && templateId !== 'miss-you-1' && <Section eyebrow="THE HEART OF THE STORY" title="Reasons" description="These are the cards visitors reveal one by one. Unlike the old version, every reason is now editable here and updates the live preview immediately.">
               <ArrayEditor title="Your reasons" description="Add as many reasons as you want. The master template will automatically update its counter and sequence." items={c.reasons} placeholder="e.g. Your laugh always makes my day…" multiline onChange={items => updateArray('reasons', items)} />
             </Section>}
 
             {tab === 'gallery' && <Section eyebrow="MEMORIES" title="Photo gallery" description="Upload the actual photos used by the cinematic photo scene. No fake placeholder cards are required."><GalleryUpload items={c.gallery} onChange={gallery => update({ gallery })} websiteId={id} /><div className="builder-note mt-4">{c.gallery.length ? `${c.gallery.length} photo${c.gallery.length > 1 ? 's' : ''} ready for the experience.` : 'No photos yet — upload your memories to make this section yours.'}</div></Section>}
 
-            {tab === 'music' && <Section eyebrow="SOUNDTRACK" title="Background music" description="Upload the track that plays through the cinematic experience."><SingleMediaUpload kind="audio" url={c.musicUrl} onChange={musicUrl => update({ musicUrl })} websiteId={id} /><div className="builder-note mt-4">Audio playback still respects browser autoplay rules; visitors may need to tap once before sound starts.</div></Section>}
+            {templateId === 'miss-you-1' && tab === 'music' && <Section eyebrow="SOUNDTRACK" title="Background music" description="This template only needs one audio track. Replace it here without changing the original experience."><SingleMediaUpload kind="audio" url={String(missYouConfig.musicUrl || '')} onChange={musicUrl => updateMissYou({ musicUrl })} websiteId={id} /><div className="builder-note mt-4">Leave it empty to keep the original Miss You 1 music file.</div></Section>}
+
+            {tab === 'music' && templateId !== 'miss-you-1' && <Section eyebrow="SOUNDTRACK" title="Background music" description="Upload the track that plays through the cinematic experience."><SingleMediaUpload kind="audio" url={c.musicUrl} onChange={musicUrl => update({ musicUrl })} websiteId={id} /><div className="builder-note mt-4">Audio playback still respects browser autoplay rules; visitors may need to tap once before sound starts.</div></Section>}
 
             {tab === 'video' && <Section eyebrow="MOVING MEMORIES" title="Special video" description="Upload one video for the master experience. The video scene remains in the same position in the story."><SingleMediaUpload kind="video" url={c.videoUrl} onChange={videoUrl => update({ videoUrl })} websiteId={id} /><div className="builder-grid-2 mt-4"><Field label="Video section title"><input value="A Special Video Message" readOnly /></Field><Field label="Status"><input value={c.videoUrl ? 'Ready to play' : 'No video uploaded'} readOnly /></Field></div></Section>}
 
@@ -341,7 +374,7 @@ export default function Builder() {
         <section className="builder-preview-panel">
           <div className="builder-preview-head"><div><span>LIVE PREVIEW</span><strong>{c.name || 'Untitled celebration'}</strong></div><div className="builder-preview-actions">
   {(['desktop','tablet','mobile'] as const).map(d => <button key={d} className={`builder-device ${device===d?'active':''}`} onClick={()=>setDevice(d)}>{d[0].toUpperCase()+d.slice(1)}</button>)}
-  {templateId !== 'wedding-proposal' && <button className={`builder-device ${editorMode?'active':''}`} onClick={()=>setEditorMode(v=>!v)}>✎ Edit on canvas</button>}
+  {templateId !== 'wedding-proposal' && templateId !== 'miss-you-1' && <button className={`builder-device ${editorMode?'active':''}`} onClick={()=>setEditorMode(v=>!v)}>✎ Edit on canvas</button>}
 </div></div>
           {status === 'published' && publicUrl && <div className="builder-live-link"><div><span>YOUR LIVE LINK</span><strong>{publicUrl}</strong></div><div className="builder-live-link-actions"><button onClick={() => navigator.clipboard?.writeText(publicUrl)}>Copy link</button><a href={publicUrl} target="_blank" rel="noreferrer">Open ↗</a></div></div>}
           <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}>{templateId === 'master' ? <MasterTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div>
