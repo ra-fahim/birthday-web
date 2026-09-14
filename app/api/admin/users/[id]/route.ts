@@ -48,7 +48,7 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
     const add=(url:string)=>{const raw=String(url||''); const i=raw.indexOf(marker); if(i>=0) paths.add(decodeURIComponent(raw.slice(i+marker.length)))};
     const walk=(v:any)=>{if(!v)return;if(typeof v==='string'){add(v);return}if(Array.isArray(v)){v.forEach(walk);return}if(typeof v==='object')Object.values(v).forEach(walk)};
     walk(site.content); [...media,...gallery,...music,...videos].forEach((m:any)=>add(m.url));
-    await Promise.all([...paths].map(p=>supabaseStorageDelete('birthday-builder',p).catch(()=>{})));
+    await Promise.all(Array.from(paths).map(p=>supabaseStorageDelete('birthday-builder',p).catch(()=>{})));
     await Promise.all([db.media.deleteMany({where:{websiteId:site.id}}),db.gallery.deleteMany({where:{websiteId:site.id}}),db.music.deleteMany({where:{websiteId:site.id}}),db.video.deleteMany({where:{websiteId:site.id}}),db.timeline.deleteMany({where:{websiteId:site.id}}),db.memory.deleteMany({where:{websiteId:site.id}}),db.wishlistItem.deleteMany({where:{websiteId:site.id}}),db.guestbook.deleteMany({where:{websiteId:site.id}}),db.analyticsEvent.deleteMany({where:{websiteId:site.id}}),db.recipientEvent.deleteMany({where:{websiteId:site.id}}),db.collaborativeWish.deleteMany({where:{websiteId:site.id}}),db.reaction.deleteMany({where:{websiteId:site.id}}),db.referral.deleteMany({where:{websiteId:site.id}})]);
     await db.website.deleteMany({where:{id:site.id}});
   }
