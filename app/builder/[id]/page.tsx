@@ -10,18 +10,32 @@ import FeatureControls from './FeatureControls';
 import { TimelineEditor, MemoriesEditor, WishlistEditor, GuestbookToggle } from './ContentListEditors';
 import { templateCatalog } from '@/lib/templates';
 
-const catalogOccasionEntries = templateCatalog.reduce<Record<string, [string,string,string]>>((acc, t) => {
-  if (!acc[t.category]) acc[t.category] = [t.category, t.emoji, t.category.replaceAll('-', ' ').replace(/\b\w/g, m => m.toUpperCase())];
-  return acc;
-}, {});
-const OCCASIONS = Object.values(catalogOccasionEntries) as [string,string,string][];
+// Keep the complete occasion list stable even when an occasion has no templates yet.
+// New HTML templates can then be registered under any of these categories later.
+const OCCASIONS = [
+  ['birthday', '🎂', 'Birthday'],
+  ['anniversary', '💞', 'Anniversary'],
+  ['proposal', '💍', 'Proposal'],
+  ['wedding', '💒', 'Wedding'],
+  ['sorry', '🥺', 'Sorry'],
+  ['miss-you', '💌', 'Miss You'],
+  ['thank-you', '💐', 'Thank You'],
+  ['congratulations', '🏆', 'Congratulations'],
+  ['graduation', '🎓', 'Graduation'],
+  ['friendship', '🤝', 'Friendship'],
+  ['surprise', '🎁', 'Surprise'],
+  ['festival', '🎊', 'Festival'],
+] as const;
 
 const TEMPLATES = templateCatalog.map((t) => [t.slug, t.name, t.description] as const);
 
-const OCCASION_TEMPLATE = templateCatalog.reduce<Record<string,string>>((acc, t) => {
-  acc[t.category] = acc[t.category] || t.slug;
-  return acc;
-}, {});
+function templatesForOccasion(nextOccasion: string) {
+  return templateCatalog.filter((t) => t.category === nextOccasion);
+}
+
+function firstTemplateForOccasion(nextOccasion: string) {
+  return templatesForOccasion(nextOccasion)[0]?.slug ?? '';
+}
 
 const EFFECTS = [['countdown','Countdown'],['confetti','Confetti'],['fireworks','Fireworks'],['hearts','Floating hearts'],['balloons','Balloons']] as const;
 
@@ -89,10 +103,12 @@ export default function Builder() {
       if (j.status) setStatus(j.status);
       const storedOccasion = typeof j.content?.occasion === 'string' ? j.content.occasion : 'birthday';
       const storedTemplate = typeof j.templateId === 'string' ? j.templateId : 'master';
-      const occasionTemplate = OCCASION_TEMPLATE[storedOccasion];
-      // Older projects may have a non-birthday occasion saved with the master template.
-      // Upgrade those projects automatically so the studio preview matches the selected occasion.
-      const resolvedTemplate = storedTemplate === 'master' && storedOccasion !== 'birthday' && occasionTemplate ? occasionTemplate : storedTemplate;
+      const occasionTemplates = templatesForOccasion(storedOccasion);
+      const storedTemplateIsValid = occasionTemplates.some((t) => t.slug === storedTemplate);
+      // Always keep the selected experience inside the selected occasion.
+      // Older projects that pointed at Master for another occasion are moved to that occasion's first installed template;
+      // if no template exists yet, the studio stays explicitly empty instead of showing the wrong template.
+      const resolvedTemplate = storedTemplateIsValid ? storedTemplate : (occasionTemplates[0]?.slug ?? '');
       setTemplateId(resolvedTemplate);
       setOccasion(storedOccasion);
       if (resolvedTemplate !== storedTemplate) setDirty(true);
@@ -136,6 +152,7 @@ export default function Builder() {
   }, [c]);
 
   async function save(publish = false) {
+    if (!templateId) { setMsg(`Add a ${currentOccasion[2]} template before publishing.`); return; }
     setMsg(publish ? 'Publishing…' : 'Saving…');
     const next = { ...c, occasion, templateId };
     const r = await fetch('/api/websites/' + id, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ content: next, templateId, status: publish ? 'published' : 'draft' }) });
@@ -146,6 +163,7 @@ export default function Builder() {
   }
 
   const currentOccasion = OCCASIONS.find(x => x[0] === occasion) || OCCASIONS[0];
+  const occasionTemplates = useMemo(() => templatesForOccasion(occasion), [occasion]);
   const visibleTabs = templateId === 'wedding-proposal' ? TABS.filter(([value]) => value === 'overview' || value === 'opening') : TABS;
   const activeTab = visibleTabs.find(x => x[0] === tab) || visibleTabs[0];
   useEffect(() => {
@@ -173,12 +191,15 @@ export default function Builder() {
       <aside className="builder-sidebar">
         <div className="builder-project-card">
           <div className="builder-project-icon">{currentOccasion[1]}</div>
-          <div className="min-w-0"><div className="builder-eyebrow">CURRENT PROJECT</div><h1>{c.name || 'Untitled celebration'}</h1><p>{currentOccasion[2]} · {templateId}</p></div>
+          <div className="min-w-0"><div className="builder-eyebrow">CURRENT PROJECT</div><h1>{c.name || 'Untitled celebration'}</h1><p>{currentOccasion[2]} · {occasionTemplates.find(t => t.slug === templateId)?.name || 'No template added yet'}</p></div>
         </div>
 
         <div className="builder-selector-grid">
-          <div><span>Occasion</span><select value={occasion} onChange={e => { const nextOccasion = e.target.value; setOccasion(nextOccasion); setTemplateId(OCCASION_TEMPLATE[nextOccasion] || 'master'); setDirty(true); }}>{OCCASIONS.map(([value, emoji, label]) => <option value={value} key={value}>{emoji} {label}</option>)}</select></div>
-          <div><span>Experience</span><select value={templateId} onChange={e => { setTemplateId(e.target.value); setDirty(true); }}>{TEMPLATES.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></div>
+          <div><span>Occasion</span><select value={occasion} onChange={e => { const nextOccasion = e.target.value; setOccasion(nextOccasion); setTemplateId(firstTemplateForOccasion(nextOccasion)); setDirty(true); }}>{OCCASIONS.map(([value, emoji, label]) => <option value={value} key={value}>{emoji} {label}</option>)}</select></div>
+          <div><span>Experience</span><select value={templateId} disabled={!occasionTemplates.length} onChange={e => { setTemplateId(e.target.value); setDirty(true); }}>
+            {!occasionTemplates.length && <option value="">No {currentOccasion[2]} template added yet</option>}
+            {occasionTemplates.map((t) => <option value={t.slug} key={t.slug}>{t.name}</option>)}
+          </select></div>
         </div>
 
         <nav className="builder-nav">
@@ -313,7 +334,7 @@ export default function Builder() {
   {templateId !== 'wedding-proposal' && <button className={`builder-device ${editorMode?'active':''}`} onClick={()=>setEditorMode(v=>!v)}>✎ Edit on canvas</button>}
 </div></div>
           {status === 'published' && publicUrl && <div className="builder-live-link"><div><span>YOUR LIVE LINK</span><strong>{publicUrl}</strong></div><div className="builder-live-link-actions"><button onClick={() => navigator.clipboard?.writeText(publicUrl)}>Copy link</button><a href={publicUrl} target="_blank" rel="noreferrer">Open ↗</a></div></div>}
-          <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}>{templateId === 'master' ? <MasterTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} /> : <ExperienceTemplate variant={templateId} content={previewContent} />}</div></div>
+          <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}>{templateId === 'master' ? <MasterTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div>
         </section>
       </section>
     </div>

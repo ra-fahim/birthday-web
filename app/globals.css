@@ -93,3 +93,8 @@
 .home-template-static-card strong{font-size:clamp(22px,2.8vw,34px);line-height:1.02;max-width:520px;margin-top:8px}
 .home-template-static-card p{font-size:12px;color:#a1a1aa;line-height:1.5;max-width:520px;margin-top:10px}
 .home-template-static-dots{display:flex;gap:6px;margin-top:18px}.home-template-static-dots i{width:7px;height:7px;border-radius:999px;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+
+.builder-template-empty{min-height:100%;display:grid;place-items:center;align-content:center;text-align:center;padding:48px 28px;background:linear-gradient(160deg,#0f1118,#090a0f);color:#fff}
+.builder-template-empty>div{width:68px;height:68px;display:grid;place-items:center;border-radius:20px;background:rgba(236,72,153,.12);border:1px solid rgba(236,72,153,.28);font-size:28px;margin-bottom:18px}
+.builder-template-empty h3{margin:0;font-size:28px;font-weight:800}
+.builder-template-empty p{max-width:520px;margin:12px auto 0;color:rgba(255,255,255,.58);line-height:1.7}
