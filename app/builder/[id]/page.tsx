@@ -8,39 +8,20 @@ import ExperienceTemplate from '@/components/template/ExperienceTemplates';
 import { SingleMediaUpload, GalleryUpload } from './MediaUploader';
 import FeatureControls from './FeatureControls';
 import { TimelineEditor, MemoriesEditor, WishlistEditor, GuestbookToggle } from './ContentListEditors';
+import { templateCatalog } from '@/lib/templates';
 
-const OCCASIONS = [
-  ['birthday', '🎂', 'Birthday'], ['anniversary', '💕', 'Anniversary'], ['proposal', '💍', 'Proposal'],
-  ['wedding', '💒', 'Wedding'], ['graduation', '🎓', 'Graduation'], ['congratulations', '🏆', 'Congratulations'],
-  ['thank-you', '💐', 'Thank You'], ['surprise', '🎁', 'Surprise'], ['friendship', '🤝', 'Friendship'], ['festival', '🎊', 'Festival'],
-] as const;
+const catalogOccasionEntries = templateCatalog.reduce<Record<string, [string,string,string]>>((acc, t) => {
+  if (!acc[t.category]) acc[t.category] = [t.category, t.emoji, t.category.replaceAll('-', ' ').replace(/\b\w/g, m => m.toUpperCase())];
+  return acc;
+}, {});
+const OCCASIONS = Object.values(catalogOccasionEntries) as [string,string,string][];
 
-const TEMPLATES = [
-  ['master', 'Magic Bloom', 'The cinematic master experience'],
-  ['birthday', 'Birthday Story', 'A dedicated birthday celebration'],
-  ['anniversary', 'Anniversary Story', 'A dedicated anniversary experience'],
-  ['proposal', 'Proposal Story', 'A dedicated proposal experience'],
-  ['wedding-proposal', 'Wedding Proposal', 'Cinematic proposal question experience'],
-  ['wedding', 'Wedding Story', 'A dedicated wedding experience'],
-  ['sorry', 'Sorry Story', 'A thoughtful apology experience'],
-  ['miss-you', 'Miss You Story', 'A warm long-distance message'],
-  ['thank-you', 'Thank You Story', 'A gratitude-focused experience'],
-  ['congratulations', 'Congratulations Story', 'A celebration of a big win'],
-  ['graduation', 'Graduation Story', 'A next-chapter celebration'],
-  ['friendship', 'Friendship Story', 'A tribute to a special friend'],
-  ['surprise', 'Surprise Story', 'A playful reveal experience'],
-  ['festival', 'Festival Story', 'A bright colorful celebration'],
-  ['romantic', 'Midnight Love', 'Soft, intimate and romantic'], ['cute', 'Pastel Dream', 'Playful, bright and adorable'],
-  ['luxury', 'Royal Celebration', 'Editorial luxury and elegance'], ['anime', 'Neon Story', 'Anime-inspired energy'],
-  ['gaming', 'Level Up', 'Arcade / gamer celebration'], ['minimal', 'Pure Moment', 'Quiet, clean and modern'],
-  ['elegant', 'Ever After', 'Classic, graceful and timeless'], 
-] as const;
+const TEMPLATES = templateCatalog.map((t) => [t.slug, t.name, t.description] as const);
 
-const OCCASION_TEMPLATE: Record<string,string> = {
-  birthday:'birthday', anniversary:'anniversary', proposal:'wedding-proposal', wedding:'wedding',
-  graduation:'graduation', congratulations:'congratulations', 'thank-you':'thank-you',
-  surprise:'surprise', friendship:'friendship', festival:'festival', sorry:'sorry', 'miss-you':'miss-you'
-};
+const OCCASION_TEMPLATE = templateCatalog.reduce<Record<string,string>>((acc, t) => {
+  acc[t.category] = acc[t.category] || t.slug;
+  return acc;
+}, {});
 
 const EFFECTS = [['countdown','Countdown'],['confetti','Confetti'],['fireworks','Fireworks'],['hearts','Floating hearts'],['balloons','Balloons']] as const;
 

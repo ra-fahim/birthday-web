@@ -5,6 +5,19 @@ import type { BirthdayContent } from '@/lib/types';
 
 type Props = { content: BirthdayContent };
 
+let sourcePromise: Promise<string> | null = null;
+
+function loadSource() {
+  if (!sourcePromise) {
+    sourcePromise = fetch('/templates/wedding-proposal-original.html', { cache: 'force-cache' })
+      .then((response) => {
+        if (!response.ok) throw new Error('Unable to load wedding proposal template');
+        return response.text();
+      });
+  }
+  return sourcePromise;
+}
+
 function escapeHtml(value: string) {
   return value
     .replaceAll('&', '&amp;')
@@ -18,7 +31,7 @@ function buildHtml(source: string, content: BirthdayContent) {
   const receiver = content.name || 'You';
   const sender = content.profile?.displayName || content.relationship || 'Someone who loves you';
   const eyebrow = content.proposalEyebrow || 'A little something · made with love';
-  const intro = content.proposalIntroText || 'I\'ve been holding onto a question for a while now.\nBut before I ask it… walk with me a little. 💫';
+  const intro = content.proposalIntroText || "I've been holding onto a question for a while now.\nBut before I ask it… walk with me a little. 💫";
   const startButton = content.proposalStartButton || 'Begin ✦';
   const letter = content.proposalLetterText || content.letter?.join('\n') || content.message || '';
   const continueButton = content.proposalContinueButton || 'Continue ❤️';
@@ -28,37 +41,25 @@ function buildHtml(source: string, content: BirthdayContent) {
   const noButton = content.proposalNoButton || 'No';
 
   let html = source;
-
-  html = html.replace(/const RECEIVER_NAME = "[\\s\\S]*?";/, `const RECEIVER_NAME = ${JSON.stringify(receiver)};`);
-  html = html.replace(/const SENDER_NAME\s*=\s*"[\\s\\S]*?";/, `const SENDER_NAME   = ${JSON.stringify(sender)};`);
-
+  html = html.replace(/const RECEIVER_NAME = "[\s\S]*?";/, `const RECEIVER_NAME = ${JSON.stringify(receiver)};`);
+  html = html.replace(/const SENDER_NAME\s*=\s*"[\s\S]*?";/, `const SENDER_NAME   = ${JSON.stringify(sender)};`);
   html = html.replace(/<p class="eyebrow">A little something · made with love<\/p>/, `<p class="eyebrow">${escapeHtml(eyebrow)}</p>`);
-  html = html.replace(
-    /<p class="sub">[\\s\\S]*?<\/p>/,
-    `<p class="sub">${escapeHtml(intro).replaceAll('\n', '<br>')}</p>`,
-  );
-  html = html.replace(/<button class="btn btn-primary" id="startBtn">[\\s\\S]*?<\/button>/, `<button class="btn btn-primary" id="startBtn">${escapeHtml(startButton)}</button>`);
-  html = html.replace(/const LETTER_TEXT =[\\s\\S]*?;\n\nlet typing/, `const LETTER_TEXT = ${JSON.stringify(letter)};\n\nlet typing`);
-  html = html.replace(/<button class="btn btn-primary" id="continueBtn">[\\s\\S]*?<\/button>/, `<button class="btn btn-primary" id="continueBtn">${escapeHtml(continueButton)}</button>`);
-  html = html.replace(/<h1>You are my greatest adventure,[\\s\\S]*?<\/h1>/, `<h1>${question}</h1>`);
-  html = html.replace(/<button class="btn btn-primary" id="yesBtn">[\\s\\S]*?<\/button>/, `<button class="btn btn-primary" id="yesBtn">${escapeHtml(yesButton)}</button>`);
-  html = html.replace(/<button class="btn btn-ghost" id="noBtn">[\\s\\S]*?<\/button>/, `<button class="btn btn-ghost" id="noBtn">${escapeHtml(noButton)}</button>`);
-
+  html = html.replace(/<p class="sub">[\s\S]*?<\/p>/, `<p class="sub">${escapeHtml(intro).replaceAll('\n', '<br>')}</p>`);
+  html = html.replace(/<button class="btn btn-primary" id="startBtn">[\s\S]*?<\/button>/, `<button class="btn btn-primary" id="startBtn">${escapeHtml(startButton)}</button>`);
+  html = html.replace(/const LETTER_TEXT =[\s\S]*?;\n\nlet typing/, `const LETTER_TEXT = ${JSON.stringify(letter)};\n\nlet typing`);
+  html = html.replace(/<button class="btn btn-primary" id="continueBtn">[\s\S]*?<\/button>/, `<button class="btn btn-primary" id="continueBtn">${escapeHtml(continueButton)}</button>`);
+  html = html.replace(/<h1>You are my greatest adventure,[\s\S]*?<\/h1>/, `<h1>${question}</h1>`);
+  html = html.replace(/<button class="btn btn-primary" id="yesBtn">[\s\S]*?<\/button>/, `<button class="btn btn-primary" id="yesBtn">${escapeHtml(yesButton)}</button>`);
+  html = html.replace(/<button class="btn btn-ghost" id="noBtn">[\s\S]*?<\/button>/, `<button class="btn btn-ghost" id="noBtn">${escapeHtml(noButton)}</button>`);
   return html;
 }
 
 export default function WeddingProposalTemplate({ content }: Props) {
   const [source, setSource] = useState('');
 
-  const html = useMemo(() => (source ? buildHtml(source, content) : ''), [source, content]);
-
   useEffect(() => {
     let active = true;
-    fetch('/templates/wedding-proposal-original.html', { cache: 'no-store' })
-      .then((response) => {
-        if (!response.ok) throw new Error('Unable to load wedding proposal template');
-        return response.text();
-      })
+    loadSource()
       .then((text) => {
         if (active) setSource(text);
       })
@@ -70,6 +71,15 @@ export default function WeddingProposalTemplate({ content }: Props) {
     };
   }, []);
 
+  // Debounce preview rebuilds so editing a field does not restart the original animation on every keystroke.
+  const [previewContent, setPreviewContent] = useState(content);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setPreviewContent(content), 350);
+    return () => window.clearTimeout(timer);
+  }, [content]);
+
+  const html = useMemo(() => (source ? buildHtml(source, previewContent) : ''), [source, previewContent]);
+
   if (!html) {
     return <div aria-label="Loading template" style={{ width: '100%', height: '100%', minHeight: 720, background: '#07000b' }} />;
   }
@@ -79,6 +89,7 @@ export default function WeddingProposalTemplate({ content }: Props) {
       title="Wedding Proposal template"
       srcDoc={html}
       sandbox="allow-scripts allow-same-origin"
+      loading="eager"
       style={{ width: '100%', height: '100%', minHeight: 720, border: 0, display: 'block', background: '#07000b' }}
       referrerPolicy="no-referrer"
     />
