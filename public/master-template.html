@@ -2033,6 +2033,7 @@ function applyContent(c){
  if(!c)return;
  const occasion=occasionNames[c.occasion]||'Celebration', name=c.name||'Someone special';
  const set=(id,value)=>{const el=document.getElementById(id);if(el&&value!=null)el.textContent=String(value)};
+ const setHref=(selector,value)=>{document.querySelectorAll(selector).forEach(el=>{const raw=String(value||'').trim();let safe='';try{const u=new URL(raw,location.href);if(['http:','https:'].includes(u.protocol))safe=u.href;}catch{}if(safe){el.href=safe;el.target='_blank';el.rel='noopener noreferrer';el.style.display='';}else{el.removeAttribute('href');el.style.display='none';}})};
  set('greetingTitle',`${c.greeting||occasion} ${name} ❤️✨`);
  set('greetingText',c.heroSubtitle||'A special moment made just for you.');
  set('reasonsTitle',`${c.heroTitle||`Reasons you are special`}`);
@@ -2040,12 +2041,18 @@ function applyContent(c){
  set('photoSubtitle',`Every memory deserves a little more magic. Here are some moments worth keeping.`);
  set('videoTitle',`${occasion} video memories`);
  set('letterTitle',`A letter for ${name} 💌`);
- set('letterReturnBtn',c.buttonText||'Keep going ✨');
+ set('letterReturnBtn',c.letterButton||'Keep going ✨');
  set('secretTitle',`${name}, one last little surprise ✨`);
  set('secretMessage',c.secret||'You found the secret! 🎁');
- set('secretButton','See your next surprise');
+ set('secretButton',c.secretButton||'See Your Friend');
  const enter=document.getElementById('enterWorldBtn'); if(enter)enter.textContent=c.buttonText||'Click to enter your world 💕';
- const cakeNext=document.getElementById('cakeNextBtn'); if(cakeNext)cakeNext.textContent=c.buttonText||'Enter your storyline 💫';
+ const social=c.social||{};
+ const instagram=social.instagram||'https://www.instagram.com/rafahimn';
+ const facebook=social.facebook||'https://www.facebook.com/rafahimn';
+ setHref('.social-btn.instagram', instagram);
+ setHref('.social-btn.facebook', facebook);
+ const secretButton=document.getElementById('secretButton'); if(secretButton){secretButton.onclick=()=>{if(instagram)window.open(instagram,'_blank','noopener,noreferrer')}}
+ const cakeNext=document.getElementById('cakeNextBtn'); if(cakeNext)cakeNext.textContent=c.cakeNextButton||'Enter your story 💫';
  const reasonsBtn=document.getElementById('reasonsBtn'); if(reasonsBtn)reasonsBtn.textContent=c.reasonsButton||'Show me another reason 💕';
  reasons=(Array.isArray(c.reasons)?c.reasons:[]).filter(Boolean).map((text,i)=>({text:String(text),emoji:['🌟','💗','💕','✨','🌸','🫶','🥳'][i%7]}));
  if(!reasons.length)reasons=[{text:'This moment was made especially for you. ✨',emoji:'✨'}];

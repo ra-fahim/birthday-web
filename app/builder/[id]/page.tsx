@@ -42,7 +42,7 @@ const EFFECTS = [['countdown','Countdown'],['confetti','Confetti'],['fireworks',
 const TABS = [
   ['overview', '✦', 'Overview'], ['opening', '◌', 'Opening & Text'], ['story', '♡', 'Reasons'], ['gallery', '▧', 'Gallery'],
   ['music', '♪', 'Music'], ['video', '▶', 'Video'], ['letter', '✉', 'Letter'], ['theme', '◈', 'Theme'], ['effects', '✧', 'Effects'],
-  ['timeline', '⌁', 'Timeline'], ['memories', '◫', 'Memories'], ['wishlist', '◇', 'Wishlist'], ['guestbook', '☷', 'Guestbook'],
+  ['timeline', '⌁', 'Timeline'], ['memories', '◫', 'Memories'], ['wishlist', '◇', 'Wishlist'], ['guestbook', '☷', 'Guestbook'], ['social', '◎', 'Social links'],
   ['growth', '↗', 'Growth'], ['advanced', '⚙', 'Advanced'],
 ] as const;
 
@@ -164,7 +164,9 @@ export default function Builder() {
 
   const currentOccasion = OCCASIONS.find(x => x[0] === occasion) || OCCASIONS[0];
   const occasionTemplates = useMemo(() => templatesForOccasion(occasion), [occasion]);
-  const visibleTabs = templateId === 'wedding-proposal' ? TABS.filter(([value]) => value === 'overview' || value === 'opening') : TABS;
+  const visibleTabs = templateId === 'wedding-proposal'
+    ? TABS.filter(([value]) => value === 'overview' || value === 'opening')
+    : TABS.filter(([value]) => value !== 'social' || templateId === 'master');
   const activeTab = visibleTabs.find(x => x[0] === tab) || visibleTabs[0];
   useEffect(() => {
     if (!visibleTabs.some(([value]) => value === tab)) setTab('overview');
@@ -317,6 +319,14 @@ export default function Builder() {
             {tab === 'memories' && <Section eyebrow="LITTLE THINGS" title="Memories" description="Short memory snippets that visitors can discover in the experience."><MemoriesEditor content={c} onChange={next => { setC(next); setDirty(true); }} /></Section>}
             {tab === 'wishlist' && <Section eyebrow="WISHES" title="Wishlist" description="Add gift ideas or future wishes that visitors can see."><WishlistEditor content={c} onChange={next => { setC(next); setDirty(true); }} /></Section>}
             {tab === 'guestbook' && <Section eyebrow="COMMUNITY" title="Guestbook" description="Let visitors leave messages on the published experience."><GuestbookToggle content={c} onChange={next => { setC(next); setDirty(true); }} /></Section>}
+
+            {tab === 'social' && <Section eyebrow="SHARE YOUR WORLD" title="Social / Friend link" description="These links power the social buttons at the end of the Master Template. Add the profile or page you want your friends, soulmate, or guests to visit.">
+              <div className="builder-grid-2">
+                <Field label="Friend / soulmate link (Instagram)" hint="This powers the “See Your Friend” button at the end of the Master Template."><input type="url" value={c.social?.instagram || ''} onChange={e => update({ social: { ...(c.social || {}), instagram: e.target.value } })} placeholder="https://instagram.com/yourname" /></Field>
+                <Field label="Facebook link" hint="Used by the Facebook button on the Master Template contact section."><input type="url" value={c.social?.facebook || ''} onChange={e => update({ social: { ...(c.social || {}), facebook: e.target.value } })} placeholder="https://facebook.com/yourname" /></Field>
+              </div>
+              <div className="builder-note mt-4">Leave a field empty to keep the original Master Template link. Your links are saved with this website and will be included in its published version.</div>
+            </Section>}
 
             {tab === 'growth' && <FeatureControls content={c} onChange={next => { setC(next); setDirty(true); }} websiteId={id} siteSlug={slug} siteStatus={status} />}
 
