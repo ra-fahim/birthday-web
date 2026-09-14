@@ -8,7 +8,7 @@ import { templateCatalog } from '@/lib/templates';
 export async function GET() {
   try {
     const existing = await db.template.findMany({ where: { active: true } });
-    const bySlug = new Map(existing.map((template: any) => [template.slug, template]));
+    const bySlug = new Map<string, any>(existing.map((template: any) => [template.slug, template] as [string, any]));
     return NextResponse.json(templateCatalog.map((definition, index) => ({
       ...definition,
       ...(bySlug.get(definition.slug) || {}),
