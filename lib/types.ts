@@ -23,6 +23,19 @@ export type BirthdayContent={
  pdfDownloadEnabled:boolean;
  language:string; translations:Record<string,Partial<Pick<BirthdayContent,'greeting'|'message'|'heroTitle'|'heroSubtitle'|'buttonText'>>>;
  googlePhotosEnabled:boolean;
+ proposalMasterRecipient:string; proposalMasterSender:string;
+ proposalMasterIntroTitle:string; proposalMasterIntroSubtitle:string;
+ proposalMasterHeroTitle:string; proposalMasterHeroSubtitle:string; proposalMasterScrollLabel:string;
+ proposalMasterMuseumTitle:string; proposalMasterMuseumSubtitle:string;
+ proposalMasterSoundtrackTitle:string; proposalMasterSoundtrackSubtitle:string;
+ proposalMasterComfortTitle:string;
+ proposalMasterDateTitle:string; proposalMasterDateSubtitle:string;
+ proposalMasterGardenTitle:string; proposalMasterGardenSubtitle:string;
+ proposalMasterNotesTitle:string; proposalMasterNotesSubtitle:string;
+ proposalMasterBucketTitle:string; proposalMasterBucketSubtitle:string;
+ proposalMasterStory:{number:string;title:string;body:string}[];
+ proposalMasterFinalTitle:string; proposalMasterFinalParagraphs:string[]; proposalMasterFinalSignoff:string;
+ proposalMasterTicketButton:string; proposalMasterTicketEmail:string;
 };
 export const defaultContent:BirthdayContent={
  occasion:'birthday', templateId:'master',
@@ -35,5 +48,15 @@ export const defaultContent:BirthdayContent={
  profile:{displayName:'',avatarUrl:'',bio:''},recipients:[],referralEnabled:true,referralCode:'',madeWithBadge:true,whatsappShare:true,messengerShare:true,
  gamificationEnabled:true,badges:[],groupBirthdayEnabled:false,groupMembers:[],templateSpotlight:false,timeCapsuleEnabled:false,timeCapsuleUnlockAt:'',
  timeCapsuleMessage:'A message from the past 💌',collaborativeWishesEnabled:true,liveReactionsEnabled:true,pdfDownloadEnabled:true,
+ proposalMasterRecipient:'Natu',proposalMasterSender:'',
+ proposalMasterIntroTitle:'Will you be my Valentine?',proposalMasterIntroSubtitle:'...and for a lifetime?',
+ proposalMasterHeroTitle:'To My Dearest',proposalMasterHeroSubtitle:'A love letter, written just for you.',proposalMasterScrollLabel:'Scroll slowly',
+ proposalMasterMuseumTitle:'Museum of Our Love',proposalMasterMuseumSubtitle:'A Curated Collection of Us',
+ proposalMasterSoundtrackTitle:'Our Soundtrack',proposalMasterSoundtrackSubtitle:'Songs that sound like us',proposalMasterComfortTitle:'Comfort Corner',
+ proposalMasterDateTitle:"Let's Plan Our Date Together",proposalMasterDateSubtitle:'Pick what your heart desires.',
+ proposalMasterGardenTitle:'Our Bloom Garden',proposalMasterGardenSubtitle:'Plant a little love.',proposalMasterNotesTitle:'Love Note Jar',proposalMasterNotesSubtitle:'Open one whenever you need a reminder.',
+ proposalMasterBucketTitle:'Future Bucket List',proposalMasterBucketSubtitle:'Little dreams for the life ahead.',
+ proposalMasterStory:[{number:'I',title:'The Beginning',body:'Every beautiful story starts with a moment that feels ordinary—until you realize it changed everything.'},{number:'II',title:'The Little Things',body:'It is the little laughs, quiet conversations, and tiny memories that slowly become your favorite parts of life.'},{number:'III',title:'The Strength',body:'You make difficult days softer and bright days brighter. That is one of the many reasons I choose you.'},{number:'IV',title:'The Promise',body:'To listen, support, laugh, grow, and keep choosing each other through every chapter ahead.'},{number:'V',title:'The Horizon',body:'I cannot promise every day will be perfect. I can promise I want to be there for the story that comes next.'}],
+ proposalMasterFinalTitle:'A Letter for You',proposalMasterFinalParagraphs:['Words often fail to capture the depth of what I feel.','You are my favorite person and my safest home.','I love you, more than yesterday, but less than tomorrow.'],proposalMasterFinalSignoff:'Forever yours',proposalMasterTicketButton:'Send Ticket',proposalMasterTicketEmail:'',
  language:'en',translations:{},googlePhotosEnabled:false
 };
