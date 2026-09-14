@@ -27,7 +27,7 @@ function contentToData(content?: BirthdayContent) {
   return result;
 }
 
-export default function MasterTemplate({ data, content, demo, websiteSlug, recipientId, editorMode = false }: Props) {
+export default function MasterTemplate({ data, content, demo, websiteSlug, recipientId, editorMode = false, onElementSelect }: Props) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const resolved = useMemo(() => ({ ...contentToData(content), ...data }), [content, data]);
   const src = useMemo(() => {
