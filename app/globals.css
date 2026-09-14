@@ -1,3 +1,8 @@
+
+/* Original Master Proposal theme variables/fonts */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap');
+:root{--love-bg:#FAF9F6;--love-text:#5D4037;--love-pink:#E8D5D5;--love-accent:#C08081;--love-card:#FFFBFB;--love-dark-bg:#1F1717;--love-dark-text:#EAD4D4;--love-dark-accent:#E09F9F;--love-dark-card:#291D1D;}
+html{scroll-behavior:smooth;}html,body{-ms-overflow-style:none;scrollbar-width:none;}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;} .no-scrollbar::-webkit-scrollbar{display:none;} .no-scrollbar{-ms-overflow-style:none;scrollbar-width:none;}
 @tailwind base;@tailwind components;@tailwind utilities;
 :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#09090b;color:#fafafa;font-family:Arial,sans-serif}.card{border:1px solid rgba(255,255,255,.1);background:rgba(24,24,27,.75);border-radius:20px}.btn{border:0;border-radius:12px;padding:.75rem 1rem;background:#ec4899;color:white;font-weight:700;cursor:pointer}.btn2{border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:.75rem 1rem;background:rgba(255,255,255,.06)}input,textarea,select{border:1px solid rgba(255,255,255,.12);background:#18181b;color:#fff;border-radius:10px;padding:.7rem;width:100%}a{color:inherit;text-decoration:none}
 

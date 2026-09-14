@@ -16,7 +16,8 @@ export default async function New({ searchParams }: { searchParams?: { template?
   const registered = getTemplate(requestedTemplate);
   const templateId = registered?.slug || 'master';
   const requestedOccasion = OCCASIONS.has(searchParams?.occasion || '') ? String(searchParams!.occasion) : '';
-  const occasion = requestedOccasion || registered?.category || 'birthday';
+  // A registered template owns its occasion. Ignore an incompatible query-string occasion.
+  const occasion = registered?.category || requestedOccasion || 'birthday';
   const seed = { ...defaultContent, occasion, templateId };
   const label = templateId === 'master' ? 'Master Celebration' : `${registered?.name || templateId} Celebration`;
   const s = await db.website.create({ data: { userId: u.id, slug: `celebration-${Date.now()}`, title: label, templateId, content: seed } });
