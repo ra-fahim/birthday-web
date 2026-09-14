@@ -26,7 +26,7 @@ const TEMPLATES = [
 const EFFECTS = [['countdown','Countdown'],['confetti','Confetti'],['fireworks','Fireworks'],['hearts','Floating hearts'],['balloons','Balloons']] as const;
 
 const TABS = [
-  ['overview', '✦', 'Overview'], ['opening', '◌', 'Opening'], ['story', '♡', 'Reasons'], ['gallery', '▧', 'Gallery'],
+  ['overview', '✦', 'Overview'], ['opening', '◌', 'Opening & Text'], ['story', '♡', 'Reasons'], ['gallery', '▧', 'Gallery'],
   ['music', '♪', 'Music'], ['video', '▶', 'Video'], ['letter', '✉', 'Letter'], ['theme', '◈', 'Theme'], ['effects', '✧', 'Effects'],
   ['timeline', '⌁', 'Timeline'], ['memories', '◫', 'Memories'], ['wishlist', '◇', 'Wishlist'], ['guestbook', '☷', 'Guestbook'],
   ['growth', '↗', 'Growth'], ['advanced', '⚙', 'Advanced'],
@@ -80,6 +80,7 @@ export default function Builder() {
   const [editorMode, setEditorMode] = useState(true);
   const [device, setDevice] = useState<'desktop'|'tablet'|'mobile'>('desktop');
   const [selectedElement, setSelectedElement] = useState<CanvasSelection | null>(null);
+  const [publicUrl, setPublicUrl] = useState('');
 
   useEffect(() => {
     fetch('/api/websites/' + id).then(r => r.json()).then(j => {
@@ -88,6 +89,7 @@ export default function Builder() {
       if (j.status) setStatus(j.status);
       if (j.templateId) setTemplateId(j.templateId);
       if (j.content?.occasion) setOccasion(j.content.occasion);
+      if (j.slug) setPublicUrl(`${window.location.origin}/site/${j.slug}`);
     });
   }, [id]);
 
@@ -132,8 +134,8 @@ export default function Builder() {
     const r = await fetch('/api/websites/' + id, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ content: next, templateId, status: publish ? 'published' : 'draft' }) });
     const j = await r.json();
     setMsg(r.ok ? (publish ? 'Published successfully ✨' : 'Draft saved ✓') : (j.error || 'Something went wrong'));
-    if (r.ok) { setStatus(publish ? 'published' : 'draft'); setDirty(false); }
-    if (publish) router.refresh();
+    if (r.ok) { setStatus(publish ? 'published' : 'draft'); setDirty(false); if (j.slug) setPublicUrl(`${window.location.origin}/site/${j.slug}`); }
+    if (publish) { setMsg('Live link ready ✨'); router.refresh(); }
   }
 
   const currentOccasion = OCCASIONS.find(x => x[0] === occasion) || OCCASIONS[0];
@@ -147,7 +149,7 @@ export default function Builder() {
         <div className={`builder-status ${dirty ? 'is-dirty' : ''}`}><i />{dirty ? 'Unsaved changes' : status === 'published' ? 'Published' : 'All changes saved'}</div>
         <button className="builder-ghost" onClick={() => router.push('/dashboard')}>Exit</button>
         <button className="builder-save" onClick={() => save(false)}>Save draft</button>
-        <button className="builder-publish" onClick={() => save(true)}>Publish ↗</button>
+        <button className="builder-publish" onClick={() => save(true)}>Create Live Link ↗</button>
       </div>
     </header>
 
@@ -168,7 +170,7 @@ export default function Builder() {
           {TABS.map(([value, icon, label]) => <button key={value} className={tab === value ? 'active' : ''} onClick={() => setTab(value)}><span>{icon}</span>{label}{['gallery','story','timeline','memories','wishlist'].includes(value) && <b>{value === 'story' ? c.reasons.length : value === 'gallery' ? c.gallery.length : value === 'timeline' ? c.timeline.length : value === 'memories' ? c.memories.length : c.wishlist.length}</b>}</button>)}
         </nav>
 
-        <div className="builder-side-tip"><span>⌘</span><div><b>Live editing</b><p>Every change appears in the preview instantly.</p></div></div>
+        <div className="builder-side-tip"><span>⌘</span><div><b>Easy mode</b><p>Edit here or directly on the page. When ready, create one live link for this website.</p></div></div>
       </aside>
 
       <section className="builder-workspace">
@@ -198,7 +200,7 @@ export default function Builder() {
               <Section eyebrow="CONTENT MAP" title="Your experience at a glance" description="Nothing here is decorative: these counters show what will actually render on the published page.">
                 <div className="builder-metric-grid">{[['♡', c.reasons.length, 'Reasons'], ['▧', c.gallery.length, 'Photos'], ['✉', c.letter.length, 'Letter lines'], ['⌁', c.timeline.length, 'Timeline moments'], ['◫', c.memories.length, 'Memories'], ['◇', c.wishlist.length, 'Wishlist items']].map(([icon, value, label]) => <button key={String(label)} onClick={() => setTab(label === 'Reasons' ? 'story' : label === 'Photos' ? 'gallery' : label === 'Letter lines' ? 'letter' : label === 'Timeline moments' ? 'timeline' : label === 'Memories' ? 'memories' : 'wishlist')}><span>{icon}</span><b>{String(value)}</b><small>{String(label)}</small></button>)}</div>
               </Section>
-              <Section eyebrow="CORE EXPERIENCE" title="One thing stays protected" description="The cinematic master experience, its sequence and fixed core message remain part of the template. You customize the meaningful inputs around it."><div className="builder-protected"><span>🔒</span><div><b>Master experience structure</b><p>The reveal flow, animation choreography and core message are intentionally protected so every published site keeps the same signature feel.</p></div></div></Section>
+              <Section eyebrow="MASTER TEMPLATE" title="Everything important is editable" description="Change the words, photos, soundtrack, buttons, colors and story details below. The beautiful cinematic layout stays intact while your content becomes completely yours."><div className="builder-protected"><span>✨</span><div><b>Your content, your version</b><p>Nothing about the master experience is locked from you. The template is the design system; your project controls the content and presentation.</p></div></div></Section>
             </>}
 
             {tab === 'opening' && <>
@@ -208,7 +210,21 @@ export default function Builder() {
                   <Field label="Hero title"><input value={c.heroTitle} onChange={e => update({ heroTitle: e.target.value })} /></Field>
                 </div>
                 <Field label="Hero subtitle"><textarea rows={4} value={c.heroSubtitle} onChange={e => update({ heroSubtitle: e.target.value })} /></Field>
-                <div className="builder-note">Tip: Keep the title short. The master template uses typography and motion to make a short line feel cinematic.</div>
+                <div className="builder-grid-2 mt-4">
+                  <Field label="Main CTA"><input value={c.buttonText} onChange={e => update({ buttonText: e.target.value })} /></Field>
+                  <Field label="Cake next button"><input value={c.cakeNextButton} onChange={e => update({ cakeNextButton: e.target.value })} /></Field>
+                  <Field label="Reasons button"><input value={c.reasonsButton} onChange={e => update({ reasonsButton: e.target.value })} /></Field>
+                  <Field label="Gallery heading"><input value={c.photoTitle} onChange={e => update({ photoTitle: e.target.value })} /></Field>
+                  <Field label="Gallery subtitle"><textarea rows={3} value={c.photoSubtitle} onChange={e => update({ photoSubtitle: e.target.value })} /></Field>
+                  <Field label="Gallery next button"><input value={c.photoNextButton} onChange={e => update({ photoNextButton: e.target.value })} /></Field>
+                  <Field label="Video heading"><input value={c.videoTitle} onChange={e => update({ videoTitle: e.target.value })} /></Field>
+                  <Field label="Video next button"><input value={c.videoNextButton} onChange={e => update({ videoNextButton: e.target.value })} /></Field>
+                  <Field label="Letter heading"><input value={c.letterTitle} onChange={e => update({ letterTitle: e.target.value })} /></Field>
+                  <Field label="Letter button"><input value={c.letterButton} onChange={e => update({ letterButton: e.target.value })} /></Field>
+                  <Field label="Secret heading"><input value={c.secretTitle} onChange={e => update({ secretTitle: e.target.value })} /></Field>
+                  <Field label="Secret button"><input value={c.secretButton} onChange={e => update({ secretButton: e.target.value })} /></Field>
+                </div>
+                <div className="builder-note">Tip: You can edit every visible text label in the master experience here, or turn on <b>Edit on canvas</b> and click directly on the live preview.</div>
               </Section>
               <Section eyebrow="PRIVATE LINKS" title="Recipient-specific personalization" description="Create multiple private versions of the same experience from Growth → Personalized links."><div className="builder-protected"><span>🔗</span><div><b>Same design, different recipient</b><p>Each recipient can receive a unique link and a private personal note without changing the master layout.</p></div></div></Section>
             </>}
@@ -257,6 +273,7 @@ export default function Builder() {
   {(['desktop','tablet','mobile'] as const).map(d => <button key={d} className={`builder-device ${device===d?'active':''}`} onClick={()=>setDevice(d)}>{d[0].toUpperCase()+d.slice(1)}</button>)}
   <button className={`builder-device ${editorMode?'active':''}`} onClick={()=>setEditorMode(v=>!v)}>✎ Edit on canvas</button>
 </div></div>
+          {status === 'published' && publicUrl && <div className="builder-live-link"><div><span>YOUR LIVE LINK</span><strong>{publicUrl}</strong></div><div className="builder-live-link-actions"><button onClick={() => navigator.clipboard?.writeText(publicUrl)}>Copy link</button><a href={publicUrl} target="_blank" rel="noreferrer">Open ↗</a></div></div>}
           <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}>{templateId === 'master' ? <MasterTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} /> : <ExperienceTemplate variant={templateId} content={previewContent} />}</div></div>
         </section>
       </section>

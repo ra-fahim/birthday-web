@@ -476,7 +476,7 @@
             <div class="candles" id="candles"></div>
             <div class="cake-status" id="cakeStatus"></div>
             <div class="cut-hint" id="cutHint">🔪 Press and drag anywhere on the cake — cut it your way</div>
-            <button class="cake-next-btn" id="cakeNextBtn" onclick="goToReasonsScreen()" style="display:none;">Enter your storyline 💫</button>
+            <button class="cake-next-btn" id="cakeNextBtn" onclick="goToReasonsScreen()" style="display:none;">Enter your story 💫</button>
         </div>
     </div>
 
@@ -484,7 +484,7 @@
         <div class="reasons-header"><h1 id="reasonsTitle">Happy Birthday Just Friend.. 💖</h1></div>
         <div class="reasons-container" id="reasonsContainer"></div>
         <div class="reason-counter" id="reasonCounter">Reason 1 of 4</div>
-        <button class="reasons-btn" id="reasonsBtn" onclick="handleReasonClick()">Click Here... 💕</button>
+        <button class="reasons-btn" id="reasonsBtn" onclick="handleReasonClick()">Show me another reason 💕</button>
     </div>
 
     <div class="photo-screen" id="photoScreen">
@@ -493,14 +493,14 @@
             <p id="photoSubtitle">Every moment spent with you has been magical. Let's cherish these precious memories.</p>
         </div>
         <div class="photo-container" id="photoContainer"></div>
-        <button class="photo-next-btn" id="photoNextBtn" onclick="goToVideoScreen()">Again Your Storylane 🎥</button>
+        <button class="photo-next-btn" id="photoNextBtn" onclick="goToVideoScreen()">Continue the story 🎥</button>
     </div>
 
     <div class="video-screen" id="videoScreen">
         <h2 id="videoTitle">A Special Video Message</h2>
         <div class="video-container">
             <div class="video-grid" id="videoGrid"></div>
-            <button class="video-next-btn" onclick="goToLetterScreen()">See your letter 💌</button>
+            <button class="video-next-btn" id="videoNextBtn" onclick="goToLetterScreen()">See your letter 💌</button>
         </div>
     </div>
 
@@ -2046,7 +2046,7 @@ function applyContent(c){
  set('secretButton','See your next surprise');
  const enter=document.getElementById('enterWorldBtn'); if(enter)enter.textContent=c.buttonText||'Click to enter your world 💕';
  const cakeNext=document.getElementById('cakeNextBtn'); if(cakeNext)cakeNext.textContent=c.buttonText||'Enter your storyline 💫';
- const reasonsBtn=document.getElementById('reasonsBtn'); if(reasonsBtn)reasonsBtn.textContent='Click Here... 💕';
+ const reasonsBtn=document.getElementById('reasonsBtn'); if(reasonsBtn)reasonsBtn.textContent=c.reasonsButton||'Show me another reason 💕';
  reasons=(Array.isArray(c.reasons)?c.reasons:[]).filter(Boolean).map((text,i)=>({text:String(text),emoji:['🌟','💗','💕','✨','🌸','🫶','🥳'][i%7]}));
  if(!reasons.length)reasons=[{text:'This moment was made especially for you. ✨',emoji:'✨'}];
  currentReasonIndex=0;
@@ -2108,8 +2108,8 @@ function render(){
  if((c.memories||[]).length){memoriesHtml=`<div class="bb-f-card"><b>📸 Memories</b>${c.memories.map(m=>`<div class="bb-wish">${esc(m)}</div>`).join('')}</div>`}
  let wishlistHtml='';
  if((c.wishlist||[]).length){wishlistHtml=`<div class="bb-f-card"><b>🎁 Wishlist</b><ul style="margin-top:6px;padding-left:18px">${c.wishlist.map(w=>`<li>${esc(w)}</li>`).join('')}</ul></div>`}
- const palette=c.primaryColor||'#ec4899'; const fontMap={sans:'Quicksand',script:'Dancing Script',bubble:'Bubblegum Sans',comic:'Comic Neue',caveat:'Caveat'}; const selectedFont=fontMap[c.font]||fontMap.sans; const themeCss=`<style id="bbThemeCss">:root{--bb-accent:${esc(palette)};}body{font-family:'${selectedFont}',sans-serif;} .enter-btn,.reasons-btn,.photo-next-btn,.video-next-btn,.cake-next-btn,.final-btn{background:linear-gradient(45deg,${esc(palette)},#ff99cc)!important;} .greeting-screen h1,.reasons-header h1{color:${esc(palette)}!important;} .bb-f-btn{border-color:${esc(palette)}66!important;} .bb-badge{border-color:${esc(palette)}55!important;color:${esc(palette)}!important;} </style>`; const customCssHtml=c.customCss?`<style id="bbCustomCss">${c.customCss}</style>`:'';
- root.innerHTML=`<button id="bbFeatureToggle">✨ More</button><div id="bbFeaturePanel">
+ const palette=c.primaryColor||'#ec4899'; const fontMap={sans:'Quicksand',script:'Dancing Script',bubble:'Bubblegum Sans',comic:'Comic Neue',caveat:'Caveat'}; const selectedFont=fontMap[c.font]||fontMap.sans; const themeCss=`<style id="bbNoMoreButton">#bbFeatureToggle{display:none!important}#bbFeaturePanel{display:none!important}</style><style id="bbThemeCss">:root{--bb-accent:${esc(palette)};}body{font-family:'${selectedFont}',sans-serif;} .enter-btn,.reasons-btn,.photo-next-btn,.video-next-btn,.cake-next-btn,.final-btn{background:linear-gradient(45deg,${esc(palette)},#ff99cc)!important;} .greeting-screen h1,.reasons-header h1{color:${esc(palette)}!important;} .bb-f-btn{border-color:${esc(palette)}66!important;} .bb-badge{border-color:${esc(palette)}55!important;color:${esc(palette)}!important;} </style>`; const customCssHtml=c.customCss?`<style id="bbCustomCss">${c.customCss}</style>`:'';
+ root.innerHTML=`<div id="bbFeaturePanel" style="display:none!important">
  <div class="bb-f-title">${esc(txt('greeting',c.greeting||'Happy Birthday'))}, ${esc(name)}! 🎂</div><div class="bb-f-sub">Personalized celebration experience</div>
  <div class="bb-f-card bb-profile">${profile.avatarUrl?`<img class="bb-avatar" src="${esc(profile.avatarUrl)}" alt="">`:'<div class="bb-avatar">🎂</div>'}<div><b>${esc(profile.displayName||c.name||'Birthday Builder')}</b><div class="bb-f-sub">${esc(profile.bio||'Made with love.')}</div></div></div>
  ${r?.message?`<div class="bb-f-card"><b>💌 A personal note for you</b><div style="margin-top:5px">${esc(r.message)}</div></div>`:''}
@@ -2126,7 +2126,7 @@ function render(){
  ${c.madeWithBadge?'<div style="text-align:center;font-size:11px;color:#cbd5e1;margin-top:8px">✨ Made with Birthday Builder</div>':''}
  ${c.googlePhotosEnabled?'<div class="bb-f-sub" style="margin-top:8px">📷 Google Photos import is enabled for this project. Connect Google Photos in the dashboard to import albums.</div>':''}
  </div><div id="bbEmojiRain"></div>${themeCss}${customCssHtml}`;
- document.getElementById('bbFeatureToggle').onclick=()=>document.getElementById('bbFeaturePanel').classList.toggle('open');
+ 
  document.getElementById('bbShare')?.addEventListener('click',()=>{post('share');share(publicUrl,'Celebration')});
  document.getElementById('bbWA')?.addEventListener('click',()=>{post('whatsapp_share');location.href='https://wa.me/?text='+encodeURIComponent('✨ '+name+' — '+publicUrl)});
  document.getElementById('bbMessenger')?.addEventListener('click',()=>{post('messenger_share');window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(publicUrl),'_blank','noopener')});
@@ -2155,8 +2155,17 @@ window.addEventListener('DOMContentLoaded',()=>{const root=document.createElemen
     secretTitle:{key:'name',label:'Recipient name'},
     secretMessage:{key:'secret',label:'Secret message'},
     enterWorldBtn:{key:'buttonText',label:'Primary button'},
-    cakeNextBtn:{key:'buttonText',label:'Primary button'},
-    letterReturnBtn:{key:'buttonText',label:'Letter button'}
+    cakeNextBtn:{key:'cakeNextButton',label:'Cake next button'},
+    reasonsBtn:{key:'reasonsButton',label:'Reasons button'},
+    photoNextBtn:{key:'photoNextButton',label:'Gallery next button'},
+    videoNextBtn:{key:'videoNextButton',label:'Video next button'},
+    letterReturnBtn:{key:'letterButton',label:'Letter button'},
+    photoTitle:{key:'photoTitle',label:'Gallery heading'},
+    photoSubtitle:{key:'photoSubtitle',label:'Gallery subtitle'},
+    videoTitle:{key:'videoTitle',label:'Video heading'},
+    letterTitle:{key:'letterTitle',label:'Letter heading'},
+    secretTitle:{key:'secretTitle',label:'Secret heading'},
+    secretButton:{key:'secretButton',label:'Secret button'}
   };
   const styleId='bb-editor-style';
   function editorStyle(){
@@ -2179,7 +2188,7 @@ window.addEventListener('DOMContentLoaded',()=>{const root=document.createElemen
     return null;
   }
   function candidates(){
-    return [...document.querySelectorAll('#greetingTitle,#greetingText,#reasonsTitle,#photoTitle,#videoTitle,#letterTitle,#secretTitle,#secretMessage,#enterWorldBtn,#cakeNextBtn,#letterReturnBtn,.reason-text')];
+    return [...document.querySelectorAll('#greetingTitle,#greetingText,#reasonsTitle,#photoTitle,#photoSubtitle,#videoTitle,#letterTitle,#secretTitle,#secretMessage,#enterWorldBtn,#cakeNextBtn,#reasonsBtn,#photoNextBtn,#videoNextBtn,#letterReturnBtn,#secretButton,.reason-text')];
   }
   function clear(){
     candidates().forEach(el=>el.classList.remove('bb-editor-target','bb-editor-hover'));
@@ -2219,9 +2228,10 @@ window.addEventListener('DOMContentLoaded',()=>{const root=document.createElemen
     if(enabled){ editorStyle(); enable(); }
     else { clear(); candidates().forEach(el=>{el.removeAttribute('contenteditable');el.classList.remove('bb-editor-editing')}); }
   }
-  window.addEventListener('message',e=>{
+window.addEventListener('message',e=>{
     if(!e.data)return;
     if(e.data.type==='BB_EDITOR_MODE') setEnabled(!!e.data.enabled);
+    if(e.data.type==='BB_CONTENT' && BB_EDITOR.enabled) setTimeout(enable,0);
   });
   document.addEventListener('DOMContentLoaded',()=>{ if(BB_EDITOR.enabled)enable(); });
 })();

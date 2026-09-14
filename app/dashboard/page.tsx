@@ -68,8 +68,8 @@ export default async function Dashboard({ searchParams }: { searchParams: { pend
                 <div className="studio-preview-pill">{s.status === 'published' ? '● Live' : 'Draft'}</div>
               </div>
               <div className="studio-project-meta">
-                <div><h3>{s.title || c.name || 'Untitled celebration'}</h3><p>/{s.slug} · {s.status}</p></div>
-                <Link href={`/builder/${s.id}`}>Edit ↗</Link>
+                <div><h3>{s.title || c.name || 'Untitled celebration'}</h3><p>/{s.slug} · {s.status}</p>{s.status === 'published' && <a className="studio-live-link" href={`/site/${s.slug}`} target="_blank" rel="noreferrer">Open live site ↗</a>}</div>
+                <div className="studio-card-actions"><Link href={`/builder/${s.id}`}>Edit ↗</Link><form action={`/api/websites/${s.id}`} method="post" onSubmit={(e)=>{ if(!confirm('Delete this website permanently?')) e.preventDefault(); }}><input type="hidden" name="_method" value="DELETE"/><button type="submit">Delete</button></form></div>
               </div>
             </article>;
           })}
