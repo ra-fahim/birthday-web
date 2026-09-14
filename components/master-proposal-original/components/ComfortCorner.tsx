@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cloud, Sun, Battery, Heart, Frown, Smile, Play, Pause, Volume2, Mic, Shrink } from 'lucide-react';
+import { useProposalContent } from '../ProposalContext';
 
 interface Mood {
   id: string;
