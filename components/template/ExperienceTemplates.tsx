@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 import type { BirthdayContent } from '@/lib/types';
 import WeddingProposalTemplate from './WeddingProposalTemplate';
 
@@ -24,8 +25,48 @@ const presets: Record<string,{label:string;eyebrow:string;headline:string;accent
   festival:{label:'Festival',eyebrow:'Let the celebration begin',headline:'More color. More laughter. More reasons to celebrate.',accent:'#db2777',surface:'#fdf2f8',emoji:'🎊'},
 };
 
+function MissYouTemplate({ content }: { content: BirthdayContent }) {
+  const [config, setConfig] = React.useState(() => ({ ...getMissYouDefaults(), ...(content.templateConfig || {}) }));
+  React.useEffect(() => {
+    const next = { ...getMissYouDefaults(), ...(content.templateConfig || {}) };
+    setConfig(next);
+  }, [content.templateConfig]);
+  const src = React.useMemo(() => `/templates/miss-you-1/index.html?config=${encodeURIComponent(JSON.stringify(config))}`, [config]);
+  return <iframe title="Miss You 1" src={src} style={{ width: '100%', height: '100vh', minHeight: 760, border: 0, display: 'block', background: '#ffe' }} />;
+}
+
+export function getMissYouDefaults() {
+  return {
+    name1: 'Anarkoli', name2: 'Selim', connector: 'and', together: 'together',
+    memorialDate: '2017-12-25T00:00:00', seedText: 'Miss You',
+    paragraph1: [
+      'Someday when I am old, I will still be as deeply in love with you as ever,',
+      'sending you messages from my desk,',
+      'the lamp glowing softly, wind and rain beyond the window,',
+      "taking half a day to brew a single 'I miss you',",
+      'in the wilderness of my heart,',
+      'now meteors chase the moon, now ten thousand horses gallop.'
+    ],
+    paragraph2: [
+      'Sometimes when the moon is out,',
+      'I dream a winding dream with nine turns and eighteen bends,',
+      'every corner has something to do with you,',
+      'you smile at me once,',
+      'and I spend the whole day dazed after waking.'
+    ],
+    paragraph3: [
+      'Now I am in a night full of stars,',
+      'red beans hang heavy on the branches by the steps,',
+      'only after being drunk do you know how strong the wine is,',
+      'nothing can match this longing.'
+    ],
+    timePrefix: 'Day ', dayLabel: ' days', hourLabel: ' hours', minuteLabel: ' minutes', secondLabel: ' seconds', musicUrl: ''
+  } as Record<string, unknown>;
+}
+
 export default function ExperienceTemplate({variant='romantic',content}:{variant?:string;content:BirthdayContent}){
  if (variant === 'wedding-proposal') return <WeddingProposalTemplate content={content} />;
+ if (variant === 'miss-you-1') return <MissYouTemplate content={content} />;
  const p=presets[variant]||presets.romantic; const gallery=content.gallery||[];
  return <div style={{minHeight:'100%',background:p.surface,color:variant==='minimal'||variant==='elegant'?'#111827':'white',fontFamily:'ui-sans-serif,system-ui'}}>
   <section style={{padding:'72px 24px',textAlign:'center',background:`radial-gradient(circle at 20% 10%, ${p.accent}55, transparent 35%), ${p.surface}`}}>

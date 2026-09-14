@@ -23,6 +23,7 @@ export type BirthdayContent={
  pdfDownloadEnabled:boolean;
  language:string; translations:Record<string,Partial<Pick<BirthdayContent,'greeting'|'message'|'heroTitle'|'heroSubtitle'|'buttonText'>>>;
  googlePhotosEnabled:boolean;
+ templateConfig?:Record<string,unknown>;
 };
 export const defaultContent:BirthdayContent={
  occasion:'birthday', templateId:'master',
