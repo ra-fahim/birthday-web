@@ -5,7 +5,7 @@ export type TemplateDefinition = {
   category: string;
   emoji: string;
   accent: string;
-  kind: 'master' | 'wedding-proposal' | 'miss-you-1';
+  kind: 'master' | 'wedding-proposal' | 'miss-you-1' | 'master-proposal';
   originalHtml?: string;
 };
 
@@ -31,6 +31,16 @@ export const templateCatalog: TemplateDefinition[] = [
     accent: '#ff2d55',
     kind: 'wedding-proposal',
     originalHtml: '/templates/wedding-proposal-original.html',
+  },
+  {
+    slug: 'master-proposal',
+    name: 'Master Proposal',
+    description: 'The exact Valentine experience you supplied, with the date-ticket button sending real email automatically.',
+    category: 'proposal',
+    emoji: '💌',
+    accent: '#C08081',
+    kind: 'master-proposal',
+    originalHtml: '/templates/master-proposal/index.html',
   },
   {
     slug: 'miss-you-1',

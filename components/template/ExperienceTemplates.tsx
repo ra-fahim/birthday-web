@@ -64,9 +64,29 @@ export function getMissYouDefaults() {
   } as Record<string, unknown>;
 }
 
+function MasterProposalTemplate({ content }: { content: BirthdayContent }) {
+  const [config, setConfig] = React.useState(() => ({ ...getMasterProposalDefaults(), ...(content.templateConfig || {}) }));
+  React.useEffect(() => {
+    const next = { ...getMasterProposalDefaults(), ...(content.templateConfig || {}) };
+    setConfig(next);
+  }, [content.templateConfig]);
+  const src = React.useMemo(() => `/templates/master-proposal/index.html?config=${encodeURIComponent(JSON.stringify(config))}`, [config]);
+  return <iframe title="Master Proposal" src={src} style={{ width: '100%', height: '100vh', minHeight: 760, border: 0, display: 'block', background: '#FAF9F6' }} />;
+}
+
+export function getMasterProposalDefaults() {
+  return {
+    recipientEmail: 'rabbiahmedfahim44@gmail.com',
+    toName: 'Rodney (The Best Boyfriend)',
+    fromName: 'Sherry (Your Valentine)',
+    fromLabel: 'Sherry',
+  } as Record<string, unknown>;
+}
+
 export default function ExperienceTemplate({variant='romantic',content}:{variant?:string;content:BirthdayContent}){
  if (variant === 'wedding-proposal') return <WeddingProposalTemplate content={content} />;
  if (variant === 'miss-you-1') return <MissYouTemplate content={content} />;
+ if (variant === 'master-proposal') return <MasterProposalTemplate content={content} />;
  const p=presets[variant]||presets.romantic; const gallery=content.gallery||[];
  return <div style={{minHeight:'100%',background:p.surface,color:variant==='minimal'||variant==='elegant'?'#111827':'white',fontFamily:'ui-sans-serif,system-ui'}}>
   <section style={{padding:'72px 24px',textAlign:'center',background:`radial-gradient(circle at 20% 10%, ${p.accent}55, transparent 35%), ${p.surface}`}}>

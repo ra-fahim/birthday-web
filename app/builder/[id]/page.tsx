@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { defaultContent, BirthdayContent } from '@/lib/types';
 import { MasterTemplate } from '@/components/template/MasterTemplate';
-import ExperienceTemplate, { getMissYouDefaults } from '@/components/template/ExperienceTemplates';
+import ExperienceTemplate, { getMissYouDefaults, getMasterProposalDefaults } from '@/components/template/ExperienceTemplates';
 import { SingleMediaUpload, GalleryUpload } from './MediaUploader';
 import FeatureControls from './FeatureControls';
 import { TimelineEditor, MemoriesEditor, WishlistEditor, GuestbookToggle } from './ContentListEditors';
@@ -166,11 +166,15 @@ export default function Builder() {
   const occasionTemplates = useMemo(() => templatesForOccasion(occasion), [occasion]);
   const missYouConfig = useMemo(() => ({ ...getMissYouDefaults(), ...(c.templateConfig || {}) }), [c.templateConfig]);
   const updateMissYou = (patch: Record<string, unknown>) => update({ templateConfig: { ...missYouConfig, ...patch } });
+  const masterProposalConfig = useMemo(() => ({ ...getMasterProposalDefaults(), ...(c.templateConfig || {}) }), [c.templateConfig]);
+  const updateMasterProposal = (patch: Record<string, unknown>) => update({ templateConfig: { ...masterProposalConfig, ...patch } });
   const visibleTabs = templateId === 'wedding-proposal'
     ? TABS.filter(([value]) => value === 'overview' || value === 'opening')
     : templateId === 'miss-you-1'
       ? TABS.filter(([value]) => value === 'overview' || value === 'story' || value === 'music')
-      : TABS.filter(([value]) => value !== 'social' || templateId === 'master');
+      : templateId === 'master-proposal'
+        ? TABS.filter(([value]) => value === 'overview')
+        : TABS.filter(([value]) => value !== 'social' || templateId === 'master');
   const activeTab = visibleTabs.find(x => x[0] === tab) || visibleTabs[0];
   useEffect(() => {
     if (!visibleTabs.some(([value]) => value === tab)) setTab('overview');
@@ -201,7 +205,7 @@ export default function Builder() {
         </div>
 
         <div className="builder-selector-grid">
-          <div><span>Occasion</span><select value={occasion} onChange={e => { const nextOccasion = e.target.value; const nextTemplate = firstTemplateForOccasion(nextOccasion); setOccasion(nextOccasion); setTemplateId(nextTemplate); if (nextTemplate === 'miss-you-1' && !c.templateConfig) setC(prev => ({ ...prev, templateConfig: getMissYouDefaults() })); setDirty(true); }}>{OCCASIONS.map(([value, emoji, label]) => <option value={value} key={value}>{emoji} {label}</option>)}</select></div>
+          <div><span>Occasion</span><select value={occasion} onChange={e => { const nextOccasion = e.target.value; const nextTemplate = firstTemplateForOccasion(nextOccasion); setOccasion(nextOccasion); setTemplateId(nextTemplate); if (nextTemplate === 'miss-you-1' && !c.templateConfig) setC(prev => ({ ...prev, templateConfig: getMissYouDefaults() })); if (nextTemplate === 'master-proposal' && !c.templateConfig) setC(prev => ({ ...prev, templateConfig: getMasterProposalDefaults() })); setDirty(true); }}>{OCCASIONS.map(([value, emoji, label]) => <option value={value} key={value}>{emoji} {label}</option>)}</select></div>
           <div><span>Experience</span><select value={templateId} disabled={!occasionTemplates.length} onChange={e => { setTemplateId(e.target.value); setDirty(true); }}>
             {!occasionTemplates.length && <option value="">No {currentOccasion[2]} template added yet</option>}
             {occasionTemplates.map((t) => <option value={t.slug} key={t.slug}>{t.name}</option>)}
@@ -258,7 +262,20 @@ export default function Builder() {
               </Section>
             </>}
 
-            {tab === 'overview' && templateId !== 'miss-you-1' && (templateId === 'wedding-proposal' ? <>
+            {templateId === 'master-proposal' && tab === 'overview' && <>
+              <div className="builder-quickstart"><div className="builder-quick-card"><b>1. Personalize</b><span>Set the recipient and sender names.</span></div><div className="builder-quick-card"><b>2. Set delivery email</b><span>This is where the date ticket is sent automatically.</span></div><div className="builder-quick-card"><b>3. Share</b><span>Save it and create one live link.</span></div></div>
+              <Section eyebrow="MASTER PROPOSAL" title="Who is this for?" description="Only the values this original Valentine experience actually uses are shown here. The design, animation and audio stay exactly as supplied.">
+                <div className="builder-grid-2">
+                  <Field label="Recipient name (shown on the ticket)"><input value={String(masterProposalConfig.toName || '')} onChange={e => updateMasterProposal({ toName: e.target.value })} placeholder="Rodney (The Best Boyfriend)" /></Field>
+                  <Field label="Sender name (shown on the ticket)"><input value={String(masterProposalConfig.fromName || '')} onChange={e => updateMasterProposal({ fromName: e.target.value })} placeholder="Sherry (Your Valentine)" /></Field>
+                  <Field label="Sender sign-off"><input value={String(masterProposalConfig.fromLabel || '')} onChange={e => updateMasterProposal({ fromLabel: e.target.value })} placeholder="Sherry" /></Field>
+                  <Field label="Ticket delivery email"><input type="email" value={String(masterProposalConfig.recipientEmail || '')} onChange={e => updateMasterProposal({ recipientEmail: e.target.value })} placeholder="you@example.com" /></Field>
+                </div>
+                <div className="builder-note mt-4">When a visitor taps "Send Ticket", the date ticket is emailed to this address automatically — no mail app required.</div>
+              </Section>
+            </>}
+
+            {tab === 'overview' && templateId !== 'miss-you-1' && templateId !== 'master-proposal' && (templateId === 'wedding-proposal' ? <>
               <div className="builder-quickstart"><div className="builder-quick-card"><b>1. Personalize</b><span>Set the recipient and sender names.</span></div><div className="builder-quick-card"><b>2. Edit the proposal</b><span>Only the words used by this original HTML are editable.</span></div><div className="builder-quick-card"><b>3. Share</b><span>Save it and create one live link.</span></div></div>
               <Section eyebrow="IDENTITY" title="Who is this proposal for?" description="Only the values used by the Wedding Proposal template are shown.">
                 <div className="builder-grid-2">
