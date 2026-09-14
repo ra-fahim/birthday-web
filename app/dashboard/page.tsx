@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { getSessionUser, isApprovalRequired } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
+import DeleteWebsiteButton from './DeleteWebsiteButton';
 
 const moods: Record<string,string> = {
   master:'✨', romantic:'🌹', cute:'🧸', luxury:'✦', anime:'⚡', gaming:'🎮', minimal:'◌', elegant:'🕊️', festival:'🎊'
@@ -69,7 +70,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { pend
               </div>
               <div className="studio-project-meta">
                 <div><h3>{s.title || c.name || 'Untitled celebration'}</h3><p>/{s.slug} · {s.status}</p>{s.status === 'published' && <a className="studio-live-link" href={`/site/${s.slug}`} target="_blank" rel="noreferrer">Open live site ↗</a>}</div>
-                <div className="studio-card-actions"><Link href={`/builder/${s.id}`}>Edit ↗</Link><form action={`/api/websites/${s.id}`} method="post" onSubmit={(e)=>{ if(!confirm('Delete this website permanently?')) e.preventDefault(); }}><input type="hidden" name="_method" value="DELETE"/><button type="submit">Delete</button></form></div>
+                <div className="studio-card-actions"><Link href={`/builder/${s.id}`}>Edit ↗</Link><DeleteWebsiteButton id={s.id} /></div>
               </div>
             </article>;
           })}

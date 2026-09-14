@@ -84,6 +84,8 @@ create table if not exists public.analytics_events (
 create table if not exists public.media (
   id uuid primary key default gen_random_uuid(), user_id uuid not null references auth.users(id) on delete cascade, url text not null, public_id text, type text not null, folder text, created_at timestamptz not null default now()
 );
+alter table public.media add column if not exists website_id uuid references public.websites(id) on delete cascade;
+create index if not exists media_website_id_idx on public.media(website_id);
 create table if not exists public.notifications (
   id uuid primary key default gen_random_uuid(), user_id uuid not null references auth.users(id) on delete cascade, title text not null, message text not null, read boolean not null default false, created_at timestamptz not null default now()
 );

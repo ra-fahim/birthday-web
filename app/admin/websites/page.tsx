@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import AdminDeleteWebsiteButton from './AdminDeleteWebsiteButton';
 
 export default function Page() {
   const [items, setItems] = useState<any[]>([]);
@@ -12,12 +13,6 @@ export default function Page() {
     const r = await fetch(`/api/admin/websites/${w.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ status }) });
     if (r.ok) setItems(xs => xs.map(x => x.id === w.id ? { ...x, status } : x));
   }
-  async function remove(w: any) {
-    if (!confirm(`Delete website "${w.title}"? This cannot be undone.`)) return;
-    const r = await fetch(`/api/admin/websites/${w.id}`, { method: 'DELETE' });
-    if (r.ok) setItems(xs => xs.filter(x => x.id !== w.id));
-  }
-
   return (
     <main className="mx-auto max-w-6xl p-6 md:p-10">
       <div className="card p-6">
@@ -39,7 +34,7 @@ export default function Page() {
               {items.map(w => (
                 <tr key={w.id} className="border-t border-white/10">
                   <td className="px-4 py-3">{w.title}</td>
-                  <td className="px-4 py-3">{w.ownerEmail || '—'}</td>
+                  <td className="px-4 py-3">{w.ownerEmail || '—'}{w.userId && <div><a className="text-xs underline text-zinc-500" href={`/admin/users/${w.userId}`}>User 360°</a></div>}</td>
                   <td className="px-4 py-3"><a className="underline" href={`/site/${w.slug}`} target="_blank" rel="noreferrer">/{w.slug}</a></td>
                   <td className="px-4 py-3 capitalize">{w.status}</td>
                   <td className="px-4 py-3">{w.views ?? 0}</td>
@@ -47,7 +42,7 @@ export default function Page() {
                     {w.status !== 'published' && <button className="btn2" onClick={() => setStatus(w, 'published')}>Publish</button>}
                     {w.status === 'published' && <button className="btn2" onClick={() => setStatus(w, 'draft')}>Unpublish</button>}
                     {w.status !== 'archived' && <button className="btn2" onClick={() => setStatus(w, 'archived')}>Archive</button>}
-                    <button className="btn2" onClick={() => remove(w)}>Delete</button>
+                    <AdminDeleteWebsiteButton id={w.id}/>
                   </td>
                 </tr>
               ))}

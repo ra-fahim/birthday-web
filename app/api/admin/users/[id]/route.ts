@@ -4,6 +4,17 @@ import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 
+export async function GET(_req: Request, { params }: { params: { id: string } }) {
+  try { await requireAdmin(); } catch { return NextResponse.json({ error: 'Forbidden' }, { status: 403 }); }
+  const user = await db.user.findUnique({ where: { id: params.id } });
+  if (!user) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  const [websites, media] = await Promise.all([
+    db.website.findMany({ where: { userId: params.id }, orderBy: { updatedAt: 'desc' } }),
+    db.media.findMany({ where: { userId: params.id }, orderBy: { createdAt: 'desc' } }),
+  ]);
+  return NextResponse.json({ user, websites, media });
+}
+
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
     await requireAdmin();

@@ -30,6 +30,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unsupported file type.' }, { status: 415 });
     }
 
+    const websiteId = String(form.get('websiteId') || '').trim() || null;
+    if (websiteId) {
+      const owned = await db.website.findFirst({ where: { id: websiteId, userId: user.id } });
+      if (!owned) return NextResponse.json({ error: 'Website not found' }, { status: 404 });
+    }
     const ext = (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '');
     const safeExt = ext || 'bin';
     const folder = String(form.get('folder') || 'shared').replace(/[^a-zA-Z0-9/_-]/g, '').replace(/^\/+|\/+$/g, '') || 'shared';
@@ -37,7 +42,7 @@ export async function POST(req: Request) {
     const url = await supabaseStorageUpload('birthday-builder', path, file);
 
     const media = await db.media.create({
-      data: { userId: user.id, url, type: file.type, folder }
+      data: { userId: user.id, websiteId: websiteId || undefined, url, type: file.type, folder }
     });
 
     return NextResponse.json({ ok: true, url, media }, { status: 201 });

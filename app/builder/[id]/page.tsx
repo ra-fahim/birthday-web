@@ -141,6 +141,11 @@ export default function Builder() {
   const currentOccasion = OCCASIONS.find(x => x[0] === occasion) || OCCASIONS[0];
   const activeTab = TABS.find(x => x[0] === tab);
   const previewContent = useMemo(() => ({ ...c, occasion, templateId }), [c, occasion, templateId]);
+  const resetToMasterDefaults = () => {
+    const keepName = c.name;
+    setC({ ...defaultContent, name: keepName || defaultContent.name, templateId: 'master', occasion: 'birthday' });
+    setTemplateId('master'); setOccasion('birthday'); setDirty(true); setMsg('Master template defaults restored.');
+  };
 
   return <main className="builder-shell">
     <header className="builder-topbar">
@@ -177,6 +182,7 @@ export default function Builder() {
         <div className="builder-editor-panel">
           <div className="builder-panel-head"><div><div className="builder-eyebrow">{activeTab?.[1]} {activeTab?.[2]}</div><h2>{activeTab?.[2]}</h2></div><span className="builder-live-pill">● LIVE</span></div>
           <div className="builder-form-scroll">
+          {tab === 'overview' && <div className="builder-quickstart"><div className="builder-quick-card"><b>1. Make it yours</b><span>Edit the name, message and story.</span></div><div className="builder-quick-card"><b>2. Add memories</b><span>Upload photos, video and music.</span></div><div className="builder-quick-card"><b>3. Share the link</b><span>Save, publish and copy your live link.</span></div></div>}
             {selectedElement && <section className="builder-selection-card">
               <div><span className="builder-eyebrow">CANVAS SELECTION</span><h3>{selectedElement.label}</h3><p>Double-click text in the preview to edit it directly.</p></div>
               <button className="builder-clear-selection" onClick={()=>setSelectedElement(null)}>Clear</button>
@@ -200,7 +206,7 @@ export default function Builder() {
               <Section eyebrow="CONTENT MAP" title="Your experience at a glance" description="Nothing here is decorative: these counters show what will actually render on the published page.">
                 <div className="builder-metric-grid">{[['♡', c.reasons.length, 'Reasons'], ['▧', c.gallery.length, 'Photos'], ['✉', c.letter.length, 'Letter lines'], ['⌁', c.timeline.length, 'Timeline moments'], ['◫', c.memories.length, 'Memories'], ['◇', c.wishlist.length, 'Wishlist items']].map(([icon, value, label]) => <button key={String(label)} onClick={() => setTab(label === 'Reasons' ? 'story' : label === 'Photos' ? 'gallery' : label === 'Letter lines' ? 'letter' : label === 'Timeline moments' ? 'timeline' : label === 'Memories' ? 'memories' : 'wishlist')}><span>{icon}</span><b>{String(value)}</b><small>{String(label)}</small></button>)}</div>
               </Section>
-              <Section eyebrow="MASTER TEMPLATE" title="Everything important is editable" description="Change the words, photos, soundtrack, buttons, colors and story details below. The beautiful cinematic layout stays intact while your content becomes completely yours."><div className="builder-protected"><span>✨</span><div><b>Your content, your version</b><p>Nothing about the master experience is locked from you. The template is the design system; your project controls the content and presentation.</p></div></div></Section>
+              <Section eyebrow="MASTER TEMPLATE" title="Everything important is editable" description="Change the words, photos, soundtrack, buttons, colors and story details below. The beautiful cinematic layout stays intact while your content becomes completely yours."><div className="builder-protected"><span>✨</span><div><b>Your content, your version</b><p>Nothing about the master experience is locked from you. The template is the design system; your project controls the content and presentation.</p></div></div></Section><div className="mt-3 flex justify-end"><button type="button" className="builder-mini-btn" onClick={resetToMasterDefaults}>↺ Reset to Master defaults</button></div>
             </>}
 
             {tab === 'opening' && <>
@@ -233,11 +239,11 @@ export default function Builder() {
               <ArrayEditor title="Your reasons" description="Add as many reasons as you want. The master template will automatically update its counter and sequence." items={c.reasons} placeholder="e.g. Your laugh always makes my day…" multiline onChange={items => updateArray('reasons', items)} />
             </Section>}
 
-            {tab === 'gallery' && <Section eyebrow="MEMORIES" title="Photo gallery" description="Upload the actual photos used by the cinematic photo scene. No fake placeholder cards are required."><GalleryUpload items={c.gallery} onChange={gallery => update({ gallery })} /><div className="builder-note mt-4">{c.gallery.length ? `${c.gallery.length} photo${c.gallery.length > 1 ? 's' : ''} ready for the experience.` : 'No photos yet — upload your memories to make this section yours.'}</div></Section>}
+            {tab === 'gallery' && <Section eyebrow="MEMORIES" title="Photo gallery" description="Upload the actual photos used by the cinematic photo scene. No fake placeholder cards are required."><GalleryUpload items={c.gallery} onChange={gallery => update({ gallery })} websiteId={id} /><div className="builder-note mt-4">{c.gallery.length ? `${c.gallery.length} photo${c.gallery.length > 1 ? 's' : ''} ready for the experience.` : 'No photos yet — upload your memories to make this section yours.'}</div></Section>}
 
-            {tab === 'music' && <Section eyebrow="SOUNDTRACK" title="Background music" description="Upload the track that plays through the cinematic experience."><SingleMediaUpload kind="audio" url={c.musicUrl} onChange={musicUrl => update({ musicUrl })} /><div className="builder-note mt-4">Audio playback still respects browser autoplay rules; visitors may need to tap once before sound starts.</div></Section>}
+            {tab === 'music' && <Section eyebrow="SOUNDTRACK" title="Background music" description="Upload the track that plays through the cinematic experience."><SingleMediaUpload kind="audio" url={c.musicUrl} onChange={musicUrl => update({ musicUrl })} websiteId={id} /><div className="builder-note mt-4">Audio playback still respects browser autoplay rules; visitors may need to tap once before sound starts.</div></Section>}
 
-            {tab === 'video' && <Section eyebrow="MOVING MEMORIES" title="Special video" description="Upload one video for the master experience. The video scene remains in the same position in the story."><SingleMediaUpload kind="video" url={c.videoUrl} onChange={videoUrl => update({ videoUrl })} /><div className="builder-grid-2 mt-4"><Field label="Video section title"><input value="A Special Video Message" readOnly /></Field><Field label="Status"><input value={c.videoUrl ? 'Ready to play' : 'No video uploaded'} readOnly /></Field></div></Section>}
+            {tab === 'video' && <Section eyebrow="MOVING MEMORIES" title="Special video" description="Upload one video for the master experience. The video scene remains in the same position in the story."><SingleMediaUpload kind="video" url={c.videoUrl} onChange={videoUrl => update({ videoUrl })} websiteId={id} /><div className="builder-grid-2 mt-4"><Field label="Video section title"><input value="A Special Video Message" readOnly /></Field><Field label="Status"><input value={c.videoUrl ? 'Ready to play' : 'No video uploaded'} readOnly /></Field></div></Section>}
 
             {tab === 'letter' && <Section eyebrow="THE LETTER" title="Your letter" description="The envelope animation stays fixed, but the words inside the letter are fully editable line by line."><ArrayEditor title="Letter lines" description="Each item becomes a handwritten line in the reveal animation." items={c.letter} placeholder="Write one line for the letter…" multiline onChange={items => updateArray('letter', items)} /><div className="builder-note mt-4">The protected core message is separate from this editable letter. This lets the template keep its signature reveal while still giving you a real writing surface.</div></Section>}
 

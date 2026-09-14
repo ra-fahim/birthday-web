@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import ApproveToggle from './ApproveToggle';
+import Link from 'next/link';
 
 export default async function AdminUsers() {
   try {
@@ -24,7 +25,7 @@ export default async function AdminUsers() {
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">Email</th>
               <th className="px-4 py-3">Role</th>
-              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Status</th><th className="px-4 py-3">360 View</th>
             </tr>
           </thead>
           <tbody>
@@ -39,11 +40,11 @@ export default async function AdminUsers() {
                   ) : (
                     <ApproveToggle userId={u.id} initialApproved={!!u.approved} />
                   )}
-                </td>
+                </td><td className="px-4 py-3"><Link className="btn2" href={`/admin/users/${u.id}`}>Open 360°</Link></td>
               </tr>
             ))}
             {!users.length && (
-              <tr><td className="px-4 py-6 text-zinc-500" colSpan={4}>No users yet.</td></tr>
+              <tr><td className="px-4 py-6 text-zinc-500" colSpan={5}>No users yet.</td></tr>
             )}
           </tbody>
         </table>
