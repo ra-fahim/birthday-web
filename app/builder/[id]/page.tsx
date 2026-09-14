@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { defaultContent, BirthdayContent } from '@/lib/types';
 import { MasterTemplate } from '@/components/template/MasterTemplate';
@@ -22,6 +22,8 @@ const TEMPLATES = [
   ['minimal', 'Pure Moment', 'Quiet, clean and modern'], ['elegant', 'Ever After', 'Classic, graceful and timeless'],
   ['festival', 'Color Parade', 'Big, joyful festival energy'],
 ] as const;
+
+const EFFECTS = [['countdown','Countdown'],['confetti','Confetti'],['fireworks','Fireworks'],['hearts','Floating hearts'],['balloons','Balloons']] as const;
 
 const TABS = [
   ['overview', '✦', 'Overview'], ['opening', '◌', 'Opening'], ['story', '♡', 'Reasons'], ['gallery', '▧', 'Gallery'],
@@ -74,6 +76,9 @@ export default function Builder() {
   const [templateId, setTemplateId] = useState('master');
   const [occasion, setOccasion] = useState('birthday');
   const [dirty, setDirty] = useState(false);
+  const [editorMode, setEditorMode] = useState(true);
+  const [device, setDevice] = useState<'desktop'|'tablet'|'mobile'>('desktop');
+  const [selectedElement, setSelectedElement] = useState<{ key: string; label: string; index?: number; value: string } | null>(null);
 
   useEffect(() => {
     fetch('/api/websites/' + id).then(r => r.json()).then(j => {
@@ -87,6 +92,31 @@ export default function Builder() {
 
   const update = (patch: Partial<BirthdayContent>) => { setC(prev => ({ ...prev, ...patch })); setDirty(true); };
   const updateArray = (key: keyof BirthdayContent, value: unknown) => update({ [key]: value } as Partial<BirthdayContent>);
+  const toggleEffect = (key: keyof BirthdayContent, checked: boolean) => update({ [key]: checked } as Partial<BirthdayContent>);
+
+  const handleCanvasSelect = useCallback((selection: { key: string; label: string; index?: number; value: string }) => {
+    setSelectedElement(selection);
+  }, []);
+
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (event.data?.type !== 'BB_TEXT_EDITED') return;
+      const selection = event.data.selection as { key: string; index?: number; value?: string };
+      const value = String(selection?.value || '').trim();
+      if (!value) return;
+      if (selection.key === 'reasons' && typeof selection.index === 'number') {
+        const reasons = [...c.reasons]; reasons[selection.index] = value; update({ reasons });
+      } else if (selection.key === 'greeting') {
+        const cleaned = value.replace(new RegExp('\\s*' + (c.name || '') + '\\s*[❤️✨🎂💫🎉]*$','iu'),'').trim();
+        update({ greeting: cleaned || value });
+      } else if (selection.key in c) {
+        update({ [selection.key]: value } as Partial<BirthdayContent>);
+      }
+      setSelectedElement({ ...selection, value });
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [c]);
 
   async function save(publish = false) {
     setMsg(publish ? 'Publishing…' : 'Saving…');
@@ -137,6 +167,17 @@ export default function Builder() {
         <div className="builder-editor-panel">
           <div className="builder-panel-head"><div><div className="builder-eyebrow">{activeTab?.[1]} {activeTab?.[2]}</div><h2>{activeTab?.[2]}</h2></div><span className="builder-live-pill">● LIVE</span></div>
           <div className="builder-form-scroll">
+            {selectedElement && <section className="builder-selection-card">
+              <div><span className="builder-eyebrow">CANVAS SELECTION</span><h3>{selectedElement.label}</h3><p>Double-click text in the preview to edit it directly.</p></div>
+              <button className="builder-clear-selection" onClick={()=>setSelectedElement(null)}>Clear</button>
+              {selectedElement.key === 'reasons' && typeof selectedElement.index === 'number' ? (
+                <textarea rows={3} value={c.reasons[selectedElement.index] || ''} onChange={e=>{const reasons=[...c.reasons]; reasons[selectedElement.index!] = e.target.value; update({reasons});}} />
+              ) : selectedElement.key === 'greeting' ? (
+                <input value={c.greeting} onChange={e=>update({greeting:e.target.value})} />
+              ) : (['heroSubtitle','heroTitle','secret','buttonText'].includes(selectedElement.key)) ? (
+                <textarea rows={selectedElement.key==='heroSubtitle'||selectedElement.key==='secret'?3:2} value={String((c as any)[selectedElement.key]||'')} onChange={e=>update({[selectedElement.key]:e.target.value} as Partial<BirthdayContent>)} />
+              ) : null}
+            </section>}
             {tab === 'overview' && <>
               <Section eyebrow="IDENTITY" title="Who is this celebration for?" description="These details personalize the experience without changing the master template structure.">
                 <div className="builder-grid-2">
@@ -186,7 +227,7 @@ export default function Builder() {
               <div className="builder-palette-grid">{['#ec4899','#8b5cf6','#06b6d4','#f59e0b','#22c55e','#ef4444','#f43f5e','#111827'].map(color => <button key={color} style={{ background: color }} aria-label={`Use ${color}`} onClick={() => update({ primaryColor: color })} />)}</div>
             </Section>}
 
-            {tab === 'effects' && <Section eyebrow="MOTION" title="Control the magic" description="These switches are wired to the master template. Turn effects on or off and preview the result immediately."><div className="builder-toggle-grid">{([['countdown','Countdown'],['confetti','Confetti'],['fireworks','Fireworks'],['hearts','Floating hearts'],['balloons','Balloons']] as const).map(([key, label]) => <label key={key} className={`builder-toggle ${c[key] ? 'on' : ''}`}><span><b>{label}</b><small>{c[key] ? 'Enabled' : 'Disabled'}</small></span><input type="checkbox" checked={c[key]} onChange={e => update({ [key]: e.target.checked } as Partial<BirthdayContent)} /></label>)}</div></Section>}
+            {tab === 'effects' && <Section eyebrow="MOTION" title="Control the magic" description="These switches are wired to the master template. Turn effects on or off and preview the result immediately."><div className="builder-toggle-grid">{EFFECTS.map(([key, label]) => <label key={key} className={`builder-toggle ${c[key] ? 'on' : ''}`}><span><b>{label}</b><small>{c[key] ? 'Enabled' : 'Disabled'}</small></span><input type="checkbox" checked={c[key]} onChange={e => toggleEffect(key as keyof BirthdayContent, e.target.checked)} /></label>)}</div></Section>}
 
             {tab === 'timeline' && <Section eyebrow="YOUR JOURNEY" title="Timeline" description="Add real milestones. They render inside the public experience instead of being a dashboard-only setting."><TimelineEditor content={c} onChange={next => { setC(next); setDirty(true); }} /></Section>}
             {tab === 'memories' && <Section eyebrow="LITTLE THINGS" title="Memories" description="Short memory snippets that visitors can discover in the experience."><MemoriesEditor content={c} onChange={next => { setC(next); setDirty(true); }} /></Section>}
@@ -204,8 +245,11 @@ export default function Builder() {
         </div>
 
         <section className="builder-preview-panel">
-          <div className="builder-preview-head"><div><span>LIVE PREVIEW</span><strong>{c.name || 'Untitled celebration'}</strong></div><div className="builder-preview-actions"><span className="builder-device active">Desktop</span><span className="builder-device">Mobile</span></div></div>
-          <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className="builder-preview-canvas">{templateId === 'master' ? <MasterTemplate content={previewContent} /> : <ExperienceTemplate variant={templateId} content={previewContent} />}</div></div>
+          <div className="builder-preview-head"><div><span>LIVE PREVIEW</span><strong>{c.name || 'Untitled celebration'}</strong></div><div className="builder-preview-actions">
+  {(['desktop','tablet','mobile'] as const).map(d => <button key={d} className={`builder-device ${device===d?'active':''}`} onClick={()=>setDevice(d)}>{d[0].toUpperCase()+d.slice(1)}</button>)}
+  <button className={`builder-device ${editorMode?'active':''}`} onClick={()=>setEditorMode(v=>!v)}>✎ Edit on canvas</button>
+</div></div>
+          <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}>{templateId === 'master' ? <MasterTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} /> : <ExperienceTemplate variant={templateId} content={previewContent} />}</div></div>
         </section>
       </section>
     </div>

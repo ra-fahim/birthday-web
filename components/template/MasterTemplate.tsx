@@ -10,6 +10,8 @@ type Props = {
   demo?: boolean;
   websiteSlug?: string;
   recipientId?: string;
+  editorMode?: boolean;
+  onElementSelect?: (selection: { key: string; label: string; index?: number; value: string }) => void;
 };
 
 function contentToData(content?: BirthdayContent) {
@@ -41,11 +43,23 @@ export default function MasterTemplate({ data, content, demo, websiteSlug, recip
   useEffect(() => {
     const frame = frameRef.current;
     if (!frame) return;
-    const send = () => frame.contentWindow?.postMessage({ type: 'BB_CONTENT', content, websiteSlug: websiteSlug || '', recipientId: recipientId || '' }, '*');
+    const send = () => {
+      frame.contentWindow?.postMessage({ type: 'BB_CONTENT', content, websiteSlug: websiteSlug || '', recipientId: recipientId || '' }, '*');
+      frame.contentWindow?.postMessage({ type: 'BB_EDITOR_MODE', enabled: !!editorMode }, '*');
+    };
     frame.addEventListener('load', send);
     send();
     return () => frame.removeEventListener('load', send);
-  }, [content, websiteSlug, recipientId]);
+  }, [content, websiteSlug, recipientId, editorMode]);
+
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (event.source !== frameRef.current?.contentWindow || !event.data) return;
+      if (event.data.type === 'BB_ELEMENT_SELECTED') onElementSelect?.(event.data.selection);
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [onElementSelect]);
 
   return (
     <iframe

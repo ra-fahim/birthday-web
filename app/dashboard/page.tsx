@@ -6,51 +6,74 @@ import { getSessionUser, isApprovalRequired } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 
+const moods: Record<string,string> = {
+  master:'✨', romantic:'🌹', cute:'🧸', luxury:'✦', anime:'⚡', gaming:'🎮', minimal:'◌', elegant:'🕊️', festival:'🎊'
+};
+
 export default async function Dashboard({ searchParams }: { searchParams: { pending?: string } }) {
   const u = await getSessionUser();
   if (!u) redirect('/login');
-
   const gated = u.role !== 'admin' && !u.approved && await isApprovalRequired();
 
   let sites: any[] = [];
   let loadError = '';
-  try {
-    sites = await db.website.findMany({ where: { userId: u.id }, orderBy: { updatedAt: 'desc' } });
-  } catch (error) {
-    console.error('dashboard websites load failed', error);
-    loadError = 'Your account loaded, but websites could not be loaded. Check Supabase tables/RLS.';
-  }
+  try { sites = await db.website.findMany({ where: { userId: u.id }, orderBy: { updatedAt: 'desc' } }); }
+  catch (error) { console.error('dashboard websites load failed', error); loadError = 'Your account loaded, but websites could not be loaded. Check Supabase tables/RLS.'; }
+
+  const published = sites.filter(s => s.status === 'published').length;
+  const views = sites.reduce((a, s) => a + Number(s.views || 0), 0);
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div><p className="text-zinc-400">Dashboard</p><h1 className="text-4xl font-black">Hi, {u.name || u.email}</h1></div>
-        <div className="flex flex-wrap gap-2">
-          {u.role === 'admin' && <Link className="btn2" href="/admin">Admin Panel</Link>}
-          {gated ? (
-            <span className="btn2 cursor-not-allowed opacity-60" title="Waiting for admin approval">+ Create Website</span>
-          ) : (
-            <Link className="btn" href="/builder/new">+ Create Website</Link>
-          )}
-          <a className="btn2" href="/api/auth/logout">Logout</a>
+    <main className="studio-dashboard">
+      <aside className="studio-dashboard-sidebar">
+        <div className="studio-wordmark"><span>✦</span><div><b>Wishly</b><small>Studio</small></div></div>
+        <nav>
+          <Link className="active" href="/dashboard">▦ <span>My Websites</span></Link>
+          <Link href="/templates">◈ <span>Template Library</span></Link>
+          <Link href="/builder/new">＋ <span>Create New</span></Link>
+        </nav>
+        <div className="studio-sidebar-bottom">
+          <Link href="/profile">⚙ <span>Settings</span></Link>
+          <a href="/api/auth/logout">↪ <span>Logout</span></a>
+          <div className="studio-user"><div>{(u.name || u.email || 'U').slice(0,1).toUpperCase()}</div><span>{u.name || u.email}</span></div>
         </div>
-      </header>
-      {gated && (
-        <div className="mt-6 rounded-xl border border-amber-400/30 bg-amber-400/10 p-4 text-amber-200">
-          Your account is waiting for admin approval. You can look around, but you&apos;ll be able to create a website once an admin approves you.
+      </aside>
+
+      <section className="studio-dashboard-main">
+        <header className="studio-dashboard-header">
+          <div><p>YOUR WORKSPACE</p><h1>My Websites</h1><span>Create, edit and publish beautiful experiences.</span></div>
+          <div className="studio-header-actions">
+            {u.role === 'admin' && <Link className="studio-secondary-btn" href="/admin">Admin</Link>}
+            {gated ? <span className="studio-primary-btn disabled">＋ Create New</span> : <Link className="studio-primary-btn" href="/builder/new">＋ Create New</Link>}
+          </div>
+        </header>
+
+        {gated && <div className="studio-alert">Your account is waiting for admin approval before new websites can be created.</div>}
+        {loadError && <div className="studio-alert">{loadError}</div>}
+
+        <div className="studio-stats">
+          <div><span>WEBSITES</span><b>{sites.length}</b><small>All your projects</small></div>
+          <div><span>PUBLISHED</span><b>{published}</b><small>Live experiences</small></div>
+          <div><span>TOTAL VIEWS</span><b>{views.toLocaleString()}</b><small>Across all websites</small></div>
         </div>
-      )}
-      {loadError && <div className="mt-6 rounded-xl border border-amber-400/30 bg-amber-400/10 p-4 text-amber-200">{loadError}</div>}
-      <section className="mt-8 grid gap-4 md:grid-cols-3">
-        <div className="card p-5"><p className="text-zinc-400">Websites</p><b className="text-3xl">{sites.length}</b></div>
-        <div className="card p-5"><p className="text-zinc-400">Published</p><b className="text-3xl">{sites.filter(s => s.status === 'published').length}</b></div>
-        <div className="card p-5"><p className="text-zinc-400">Total views</p><b className="text-3xl">{sites.reduce((a, s) => a + Number(s.views || 0), 0)}</b></div>
-      </section>
-      <section className="mt-8">
-        <h2 className="text-2xl font-bold">My Websites</h2>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          {sites.map(s => <div className="card p-5" key={s.id}><div className="flex justify-between gap-3"><div><h3 className="font-bold">{s.title}</h3><p className="text-sm text-zinc-400">/{s.slug} • {s.status}</p></div><Link href={`/builder/${s.id}`} className="btn2">Edit</Link></div></div>)}
-          {!sites.length && <div className="card p-8 text-zinc-400">No websites yet. Create your first birthday experience.</div>}
+
+        <div className="studio-section-title"><div><h2>Recent projects</h2><span>Pick up where you left off.</span></div><Link href="/templates">Browse templates →</Link></div>
+        <div className="studio-project-grid">
+          {sites.map(s => {
+            const c = s.content || {};
+            const tid = s.templateId || c.templateId || 'master';
+            return <article className="studio-project-card" key={s.id}>
+              <div className={`studio-project-preview mood-${tid}`}>
+                <span>{moods[tid] || '✦'}</span><b>{c.name || s.title || 'Untitled celebration'}</b><small>{c.occasion || 'Birthday'} experience</small>
+                <div className="studio-preview-pill">{s.status === 'published' ? '● Live' : 'Draft'}</div>
+              </div>
+              <div className="studio-project-meta">
+                <div><h3>{s.title || c.name || 'Untitled celebration'}</h3><p>/{s.slug} · {s.status}</p></div>
+                <Link href={`/builder/${s.id}`}>Edit ↗</Link>
+              </div>
+            </article>;
+          })}
+          {!sites.length && <div className="studio-empty"><div>✦</div><h3>Your first masterpiece starts here.</h3><p>Choose a template and build a celebration that feels completely personal.</p>{!gated && <Link className="studio-primary-btn" href="/builder/new">Create your first website</Link>}</div>}
         </div>
       </section>
     </main>
