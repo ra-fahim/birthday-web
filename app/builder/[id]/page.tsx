@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { defaultContent, BirthdayContent } from '@/lib/types';
-import { templateCatalog, templateById } from '@/lib/templates';
 import { MasterTemplate } from '@/components/template/MasterTemplate';
 import ExperienceTemplate from '@/components/template/ExperienceTemplates';
 import { SingleMediaUpload, GalleryUpload } from './MediaUploader';
@@ -16,7 +15,31 @@ const OCCASIONS = [
   ['thank-you', '💐', 'Thank You'], ['surprise', '🎁', 'Surprise'], ['friendship', '🤝', 'Friendship'], ['festival', '🎊', 'Festival'],
 ] as const;
 
-const TEMPLATES = templateCatalog.map(t => [t.slug, t.name, t.description] as const);
+const TEMPLATES = [
+  ['master', 'Magic Bloom', 'The cinematic master experience'],
+  ['birthday', 'Birthday Story', 'A dedicated birthday celebration'],
+  ['anniversary', 'Anniversary Story', 'A dedicated anniversary experience'],
+  ['proposal', 'Proposal Story', 'A dedicated proposal experience'],
+  ['wedding', 'Wedding Story', 'A dedicated wedding experience'],
+  ['sorry', 'Sorry Story', 'A thoughtful apology experience'],
+  ['miss-you', 'Miss You Story', 'A warm long-distance message'],
+  ['thank-you', 'Thank You Story', 'A gratitude-focused experience'],
+  ['congratulations', 'Congratulations Story', 'A celebration of a big win'],
+  ['graduation', 'Graduation Story', 'A next-chapter celebration'],
+  ['friendship', 'Friendship Story', 'A tribute to a special friend'],
+  ['surprise', 'Surprise Story', 'A playful reveal experience'],
+  ['festival', 'Festival Story', 'A bright colorful celebration'],
+  ['romantic', 'Midnight Love', 'Soft, intimate and romantic'], ['cute', 'Pastel Dream', 'Playful, bright and adorable'],
+  ['luxury', 'Royal Celebration', 'Editorial luxury and elegance'], ['anime', 'Neon Story', 'Anime-inspired energy'],
+  ['gaming', 'Level Up', 'Arcade / gamer celebration'], ['minimal', 'Pure Moment', 'Quiet, clean and modern'],
+  ['elegant', 'Ever After', 'Classic, graceful and timeless'], 
+] as const;
+
+const OCCASION_TEMPLATE: Record<string,string> = {
+  birthday:'birthday', anniversary:'anniversary', proposal:'proposal', wedding:'wedding',
+  graduation:'graduation', congratulations:'congratulations', 'thank-you':'thank-you',
+  surprise:'surprise', friendship:'friendship', festival:'festival', sorry:'sorry', 'miss-you':'miss-you'
+};
 
 const EFFECTS = [['countdown','Countdown'],['confetti','Confetti'],['fireworks','Fireworks'],['hearts','Floating hearts'],['balloons','Balloons']] as const;
 
@@ -82,8 +105,15 @@ export default function Builder() {
       if (j.content) setC({ ...defaultContent, ...j.content });
       if (j.slug) setSlug(j.slug);
       if (j.status) setStatus(j.status);
-      if (j.templateId) setTemplateId(j.templateId);
-      if (j.content?.occasion) setOccasion(j.content.occasion);
+      const storedOccasion = typeof j.content?.occasion === 'string' ? j.content.occasion : 'birthday';
+      const storedTemplate = typeof j.templateId === 'string' ? j.templateId : 'master';
+      const occasionTemplate = OCCASION_TEMPLATE[storedOccasion];
+      // Older projects may have a non-birthday occasion saved with the master template.
+      // Upgrade those projects automatically so the studio preview matches the selected occasion.
+      const resolvedTemplate = storedTemplate === 'master' && storedOccasion !== 'birthday' && occasionTemplate ? occasionTemplate : storedTemplate;
+      setTemplateId(resolvedTemplate);
+      setOccasion(storedOccasion);
+      if (resolvedTemplate !== storedTemplate) setDirty(true);
       if (j.slug) setPublicUrl(`${window.location.origin}/site/${j.slug}`);
     });
   }, [id]);
@@ -136,11 +166,10 @@ export default function Builder() {
   const currentOccasion = OCCASIONS.find(x => x[0] === occasion) || OCCASIONS[0];
   const activeTab = TABS.find(x => x[0] === tab);
   const previewContent = useMemo(() => ({ ...c, occasion, templateId }), [c, occasion, templateId]);
-  const resetToTemplateDefaults = () => {
-    const tpl = templateById(templateId);
+  const resetToMasterDefaults = () => {
     const keepName = c.name;
-    setC({ ...defaultContent, name: keepName || defaultContent.name, templateId: tpl.slug, occasion: tpl.category, greeting: tpl.categoryLabel, seoTitle: tpl.name });
-    setTemplateId(tpl.slug); setOccasion(tpl.category); setDirty(true); setMsg(`${tpl.name} defaults restored.`);
+    setC({ ...defaultContent, name: keepName || defaultContent.name, templateId: 'master', occasion: 'birthday' });
+    setTemplateId('master'); setOccasion('birthday'); setDirty(true); setMsg('Master template defaults restored.');
   };
 
   return <main className="builder-shell">
@@ -162,8 +191,8 @@ export default function Builder() {
         </div>
 
         <div className="builder-selector-grid">
-          <div><span>Occasion</span><select value={occasion} onChange={e => { setOccasion(e.target.value); setDirty(true); }}>{OCCASIONS.map(([value, emoji, label]) => <option value={value} key={value}>{emoji} {label}</option>)}</select></div>
-          <div><span>Experience</span><select value={templateId} onChange={e => { const next=templateById(e.target.value); setTemplateId(next.slug); setOccasion(next.category); setDirty(true); }}>{TEMPLATES.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></div>
+          <div><span>Occasion</span><select value={occasion} onChange={e => { const nextOccasion = e.target.value; setOccasion(nextOccasion); setTemplateId(OCCASION_TEMPLATE[nextOccasion] || 'master'); setDirty(true); }}>{OCCASIONS.map(([value, emoji, label]) => <option value={value} key={value}>{emoji} {label}</option>)}</select></div>
+          <div><span>Experience</span><select value={templateId} onChange={e => { setTemplateId(e.target.value); setDirty(true); }}>{TEMPLATES.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></div>
         </div>
 
         <nav className="builder-nav">
@@ -202,7 +231,7 @@ export default function Builder() {
               <Section eyebrow="CONTENT MAP" title="Your experience at a glance" description="Nothing here is decorative: these counters show what will actually render on the published page.">
                 <div className="builder-metric-grid">{[['♡', c.reasons.length, 'Reasons'], ['▧', c.gallery.length, 'Photos'], ['✉', c.letter.length, 'Letter lines'], ['⌁', c.timeline.length, 'Timeline moments'], ['◫', c.memories.length, 'Memories'], ['◇', c.wishlist.length, 'Wishlist items']].map(([icon, value, label]) => <button key={String(label)} onClick={() => setTab(label === 'Reasons' ? 'story' : label === 'Photos' ? 'gallery' : label === 'Letter lines' ? 'letter' : label === 'Timeline moments' ? 'timeline' : label === 'Memories' ? 'memories' : 'wishlist')}><span>{icon}</span><b>{String(value)}</b><small>{String(label)}</small></button>)}</div>
               </Section>
-              <Section eyebrow="MASTER TEMPLATE" title="Everything important is editable" description="Change the words, photos, soundtrack, buttons, colors and story details below. The beautiful cinematic layout stays intact while your content becomes completely yours."><div className="builder-protected"><span>✨</span><div><b>Your content, your version</b><p>Nothing about the master experience is locked from you. The template is the design system; your project controls the content and presentation.</p></div></div></Section><div className="mt-3 flex justify-end"><button type="button" className="builder-mini-btn" onClick={resetToTemplateDefaults}>↺ Reset to Master defaults</button></div>
+              <Section eyebrow="MASTER TEMPLATE" title="Everything important is editable" description="Change the words, photos, soundtrack, buttons, colors and story details below. The beautiful cinematic layout stays intact while your content becomes completely yours."><div className="builder-protected"><span>✨</span><div><b>Your content, your version</b><p>Nothing about the master experience is locked from you. The template is the design system; your project controls the content and presentation.</p></div></div></Section><div className="mt-3 flex justify-end"><button type="button" className="builder-mini-btn" onClick={resetToMasterDefaults}>↺ Reset to Master defaults</button></div>
             </>}
 
             {tab === 'opening' && <>
