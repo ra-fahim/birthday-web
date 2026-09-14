@@ -20,6 +20,7 @@ const TEMPLATES = [
   ['birthday', 'Birthday Story', 'A dedicated birthday celebration'],
   ['anniversary', 'Anniversary Story', 'A dedicated anniversary experience'],
   ['proposal', 'Proposal Story', 'A dedicated proposal experience'],
+  ['wedding-proposal', 'Wedding Proposal', 'Cinematic proposal question experience'],
   ['wedding', 'Wedding Story', 'A dedicated wedding experience'],
   ['sorry', 'Sorry Story', 'A thoughtful apology experience'],
   ['miss-you', 'Miss You Story', 'A warm long-distance message'],
@@ -36,7 +37,7 @@ const TEMPLATES = [
 ] as const;
 
 const OCCASION_TEMPLATE: Record<string,string> = {
-  birthday:'birthday', anniversary:'anniversary', proposal:'proposal', wedding:'wedding',
+  birthday:'birthday', anniversary:'anniversary', proposal:'wedding-proposal', wedding:'wedding',
   graduation:'graduation', congratulations:'congratulations', 'thank-you':'thank-you',
   surprise:'surprise', friendship:'friendship', festival:'festival', sorry:'sorry', 'miss-you':'miss-you'
 };
@@ -255,6 +256,21 @@ export default function Builder() {
                   <Field label="Secret heading"><input value={c.secretTitle} onChange={e => update({ secretTitle: e.target.value })} /></Field>
                   <Field label="Secret button"><input value={c.secretButton} onChange={e => update({ secretButton: e.target.value })} /></Field>
                 </div>
+                {templateId === 'wedding-proposal' && <div className="mt-6 rounded-2xl border border-pink-200/10 bg-pink-500/5 p-4">
+                  <div className="builder-eyebrow">WEDDING PROPOSAL TEMPLATE</div>
+                  <h3 className="mt-1 text-base font-semibold">Template-specific text</h3>
+                  <p className="mt-1 text-sm opacity-70">These fields control the proposal experience while keeping its original cinematic interaction.</p>
+                  <div className="builder-grid-2 mt-4">
+                    <Field label="Intro eyebrow"><input value={c.proposalEyebrow} onChange={e => update({ proposalEyebrow:e.target.value })} /></Field>
+                    <Field label="Start button"><input value={c.proposalStartButton} onChange={e => update({ proposalStartButton:e.target.value })} /></Field>
+                    <Field label="Intro message"><textarea rows={4} value={c.proposalIntroText} onChange={e => update({ proposalIntroText:e.target.value })} /></Field>
+                    <Field label="Continue button"><input value={c.proposalContinueButton} onChange={e => update({ proposalContinueButton:e.target.value })} /></Field>
+                    <Field label="Proposal question"><textarea rows={5} value={c.proposalQuestion} onChange={e => update({ proposalQuestion:e.target.value })} /></Field>
+                    <Field label="Letter / message"><textarea rows={6} value={c.proposalLetterText} onChange={e => update({ proposalLetterText:e.target.value })} /></Field>
+                    <Field label="Yes button"><input value={c.proposalYesButton} onChange={e => update({ proposalYesButton:e.target.value })} /></Field>
+                    <Field label="No button"><input value={c.proposalNoButton} onChange={e => update({ proposalNoButton:e.target.value })} /></Field>
+                  </div>
+                </div>}
                 <div className="builder-note">Tip: You can edit every visible text label in the master experience here, or turn on <b>Edit on canvas</b> and click directly on the live preview.</div>
               </Section>
               <Section eyebrow="PRIVATE LINKS" title="Recipient-specific personalization" description="Create multiple private versions of the same experience from Growth → Personalized links."><div className="builder-protected"><span>🔗</span><div><b>Same design, different recipient</b><p>Each recipient can receive a unique link and a private personal note without changing the master layout.</p></div></div></Section>

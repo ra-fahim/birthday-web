@@ -3,6 +3,7 @@ export const templateCatalog=[
 ['birthday','Birthday Story','Dedicated birthday celebration','birthday'],
 ['anniversary','Anniversary Story','Dedicated anniversary experience','anniversary'],
 ['proposal','Proposal Story','Dedicated proposal experience','proposal'],
+['wedding-proposal','Wedding Proposal','A cinematic proposal question experience','proposal'],
 ['wedding','Wedding Story','Dedicated wedding experience','wedding'],
 ['sorry','Sorry Story','Thoughtful apology experience','sorry'],
 ['miss-you','Miss You Story','Warm long-distance message','miss-you'],
