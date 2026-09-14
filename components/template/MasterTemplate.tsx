@@ -27,7 +27,7 @@ function contentToData(content?: BirthdayContent) {
   return result;
 }
 
-export default function MasterTemplate({ data, content, demo, websiteSlug, recipientId }: Props) {
+export default function MasterTemplate({ data, content, demo, websiteSlug, recipientId, editorMode = false }: Props) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const resolved = useMemo(() => ({ ...contentToData(content), ...data }), [content, data]);
   const src = useMemo(() => {
@@ -37,8 +37,9 @@ export default function MasterTemplate({ data, content, demo, websiteSlug, recip
     }
     if (demo) p.set('demo', '1');
     if (recipientId) p.set('recipient', recipientId);
-    return `/master-template.html${p.toString() ? `?${p.toString()}` : ''}`;
-  }, [resolved, demo, recipientId]);
+    const templatePath = editorMode ? '/master-template-editor.html' : '/master-template.html';
+    return `${templatePath}${p.toString() ? `?${p.toString()}` : ''}`;
+  }, [resolved, demo, recipientId, editorMode]);
 
   useEffect(() => {
     const frame = frameRef.current;

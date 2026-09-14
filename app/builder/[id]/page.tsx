@@ -33,6 +33,7 @@ const TABS = [
 ] as const;
 
 type TabId = typeof TABS[number][0];
+type CanvasSelection = { key: string; label: string; index?: number; value: string };
 
 function Section({ eyebrow, title, description, children }: { eyebrow?: string; title: string; description?: string; children: React.ReactNode }) {
   return <section className="builder-section">
@@ -78,7 +79,7 @@ export default function Builder() {
   const [dirty, setDirty] = useState(false);
   const [editorMode, setEditorMode] = useState(true);
   const [device, setDevice] = useState<'desktop'|'tablet'|'mobile'>('desktop');
-  const [selectedElement, setSelectedElement] = useState<{ key: string; label: string; index?: number; value: string } | null>(null);
+  const [selectedElement, setSelectedElement] = useState<CanvasSelection | null>(null);
 
   useEffect(() => {
     fetch('/api/websites/' + id).then(r => r.json()).then(j => {
@@ -94,25 +95,32 @@ export default function Builder() {
   const updateArray = (key: keyof BirthdayContent, value: unknown) => update({ [key]: value } as Partial<BirthdayContent>);
   const toggleEffect = (key: keyof BirthdayContent, checked: boolean) => update({ [key]: checked } as Partial<BirthdayContent>);
 
-  const handleCanvasSelect = useCallback((selection: { key: string; label: string; index?: number; value: string }) => {
+  const handleCanvasSelect = useCallback((selection: CanvasSelection) => {
     setSelectedElement(selection);
   }, []);
 
   useEffect(() => {
     const handler = (event: MessageEvent) => {
       if (event.data?.type !== 'BB_TEXT_EDITED') return;
-      const selection = event.data.selection as { key: string; index?: number; value?: string };
-      const value = String(selection?.value || '').trim();
+      const raw = event.data.selection as { key?: unknown; label?: unknown; index?: unknown; value?: unknown } | null;
+      if (!raw || typeof raw.key !== 'string') return;
+      const value = String(raw.value ?? '').trim();
       if (!value) return;
-      if (selection.key === 'reasons' && typeof selection.index === 'number') {
-        const reasons = [...c.reasons]; reasons[selection.index] = value; update({ reasons });
-      } else if (selection.key === 'greeting') {
+      const index = typeof raw.index === 'number' ? raw.index : undefined;
+      const label = typeof raw.label === 'string' && raw.label.trim() ? raw.label : raw.key;
+      if (raw.key === 'reasons' && typeof index === 'number') {
+        const reasons = [...c.reasons];
+        if (index >= 0 && index < reasons.length) {
+          reasons[index] = value;
+          update({ reasons });
+        }
+      } else if (raw.key === 'greeting') {
         const cleaned = value.replace(new RegExp('\\s*' + (c.name || '') + '\\s*[❤️✨🎂💫🎉]*$','iu'),'').trim();
         update({ greeting: cleaned || value });
-      } else if (selection.key in c) {
-        update({ [selection.key]: value } as Partial<BirthdayContent>);
+      } else if (raw.key in c) {
+        update({ [raw.key]: value } as Partial<BirthdayContent>);
       }
-      setSelectedElement({ ...selection, value });
+      setSelectedElement({ key: raw.key, label, index, value });
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);

@@ -39,3 +39,11 @@ The iframe editor communicates with the builder using `postMessage`, so the orig
 ## Validation
 
 The repository includes the original dependencies from the uploaded project. The supplied archive had incomplete `@types` package contents in `node_modules`, so a full TypeScript build could not be completed in the sandbox without reinstalling dependencies.
+
+## Build fix — September 14, 2026
+
+- Fixed the Vercel TypeScript error in `app/builder/[id]/page.tsx` where the canvas `selection` object could be passed to `setSelectedElement` without the required `label` property.
+- Canvas message payloads are now normalized and validated before entering React state.
+- The original `public/master-template.html` is preserved byte-for-byte from the previous project version.
+- Visual editing runs against a separate `public/master-template-editor.html`, so builder-only editor code cannot modify the published master template.
+- `components/template/MasterTemplate.tsx` selects the editor copy only when `editorMode` is enabled; normal/demo/published renders use the original master template.

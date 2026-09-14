@@ -2141,5 +2141,91 @@ window.addEventListener('message',e=>{if(!e.data||e.data.type!=='BB_CONTENT')ret
 window.addEventListener('DOMContentLoaded',()=>{const root=document.createElement('div');root.id='bbFeatures';document.body.appendChild(root);});
 })();
 </script>
+
+<script>
+(function(){
+  const BB_EDITOR = { enabled:false, selected:null };
+  const fieldMap = {
+    greetingTitle:{key:'greeting',label:'Greeting'},
+    greetingText:{key:'heroSubtitle',label:'Hero subtitle'},
+    reasonsTitle:{key:'heroTitle',label:'Reasons heading'},
+    photoTitle:{key:'name',label:'Recipient name'},
+    videoTitle:{key:'name',label:'Recipient name'},
+    letterTitle:{key:'name',label:'Recipient name'},
+    secretTitle:{key:'name',label:'Recipient name'},
+    secretMessage:{key:'secret',label:'Secret message'},
+    enterWorldBtn:{key:'buttonText',label:'Primary button'},
+    cakeNextBtn:{key:'buttonText',label:'Primary button'},
+    letterReturnBtn:{key:'buttonText',label:'Letter button'}
+  };
+  const styleId='bb-editor-style';
+  function editorStyle(){
+    if(document.getElementById(styleId)) return;
+    const s=document.createElement('style'); s.id=styleId;
+    s.textContent=`
+      .bb-editor-target{outline:2px solid #2563eb!important;outline-offset:5px!important;box-shadow:0 0 0 5px rgba(37,99,235,.12)!important;cursor:text!important}
+      .bb-editor-hover{outline:1px dashed #60a5fa!important;outline-offset:4px!important;cursor:pointer!important}
+      [contenteditable="true"].bb-editor-editing{outline:2px solid #2563eb!important;outline-offset:6px!important;background:rgba(255,255,255,.92)!important;color:#111827!important;border-radius:8px!important}
+    `;
+    document.head.appendChild(s);
+  }
+  function getSelection(el){
+    const id=el.id;
+    if(id && fieldMap[id]) return { ...fieldMap[id], value:el.textContent||'' };
+    if(el.classList.contains('reason-text')){
+      const all=[...document.querySelectorAll('.reason-text')];
+      return {key:'reasons',label:'Reason '+(all.indexOf(el)+1),index:all.indexOf(el),value:el.textContent||''};
+    }
+    return null;
+  }
+  function candidates(){
+    return [...document.querySelectorAll('#greetingTitle,#greetingText,#reasonsTitle,#photoTitle,#videoTitle,#letterTitle,#secretTitle,#secretMessage,#enterWorldBtn,#cakeNextBtn,#letterReturnBtn,.reason-text')];
+  }
+  function clear(){
+    candidates().forEach(el=>el.classList.remove('bb-editor-target','bb-editor-hover'));
+  }
+  function select(el){
+    const selection=getSelection(el); if(!selection) return;
+    clear(); el.classList.add('bb-editor-target'); BB_EDITOR.selected=el;
+    window.parent.postMessage({type:'BB_ELEMENT_SELECTED',selection},'*');
+  }
+  function enable(){
+    editorStyle();
+    candidates().forEach(el=>{
+      if(el.dataset.bbEditorBound==='1') return;
+      el.dataset.bbEditorBound='1';
+      el.addEventListener('mouseenter',()=>{if(BB_EDITOR.enabled && el!==BB_EDITOR.selected)el.classList.add('bb-editor-hover')});
+      el.addEventListener('mouseleave',()=>el.classList.remove('bb-editor-hover'));
+      el.addEventListener('click',e=>{ if(!BB_EDITOR.enabled)return; e.preventDefault(); e.stopPropagation(); select(el); });
+      el.addEventListener('dblclick',e=>{
+        if(!BB_EDITOR.enabled)return;
+        const selection=getSelection(el); if(!selection || selection.key==='reasons' && selection.index==null)return;
+        e.preventDefault(); e.stopPropagation(); select(el);
+        el.contentEditable='true'; el.classList.add('bb-editor-editing'); el.focus();
+        const range=document.createRange(); range.selectNodeContents(el); range.collapse(false);
+        const sel=window.getSelection(); sel?.removeAllRanges(); sel?.addRange(range);
+      });
+      el.addEventListener('blur',()=>{
+        if(el.getAttribute('contenteditable')==='true'){
+          el.removeAttribute('contenteditable'); el.classList.remove('bb-editor-editing');
+          const selection=getSelection(el);
+          if(selection) window.parent.postMessage({type:'BB_TEXT_EDITED',selection:{...selection,value:el.textContent||''}},'*');
+        }
+      });
+    });
+  }
+  function setEnabled(enabled){
+    BB_EDITOR.enabled=!!enabled;
+    if(enabled){ editorStyle(); enable(); }
+    else { clear(); candidates().forEach(el=>{el.removeAttribute('contenteditable');el.classList.remove('bb-editor-editing')}); }
+  }
+  window.addEventListener('message',e=>{
+    if(!e.data)return;
+    if(e.data.type==='BB_EDITOR_MODE') setEnabled(!!e.data.enabled);
+  });
+  document.addEventListener('DOMContentLoaded',()=>{ if(BB_EDITOR.enabled)enable(); });
+})();
+</script>
+
 </body>
 </html>
