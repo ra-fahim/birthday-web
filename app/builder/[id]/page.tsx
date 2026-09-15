@@ -54,7 +54,7 @@ const TABS = [
 ] as const;
 
 type TabId = typeof TABS[number][0];
-type CanvasSelection = { key: string; label: string; index?: number; value: string };
+type CanvasSelection = { key: string; label: string; index?: number; value?: string; kind?: string };
 
 function Section({ eyebrow, title, description, children }: { eyebrow?: string; title: string; description?: string; children: React.ReactNode }) {
   return <section className="builder-section">
