@@ -223,9 +223,6 @@ export default function Builder() {
   const [publicUrl, setPublicUrl] = useState('');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
-  const [canvasSizeOpen, setCanvasSizeOpen] = useState(false);
-  const [canvasWidth, setCanvasWidth] = useState(430);
-  const [canvasHeight, setCanvasHeight] = useState(800);
   const [canvasHistory, setCanvasHistory] = useState({ canBack: false, canForward: false });
 
   useEffect(() => {
@@ -437,6 +434,10 @@ export default function Builder() {
 
       <section className="builder-workspace">
         <div className={`builder-editor-panel ${mobileToolsOpen ? 'mobile-tools-open' : ''}`}>
+          {mobileToolsOpen && <div className="builder-mobile-editor-toolbar">
+            <button type="button" className="builder-mobile-editor-nav" onClick={() => setMobileToolsOpen(false)} aria-label="Back to studio preview">← Preview</button>
+            <button type="button" className="builder-mobile-editor-nav builder-mobile-editor-menu" onClick={() => setMobileSidebarOpen(true)} aria-label="Open studio sidebar"><Menu size={15} /> Studio menu</button>
+          </div>}
           <div className="builder-panel-head"><div><div className="builder-eyebrow">{activeGroup?.icon} {activeGroup?.label || 'Editor'}</div><h2>{activeTab?.[2]}</h2></div><span className="builder-live-pill">● LIVE</span></div>
           <div className="builder-mobile-category-tabs">{visibleGroups.map(g => <button key={g.id} className={activeGroup?.id === g.id ? 'active' : ''} onClick={() => { setEditGroup(g.id); setTab(g.tabs[0] as TabId); setMobileToolsOpen(true); }}><span>{g.icon}</span>{g.label}</button>)}</div>
           <div className="builder-form-scroll">
@@ -655,9 +656,8 @@ export default function Builder() {
               <div><span>LIVE PREVIEW</span><strong>{c.name || 'Untitled celebration'}</strong></div>
             </div>
             <div className="builder-preview-actions">
-              {(['desktop','tablet','mobile'] as const).map(d => <button key={d} className={`builder-device ${device===d?'active':''}`} onClick={()=>{setDevice(d); setCanvasSizeOpen(false)}}>{d[0].toUpperCase()+d.slice(1)}</button>)}
+              {(['desktop','tablet','mobile'] as const).map(d => <button key={d} className={`builder-device ${device===d?'active':''}`} onClick={()=>{setDevice(d)}}>{d[0].toUpperCase()+d.slice(1)}</button>)}
               {editorMode && <><button type="button" className="builder-device" onClick={() => handleCanvasHistory('back')} disabled={!canvasHistory.canBack} title="Previous canvas screen">← Back</button><button type="button" className="builder-device" onClick={() => handleCanvasHistory('forward')} disabled={!canvasHistory.canForward} title="Next canvas screen">Forward →</button></>}
-              <button type="button" className={`builder-device builder-size-toggle ${canvasSizeOpen ? 'active' : ''}`} onClick={() => setCanvasSizeOpen(v => !v)}>↔ Size</button>
               <button
                 type="button"
                 className={`builder-device builder-canvas-edit-toggle ${editorMode ? 'active' : ''}`}
@@ -668,15 +668,8 @@ export default function Builder() {
               </button>
             </div>
           </div>
-          {canvasSizeOpen && <div className="builder-canvas-size-panel">
-            <div><span>Studio card width</span><b>{canvasWidth}px</b></div>
-            <input aria-label="Studio card width" type="range" min={320} max={1200} step={5} value={canvasWidth} onChange={e => setCanvasWidth(Number(e.target.value))} />
-            <div><span>Studio card height</span><b>{canvasHeight}px</b></div>
-            <input aria-label="Studio card height" type="range" min={460} max={1200} step={10} value={canvasHeight} onChange={e => setCanvasHeight(Number(e.target.value))} />
-            <small>Changes the whole Studio preview card. Your published website layout stays unchanged.</small>
-          </div>}
           {status === 'published' && publicUrl && <div className="builder-live-link"><div><span>YOUR LIVE LINK</span><strong>{publicUrl}</strong></div><div className="builder-live-link-actions"><button onClick={() => navigator.clipboard?.writeText(publicUrl)}>Copy link</button><a href={publicUrl} target="_blank" rel="noreferrer">Open ↗</a></div></div>}
-          <div className="builder-preview-frame" style={{ width: `min(${canvasWidth}px, calc(100% - 20px))`, height: `${canvasHeight}px`, alignSelf: 'center', flex: '0 1 auto' }}><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}><div className="builder-canvas-stage" style={{ width: '100%', minWidth: 0, height: `calc(${canvasHeight}px - 27px)` }}>{templateId === 'master' ? <MasterTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div></div>
+          <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}><div className="builder-canvas-stage">{templateId === 'master' ? <MasterTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div></div>
           {selectedElement && editorMode && (
             <section className="builder-context-editor" aria-label="Selected element editor">
               <div className="builder-context-editor-head">
