@@ -264,9 +264,10 @@
         <source src="https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3" type="audio/mpeg">
     </audio>
     
-    <audio id="birthdayWish" preload="auto" loop>
+    <audio id="birthdayWish" preload="auto">
         <source src="https://res.cloudinary.com/dpctt0wao/video/upload/v178s6820547/ub7xhj7db3ngyig8nntr.mp3" type="audio/mpeg">
     </audio>
+    <audio id="backgroundMusic" preload="auto" loop></audio>
 
     <video class="video-bg" autoplay muted loop playsinline>
         <source src="https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp4" type="video/mp4">
@@ -724,6 +725,7 @@
         // Audio elements
         const countdownAudio = document.getElementById('countdownAudio');
         const birthdayAudio = document.getElementById('birthdayWish');
+        const backgroundMusic = document.getElementById('backgroundMusic');
 
         // State variables
         let cakeCut = false;
@@ -994,6 +996,7 @@
             
             if (isBirthdayToday && !birthdayAudioPlayed) {
                 playBirthdayAudio();
+                playBackgroundMusic();
             } else if (!countdownAudioPlayed) {
                 // If we're already inside the last-10-seconds window when the
                 // first interaction happens, start the countdown sound right
@@ -1022,6 +1025,7 @@
             if (isBirthday(now) && !birthdayAudioPlayed) {
                 playBirthdayAudio();
             }
+            playBackgroundMusic();
         };
 
         function playBirthdayAudio() {
@@ -1034,6 +1038,12 @@
                     console.log("⚠️ Audio autoplay failed:", error);
                     document.getElementById('playBtn').classList.add('show');
                 });
+        }
+
+        function playBackgroundMusic() {
+            if (!backgroundMusic || !backgroundMusic.src || !audioAllowed) return;
+            backgroundMusic.loop = true;
+            backgroundMusic.play().catch(() => {});
         }
 
         function isBirthday(date) {
@@ -1279,6 +1289,7 @@
             if (isBirthday(now) && !birthdayAudioPlayed) {
                 playBirthdayAudio();
             }
+            playBackgroundMusic();
 
             const prompt = document.getElementById('wishPrompt');
             if (!prompt || cakeCut || candlesBlown === totalCandles) {
@@ -2019,7 +2030,8 @@
         window.addEventListener('beforeunload', function() { 
             stopMicrophone(); 
             countdownAudio.pause(); 
-            birthdayAudio.pause(); 
+            birthdayAudio.pause();
+            backgroundMusic.pause(); 
             if (resetTimer) clearTimeout(resetTimer); 
         });
     </script>
@@ -2069,7 +2081,12 @@ function applyContent(c){
  const vg=document.getElementById('videoGrid');
  if(vg){const src=safeUrl(c.videoUrl||'');vg.innerHTML=src?`<div class="video-card"><h3>${esc(occasion)} video for ${esc(name)} ❤️</h3><div class="video-wrapper"><video controls preload="metadata"><source src="${esc(src)}" type="video/mp4"></video></div></div>`:'<div class="video-card"><h3>Add a video from the editor 🎥</h3><p style="color:#64748b;padding:15px">No video has been uploaded yet.</p></div>';}
  const musicSrc=safeUrl(c.musicUrl||'');
- if(typeof birthdayAudio!=='undefined' && birthdayAudio){if(musicSrc && birthdayAudio.src!==musicSrc)birthdayAudio.src=musicSrc;birthdayAudio.loop=true;}
+ const countdownSrc=safeUrl(c.countdownAudioUrl||'');
+ const wishingSrc=safeUrl(c.wishingAudioUrl||'');
+ const setMediaSource=(el,src)=>{if(!el)return;el.pause();el.removeAttribute('src');el.querySelectorAll('source').forEach(n=>n.remove());if(src){el.src=src;el.load();}};
+ if(typeof backgroundMusic!=='undefined' && backgroundMusic){setMediaSource(backgroundMusic,musicSrc);backgroundMusic.loop=true;}
+ if(typeof countdownAudio!=='undefined' && countdownAudio){setMediaSource(countdownAudio,countdownSrc);}
+ if(typeof birthdayAudio!=='undefined' && birthdayAudio){setMediaSource(birthdayAudio,wishingSrc);}
  window.BB_SETTINGS={...window.BB_SETTINGS,countdown:c.countdown!==false,confetti:c.confetti!==false,fireworks:c.fireworks!==false,hearts:c.hearts!==false,balloons:c.balloons!==false};
  const heartsLayer=document.getElementById('floatingHearts');if(heartsLayer)heartsLayer.style.display=window.BB_SETTINGS.hearts?'':'none';
  if(window.BB_SETTINGS.countdown===false){const cs=document.getElementById('countdownScreen');if(cs){cs.classList.remove('show');cs.classList.add('hide')}const gs=document.getElementById('greetingScreen');if(gs)gs.classList.add('show');}else{const cs=document.getElementById('countdownScreen');if(cs)cs.classList.add('show');}
@@ -2149,5 +2166,6 @@ window.addEventListener('message',e=>{if(!e.data||e.data.type!=='BB_CONTENT')ret
 window.addEventListener('DOMContentLoaded',()=>{const root=document.createElement('div');root.id='bbFeatures';document.body.appendChild(root);});
 })();
 </script>
+<script>(function(){function install(){if(document.getElementById('bb-click-feedback'))return;var s=document.createElement('style');s.id='bb-click-feedback';s.textContent='button,.btn,.enter-btn,.reasons-btn,.photo-next-btn,.video-next-btn,.cake-next-btn,.final-btn,.letter-return-btn,.soulmate-btn{transition:transform .12s ease,filter .15s ease,box-shadow .15s ease}button:active,.btn:active,.enter-btn:active,.reasons-btn:active,.photo-next-btn:active,.video-next-btn:active,.cake-next-btn:active,.final-btn:active,.letter-return-btn:active,.soulmate-btn:active{transform:translateY(2px) scale(.97)!important;filter:brightness(.92);box-shadow:0 5px 14px rgba(0,0,0,.22)!important}';document.head.appendChild(s);document.addEventListener('pointerdown',function(e){var b=e.target.closest('button,.btn');if(b){b.classList.add('bb-pressed');setTimeout(function(){b.classList.remove('bb-pressed')},180)}},{passive:true})}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install()})();</script>
 </body>
 </html>

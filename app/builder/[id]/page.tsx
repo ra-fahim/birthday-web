@@ -616,7 +616,14 @@ export default function Builder() {
 
             {templateId === 'miss-you-1' && tab === 'music' && <Section eyebrow="SOUNDTRACK" title="Background music" description="This template only needs one audio track. Replace it here without changing the original experience."><SingleMediaUpload kind="audio" url={String(missYouConfig.musicUrl || '')} onChange={musicUrl => updateMissYou({ musicUrl })} websiteId={id} /><div className="builder-note mt-4">Leave it empty to keep the original Miss You 1 music file.</div></Section>}
 
-            {tab === 'music' && templateId !== 'miss-you-1' && <Section eyebrow="SOUNDTRACK" title="Background music" description="Upload the track that plays through the cinematic experience."><SingleMediaUpload kind="audio" url={c.musicUrl} onChange={musicUrl => update({ musicUrl })} websiteId={id} /><div className="builder-note mt-4">Audio playback still respects browser autoplay rules; visitors may need to tap once before sound starts.</div></Section>}
+            {tab === 'music' && templateId !== 'miss-you-1' && <Section eyebrow="SOUNDTRACK" title="Audio controls" description="Every sound has its own setting. Change the background, countdown, and wishing audio separately.">
+              <div className="builder-audio-options">
+                <div className="builder-audio-option"><div><b>🎵 Background Music</b><span>Main soundtrack that follows the experience.</span></div><SingleMediaUpload kind="audio" url={c.musicUrl} onChange={musicUrl => update({ musicUrl })} websiteId={id} /></div>
+                {templateId === 'master' && <div className="builder-audio-option"><div><b>⏳ Countdown Audio</b><span>Separate sound for the final countdown.</span></div><SingleMediaUpload kind="audio" url={c.countdownAudioUrl} onChange={countdownAudioUrl => update({ countdownAudioUrl })} websiteId={id} /></div>}
+                {templateId === 'master' && <div className="builder-audio-option"><div><b>🎉 Wishing / Birthday Audio</b><span>Separate sound for the birthday and wishing moment.</span></div><SingleMediaUpload kind="audio" url={c.wishingAudioUrl} onChange={wishingAudioUrl => update({ wishingAudioUrl })} websiteId={id} /></div>}
+              </div>
+              <div className="builder-note mt-4">Each audio slot is independent. Changing one will not replace the others. Browser autoplay rules still apply on public devices.</div>
+            </Section>}
 
             {tab === 'video' && <Section eyebrow="MOVING MEMORIES" title="Special video" description="Upload one video for the master experience. The video scene remains in the same position in the story."><SingleMediaUpload kind="video" url={c.videoUrl} onChange={videoUrl => update({ videoUrl })} websiteId={id} /><div className="builder-grid-2 mt-4"><Field label="Video section title"><input value="A Special Video Message" readOnly /></Field><Field label="Status"><input value={c.videoUrl ? 'Ready to play' : 'No video uploaded'} readOnly /></Field></div></Section>}
 

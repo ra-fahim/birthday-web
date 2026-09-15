@@ -61,11 +61,19 @@ export default function UniversalElementEditor({ selected, content, templateId, 
         <Danger onClick={() => updateGallery({}, true)} />
       </>;
     }
-    if (key === 'musicUrl') return <>
-      <div className="universal-editor-media-head"><div className="universal-editor-icon"><Music2 size={16}/></div><div><b>Background music</b><span>Soundtrack</span></div></div>
-      <SingleMediaUpload kind="audio" url={String(content.musicUrl || '')} websiteId={websiteId} onChange={url => onChange({ musicUrl: url })} />
-      <MoreSettings rows={[['Autoplay','Browser-controlled'],['Loop','On'],['Volume','100%']]} />
-    </>;
+    if (key === 'musicUrl' || key === 'countdownAudioUrl' || key === 'wishingAudioUrl') {
+      const audioMeta = key === 'countdownAudioUrl'
+        ? { title: 'Countdown audio', sub: 'Plays in the final countdown window', field: 'countdownAudioUrl' as const }
+        : key === 'wishingAudioUrl'
+          ? { title: 'Wishing / birthday audio', sub: 'Plays when the celebration unlocks', field: 'wishingAudioUrl' as const }
+          : { title: 'Background music', sub: 'Your main soundtrack', field: 'musicUrl' as const };
+      return <>
+        <div className="universal-editor-media-head"><div className="universal-editor-icon"><Music2 size={16}/></div><div><b>{audioMeta.title}</b><span>{audioMeta.sub}</span></div></div>
+        <SingleMediaUpload kind="audio" url={String(content[audioMeta.field] || '')} websiteId={websiteId} onChange={url => onChange({ [audioMeta.field]: url } as Partial<BirthdayContent>)} />
+        <MoreSettings rows={audioMeta.field === 'countdownAudioUrl' ? [['Playback','Final countdown only'],['Loop','Off'],['Volume','100%']] : audioMeta.field === 'wishingAudioUrl' ? [['Playback','Birthday / wish moment'],['Loop','Off'],['Volume','100%']] : [['Playback','Background soundtrack'],['Loop','On'],['Volume','100%']]} />
+        <button type="button" className="universal-danger" onClick={() => onChange({ [audioMeta.field]: '' } as Partial<BirthdayContent>)}><Trash2 size={14}/> Remove this audio</button>
+      </>;
+    }
     if (key === 'videoUrl') return <>
       <div className="universal-editor-media-head"><div className="universal-editor-icon"><Video size={16}/></div><div><b>Special video</b><span>Moving memory</span></div></div>
       <SingleMediaUpload kind="video" url={String(content.videoUrl || '')} websiteId={websiteId} onChange={url => onChange({ videoUrl: url })} />
