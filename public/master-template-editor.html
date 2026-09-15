@@ -55,6 +55,11 @@
         .count-number { font-size:clamp(28px,6vw,40px); font-weight:800; color:#fff; display:block; text-shadow:2px 2px 8px rgba(0,0,0,0.3); }
         .count-label { font-size:12px; color:rgba(255,255,255,0.95); letter-spacing:1px; text-shadow:1px 1px 4px rgba(0,0,0,0.3); }
         .countdown-message { font-size:clamp(16px,4vw,24px); color:#fff; margin-top:20px; font-weight:400; text-shadow:2px 2px 8px rgba(0,0,0,0.3); }
+        /* Builder countdown presets */
+        .countdown-screen.bb-countdown-solid .count-item { background:rgba(15,23,42,.72); border-color:rgba(255,255,255,.14); backdrop-filter:blur(12px); }
+        .countdown-screen.bb-countdown-minimal { background:rgba(15,23,42,.88); backdrop-filter:blur(14px); }
+        .countdown-screen.bb-countdown-minimal .count-item { background:transparent; border-color:rgba(255,255,255,.18); border-radius:12px; }
+        .countdown-screen.bb-countdown-minimal .count-number { text-shadow:none; }
         .greeting-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(-45deg,#fee9f7,#e8f5fe,#fef2e8,#f0ffe8); background-size:400% 400%; animation:gradientBG 15s ease infinite; z-index:900; padding:20px; text-align:center; }
         .greeting-screen.show { display:flex; }
         @keyframes gradientBG { 0%{ background-position:0% 50%; } 50%{ background-position:100% 50%; } 100%{ background-position:0% 50%; } }
@@ -301,13 +306,13 @@
         <span class="lightbox-nav next" id="lightboxNext" onclick="event.stopPropagation(); navigatePhoto(1)">&#8250;</span>
     </div>
 
-    <div class="countdown-screen" id="countdownScreen">
-        <h1 class="countdown-title">Something special is unlocking...⌛</h1>
+    <div class="countdown-screen" id="countdownScreen" data-bb-key="birthday" data-bb-label="Countdown date & time" data-bb-type="countdown">
+        <h1 class="countdown-title" data-bb-key="countdownTitle" data-bb-label="Countdown title">Something special is unlocking...⌛</h1>
         <div class="countdown-box">
-            <div class="count-item"><span class="count-number" id="days">00</span><span class="count-label">Days</span></div>
-            <div class="count-item"><span class="count-number" id="hours">00</span><span class="count-label">Hours</span></div>
-            <div class="count-item"><span class="count-number" id="mins">00</span><span class="count-label">Mins</span></div>
-            <div class="count-item"><span class="count-number" id="secs">00</span><span class="count-label">Secs</span></div>
+            <div class="count-item"><span class="count-number" id="days">00</span><span class="count-label" data-bb-key="countdownDaysLabel" data-bb-label="Days label">Days</span></div>
+            <div class="count-item"><span class="count-number" id="hours">00</span><span class="count-label" data-bb-key="countdownHoursLabel" data-bb-label="Hours label">Hours</span></div>
+            <div class="count-item"><span class="count-number" id="mins">00</span><span class="count-label" data-bb-key="countdownMinutesLabel" data-bb-label="Minutes label">Mins</span></div>
+            <div class="count-item"><span class="count-number" id="secs">00</span><span class="count-label" data-bb-key="countdownSecondsLabel" data-bb-label="Seconds label">Secs</span></div>
         </div>
         <div class="countdown-message" id="countdownMessage" data-bb-key="countdownMessage" data-bb-label="Countdown message"></div>
     </div>
@@ -519,7 +524,7 @@
         </div>
         <div class="letter-container" id="letterContainer">
             <h2 id="letterTitle" data-bb-key="letterTitle" data-bb-label="Letter heading">A Letter for You 💌</h2>
-            <div class="letter-content" id="letterContent"></div>
+            <div class="letter-content" id="letterContent" data-bb-key="letter" data-bb-label="Letter"></div>
             <button class="letter-return-btn" id="letterReturnBtn" data-bb-key="letterButton" data-bb-label="Letter button" onclick="goToSecretScreen()">Keep going ✨</button>
         </div>
     </div>
@@ -593,6 +598,7 @@
         // Configuration
         const _BB_PARAMS = new URLSearchParams(window.location.search);
         const CONFIG = {
+            year: _BB_PARAMS.has("year") && Number.isFinite(Number(_BB_PARAMS.get("year"))) ? Number(_BB_PARAMS.get("year")) : null,
             month: Number.isFinite(Number(_BB_PARAMS.get("month"))) ? Number(_BB_PARAMS.get("month")) : 7,
             day: Number.isFinite(Number(_BB_PARAMS.get("day"))) ? Number(_BB_PARAMS.get("day")) : 22,
             hour: Number.isFinite(Number(_BB_PARAMS.get("hour"))) ? Number(_BB_PARAMS.get("hour")) : 0,
@@ -948,6 +954,9 @@
                 if (lineIndex >= letterLines.length) return;
                 if (!currentP) {
                     currentP = document.createElement('p');
+                    currentP.setAttribute('data-bb-key', 'letter');
+                    currentP.setAttribute('data-bb-index', String(lineIndex));
+                    currentP.setAttribute('data-bb-label', `Letter line ${lineIndex + 1}`);
                     // Tiny per-line tilt and vertical drift, like a hand that doesn't write
                     // perfectly level on every line of a real letter.
                     const tilt = (Math.random() - 0.5) * 2.4;
@@ -1045,13 +1054,15 @@
             backgroundMusic.play().catch(() => {});
         }
 
+        function getConfiguredBirthdayTarget(now) {
+            if (isDemoMode) return demoBirthdayTarget;
+            const targetYear = Number.isFinite(CONFIG.year) ? CONFIG.year : now.getFullYear();
+            return new Date(targetYear, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
+        }
+
         function isBirthday(date) {
-            if (isDemoMode) {
-                return !!demoBirthdayTarget && date >= demoBirthdayTarget;
-            }
-            if (date.getMonth() !== CONFIG.month || date.getDate() !== CONFIG.day) return false;
-            const target = new Date(date.getFullYear(), CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
-            return date >= target;
+            const target = getConfiguredBirthdayTarget(date);
+            return !!target && date >= target;
         }
 
         // Lightbox functions — swipeable like a real photo album: drag/swipe or use the arrows
@@ -1180,8 +1191,7 @@
             
             // Update message — kept generic on purpose so the countdown screen doesn't reveal
             // this is a birthday surprise before the reveal happens
-            document.getElementById('countdownMessage').innerHTML = 
-                `⏰ Something is coming soon...`;
+            document.getElementById('countdownMessage').textContent = (window.BB_COUNTDOWN_MESSAGE || '⏰ Something is coming soon...');
             
             if (isBirthdayToday) {
                 // It's birthday!
@@ -1222,10 +1232,11 @@
             if (isDemoMode) {
                 birthday = demoBirthdayTarget;
             } else {
-                const currentYear = now.getFullYear();
-                birthday = new Date(currentYear, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
-                if (now > birthday) {
-                    birthday = new Date(currentYear + 1, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
+                birthday = getConfiguredBirthdayTarget(now);
+                // Older links/templates may not carry a year. In that case keep
+                // the original annual-birthday behaviour instead of breaking them.
+                if (!Number.isFinite(CONFIG.year) && now > birthday) {
+                    birthday = new Date(now.getFullYear() + 1, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
                 }
             }
             
@@ -2046,7 +2057,7 @@ function applyContent(c){
  const occasion=occasionNames[c.occasion]||'Celebration', name=c.name||'Someone special';
  const set=(id,value)=>{const el=document.getElementById(id);if(el&&value!=null)el.textContent=String(value)};
  const setHref=(selector,value)=>{document.querySelectorAll(selector).forEach(el=>{const raw=String(value||'').trim();let safe='';try{const u=new URL(raw,location.href);if(['http:','https:'].includes(u.protocol))safe=u.href;}catch{}if(safe){el.href=safe;el.target='_blank';el.rel='noopener noreferrer';el.style.display='';}else{el.removeAttribute('href');el.style.display='none';}})};
- set('greetingTitle',`${c.greeting||occasion} ${name} ❤️✨`);
+ const greetingTitle=document.getElementById('greetingTitle'); if(greetingTitle){greetingTitle.innerHTML=`<span data-bb-key="greeting" data-bb-label="Greeting">${esc(c.greeting||occasion)}</span> <span data-bb-key="name" data-bb-label="Name">${esc(name)}</span> <span aria-hidden="true">❤️✨</span>`;} 
  set('greetingText',c.heroSubtitle||'A special moment made just for you.');
  set('reasonsTitle',`${c.heroTitle||`Reasons you are special`}`);
  set('photoTitle',c.photoTitle||'The Beautiful Moments');
@@ -2057,6 +2068,9 @@ function applyContent(c){
  set('secretTitle',c.secretTitle||'A little secret for you ✨');
  set('secretMessage',c.secret||'You found the secret! 🎁');
  set('secretButton',c.secretButton||'See Your Friend');
+ const countdownTitle=document.querySelector('.countdown-title');if(countdownTitle)countdownTitle.textContent=c.countdownTitle||'Something special is unlocking...⌛';
+ const countdownMessage=document.getElementById('countdownMessage');if(countdownMessage)countdownMessage.textContent=c.countdownMessage||'Get ready for a little surprise...';
+ const countdownLabels=[['countdownDaysLabel','Days'],['countdownHoursLabel','Hours'],['countdownMinutesLabel','Mins'],['countdownSecondsLabel','Secs']];countdownLabels.forEach(([key,def],i)=>{const el=document.querySelectorAll('.count-label')[i];if(el)el.textContent=c[key]||def;});
  const enter=document.getElementById('enterWorldBtn'); if(enter)enter.textContent=c.buttonText||'Click to enter your world 💕';
  const social=c.social||{}; const instagram=social.instagram||'https://www.instagram.com/rafahimn'; const facebook=social.facebook||'https://www.facebook.com/rafahimn'; setHref('.social-btn.instagram',instagram); setHref('.social-btn.facebook',facebook); const secretButton=document.getElementById('secretButton'); if(secretButton){secretButton.onclick=()=>window.open(instagram,'_blank','noopener,noreferrer')}
  const cakeNext=document.getElementById('cakeNextBtn'); if(cakeNext)cakeNext.textContent=c.cakeNextButton||'Enter your story 💫';
@@ -2073,9 +2087,9 @@ function applyContent(c){
  charIndex=0; greetingText=String(c.heroSubtitle||'A special moment made just for you.');
  const greetingEl=document.getElementById('greetingText'); if(greetingEl)greetingEl.textContent='';
  const pc=document.getElementById('photoContainer');
- if(pc){const items=Array.isArray(c.gallery)?c.gallery:[];pc.innerHTML=items.length?items.map((item,i)=>{const src=safeUrl(item?.url||item?.src||'');if(!src)return '';const title=esc(item?.title||item?.caption||`Memory ${i+1}`);const caption=esc(item?.caption||item?.description||'A beautiful memory.');return `<div class="photo-card" data-src="${esc(src)}" onclick="openLightbox(this.dataset.src)"><img src="${esc(src)}" alt="${title}" class="photo-img"><div class="photo-date">${title}</div><div class="photo-caption">${caption}</div></div>`}).join(''):'<div style="grid-column:1/-1;text-align:center;padding:50px 20px;color:#64748b;font-size:1.1rem">Your memories will appear here once you add photos in the editor. ✨</div>';photoAlbum=Array.from(pc.querySelectorAll('.photo-card img')).map(img=>img.getAttribute('src')).filter(Boolean);lightboxIndex=-1;updateLightboxNavVisibility();}
+ if(pc){const items=Array.isArray(c.gallery)?c.gallery:[];pc.innerHTML=items.length?items.map((item,i)=>{const src=safeUrl(item?.url||item?.src||'');if(!src)return '';const title=esc(item?.title||item?.caption||`Memory ${i+1}`);const caption=esc(item?.caption||item?.description||'A beautiful memory.');return `<div class="photo-card" data-src="${esc(src)}" data-bb-key="gallery" data-bb-index="${i}" data-bb-label="Photo ${i+1}" data-bb-type="image" onclick="openLightbox(this.dataset.src)"><img src="${esc(src)}" alt="${title}" class="photo-img"><div class="photo-date">${title}</div><div class="photo-caption">${caption}</div></div>`}).join(''):'<div style="grid-column:1/-1;text-align:center;padding:50px 20px;color:#64748b;font-size:1.1rem">Your memories will appear here once you add photos in the editor. ✨</div>';photoAlbum=Array.from(pc.querySelectorAll('.photo-card img')).map(img=>img.getAttribute('src')).filter(Boolean);lightboxIndex=-1;updateLightboxNavVisibility();}
  const vg=document.getElementById('videoGrid');
- if(vg){const src=safeUrl(c.videoUrl||'');vg.innerHTML=src?`<div class="video-card"><h3>${esc(occasion)} video for ${esc(name)} ❤️</h3><div class="video-wrapper"><video controls preload="metadata"><source src="${esc(src)}" type="video/mp4"></video></div></div>`:'<div class="video-card"><h3>Add a video from the editor 🎥</h3><p style="color:#64748b;padding:15px">No video has been uploaded yet.</p></div>';}
+ if(vg){const src=safeUrl(c.videoUrl||'');vg.innerHTML=src?`<div class="video-card" data-bb-key="videoUrl" data-bb-label="Special video" data-bb-type="video"><h3>${esc(occasion)} video for ${esc(name)} ❤️</h3><div class="video-wrapper"><video controls preload="metadata"><source src="${esc(src)}" type="video/mp4"></video></div></div>`:'<div class="video-card"><h3>Add a video from the editor 🎥</h3><p style="color:#64748b;padding:15px">No video has been uploaded yet.</p></div>';}
  const musicSrc=safeUrl(c.musicUrl||'');
  const countdownSrc=safeUrl(c.countdownAudioUrl||'');
  const wishingSrc=safeUrl(c.wishingAudioUrl||'');
@@ -2084,6 +2098,8 @@ function applyContent(c){
  if(typeof countdownAudio!=='undefined' && countdownAudio){setMediaSource(countdownAudio,countdownSrc);}
  if(typeof birthdayAudio!=='undefined' && birthdayAudio){setMediaSource(birthdayAudio,wishingSrc);}
  window.BB_SETTINGS={...window.BB_SETTINGS,countdown:c.countdown!==false,confetti:c.confetti!==false,fireworks:c.fireworks!==false,hearts:c.hearts!==false,balloons:c.balloons!==false};
+ window.BB_COUNTDOWN_MESSAGE=String(c.countdownMessage||'⏰ Something is coming soon...');
+ const countdownScreen=document.getElementById('countdownScreen'); if(countdownScreen){ countdownScreen.classList.remove('bb-countdown-glass','bb-countdown-solid','bb-countdown-minimal'); const preset=c.countdownStyle==='solid'?'bb-countdown-solid':c.countdownStyle==='minimal'?'bb-countdown-minimal':'bb-countdown-glass'; countdownScreen.classList.add(preset); }
  const heartsLayer=document.getElementById('floatingHearts');if(heartsLayer)heartsLayer.style.display=window.BB_SETTINGS.hearts?'':'none';
  if(window.BB_SETTINGS.countdown===false){const cs=document.getElementById('countdownScreen');if(cs){cs.classList.remove('show');cs.classList.add('hide')}const gs=document.getElementById('greetingScreen');if(gs)gs.classList.add('show');}else{const cs=document.getElementById('countdownScreen');if(cs)cs.classList.add('show');}
  const palette=c.primaryColor||'#ec4899', fontMap={sans:'Quicksand',script:'Dancing Script',bubble:'Bubblegum Sans',comic:'Comic Neue',caveat:'Caveat'}, selectedFont=fontMap[c.font]||fontMap.sans;
@@ -2172,8 +2188,8 @@ window.addEventListener('DOMContentLoaded',()=>{const root=document.createElemen
     if(document.getElementById(styleId)) return;
     const s=document.createElement('style'); s.id=styleId;
     s.textContent=`
-      body.bb-editor-mode [data-bb-key]{position:relative!important;outline:1.5px dashed transparent;outline-offset:5px;cursor:pointer;transition:outline-color .15s ease,background .15s ease,filter .15s ease}
-      body.bb-editor-mode [data-bb-key]:hover{outline-color:rgba(236,72,153,.7);background:rgba(236,72,153,.055)}
+      body.bb-editor-mode [data-bb-key]{position:relative!important;outline:1.5px dashed transparent;outline-offset:5px;cursor:pointer;transition:outline-color .15s ease,background .15s ease,filter .15s ease;-webkit-tap-highlight-color:transparent}
+      body.bb-editor-mode [data-bb-key]:hover,body.bb-editor-mode [data-bb-key]:focus-within{outline-color:rgba(236,72,153,.7);background:rgba(236,72,153,.055)}
       .wishly-edit-badge{position:absolute;top:-11px;right:-11px;z-index:999999;width:30px;height:30px;border-radius:50%;display:none;place-items:center;border:1px solid rgba(255,255,255,.24);background:linear-gradient(135deg,#ec4899,#8b5cf6);color:#fff;box-shadow:0 10px 26px rgba(0,0,0,.3);font:700 13px/1 system-ui;cursor:pointer}
       body.bb-editor-mode [data-bb-key]:hover>.wishly-edit-badge{display:grid}
       .wishly-editor-audio{position:fixed;left:12px;bottom:12px;z-index:9999999;display:flex;gap:7px;max-width:calc(100vw - 24px);overflow:auto;padding:4px}

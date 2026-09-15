@@ -7,6 +7,7 @@ import { MasterTemplate } from '@/components/template/MasterTemplate';
 import ExperienceTemplate, { getMissYouDefaults, getMasterProposalDefaults } from '@/components/template/ExperienceTemplates';
 import { SingleMediaUpload, GalleryUpload, InlineMediaField } from './MediaUploader';
 import FeatureControls from './FeatureControls';
+import UniversalElementEditor from './UniversalElementEditor';
 import { TimelineEditor, MemoriesEditor, WishlistEditor, GuestbookToggle } from './ContentListEditors';
 import { templateCatalog } from '@/lib/templates';
 
@@ -54,6 +55,17 @@ const TABS = [
 ] as const;
 
 type TabId = typeof TABS[number][0];
+type EditGroup = readonly [string, string, string, readonly TabId[]];
+
+const EDIT_GROUPS: readonly EditGroup[] = [
+  ['content', '✍', 'Content', ['overview','opening']],
+  ['story', '♡', 'Story', ['story','timeline','memories','wishlist','guestbook','letter']],
+  ['media', '▧', 'Photos & Music', ['gallery','music','video']],
+  ['style', '◈', 'Style & Effects', ['theme','effects']],
+  ['share', '↗', 'Share & Growth', ['social','growth']],
+  ['advanced', '⚙', 'Advanced', ['advanced']],
+];
+type EditGroupId = typeof EDIT_GROUPS[number][0];
 type CanvasSelection = { key: string; label: string; index?: number; value?: string; kind?: string };
 
 function Section({ eyebrow, title, description, children }: { eyebrow?: string; title: string; description?: string; children: React.ReactNode }) {
@@ -178,6 +190,7 @@ export default function Builder() {
   const [occasion, setOccasion] = useState('birthday');
   const [dirty, setDirty] = useState(false);
   const [editorMode, setEditorMode] = useState(true);
+  const [editGroup, setEditGroup] = useState<EditGroupId>('content');
   const [device, setDevice] = useState<'desktop'|'tablet'|'mobile'>('desktop');
   const [selectedElement, setSelectedElement] = useState<CanvasSelection | null>(null);
   const [publicUrl, setPublicUrl] = useState('');
@@ -277,10 +290,17 @@ export default function Builder() {
         ? TABS.filter(([value]) => ['overview', 'opening', 'story', 'gallery', 'music', 'letter'].includes(value))
         : TABS.filter(([value]) => value !== 'social' || templateId === 'master');
   const activeTab = visibleTabs.find(x => x[0] === tab) || visibleTabs[0];
+  const visibleGroups = EDIT_GROUPS.map(([id, icon, label, tabs]) => ({ id, icon, label, tabs: tabs.filter(t => visibleTabs.some(v => v[0] === t)) })).filter(g => g.tabs.length);
+  const activeGroup = visibleGroups.find(g => g.id === editGroup) || visibleGroups[0];
+  const groupTabs = activeGroup?.tabs.map(t => visibleTabs.find(v => v[0] === t)).filter(Boolean) as typeof visibleTabs[number][] | undefined;
   useEffect(() => {
     if (!visibleTabs.some(([value]) => value === tab)) setTab('overview');
     setSelectedElement(null);
   }, [templateId]);
+  useEffect(() => {
+    const group = EDIT_GROUPS.find(([, , , tabs]) => tabs.includes(tab as TabId));
+    if (group) setEditGroup(group[0]);
+  }, [tab]);
   const previewContent = useMemo(() => ({ ...c, occasion, templateId }), [c, occasion, templateId]);
   const resetToMasterDefaults = () => {
     const keepName = c.name;
@@ -330,164 +350,33 @@ export default function Builder() {
           </div> : null;
         })()}
 
-        <nav className="builder-nav">
-          <div className="builder-nav-label">EDIT EXPERIENCE</div>
-          {visibleTabs.map(([value, icon, label]) => <button key={value} className={tab === value ? 'active' : ''} onClick={() => setTab(value)}><span>{icon}</span>{label}{templateId !== 'master-proposal' && ['gallery','story','timeline','memories','wishlist'].includes(value) && <b>{value === 'story' ? c.reasons.length : value === 'gallery' ? c.gallery.length : value === 'timeline' ? c.timeline.length : value === 'memories' ? c.memories.length : c.wishlist.length}</b>}{templateId === 'master-proposal' && value === 'story' && <b>{Array.isArray(masterProposalConfig.story) ? masterProposalConfig.story.length : 0}</b>}{templateId === 'master-proposal' && value === 'gallery' && <b>{Array.isArray(masterProposalConfig.museum) ? masterProposalConfig.museum.length : 0}</b>}</button>)}
+        <nav className="builder-nav builder-category-nav">
+          <div className="builder-nav-label">EDIT YOUR WEBSITE</div>
+          {visibleGroups.map(g => <button key={g.id} className={activeGroup?.id === g.id ? 'active' : ''} onClick={() => { setEditGroup(g.id); setTab(g.tabs[0] as TabId); }}><span>{g.icon}</span>{g.label}<b>{g.tabs.length}</b></button>)}
         </nav>
+        <div className="builder-subnav">
+          {groupTabs?.map(([value, icon, label]) => <button key={value} className={tab === value ? 'active' : ''} onClick={() => setTab(value as TabId)}><span>{icon}</span>{label}</button>)}
+        </div>
 
         <div className="builder-side-tip"><span>⌘</span><div><b>Easy mode</b><p>Edit here or directly on the page. When ready, create one live link for this website.</p></div></div>
       </aside>
 
       <section className="builder-workspace">
         <div className="builder-editor-panel">
-          <div className="builder-panel-head"><div><div className="builder-eyebrow">{activeTab?.[1]} {activeTab?.[2]}</div><h2>{activeTab?.[2]}</h2></div><span className="builder-live-pill">● LIVE</span></div>
+          <div className="builder-panel-head"><div><div className="builder-eyebrow">{activeGroup?.icon} {activeGroup?.label || 'Editor'}</div><h2>{activeTab?.[2]}</h2></div><span className="builder-live-pill">● LIVE</span></div>
+          <div className="builder-mobile-category-tabs">{visibleGroups.map(g => <button key={g.id} className={activeGroup?.id === g.id ? 'active' : ''} onClick={() => { setEditGroup(g.id); setTab(g.tabs[0] as TabId); }}><span>{g.icon}</span>{g.label}</button>)}</div>
           <div className="builder-form-scroll">
-                      {selectedElement && <section className="builder-selection-card">
-              <div><span className="builder-eyebrow">CANVAS SELECTION</span><h3>{selectedElement.label}</h3><p>Double-click text in the preview to edit it directly.</p></div>
-              <button className="builder-clear-selection" onClick={()=>setSelectedElement(null)}>Clear</button>
-              {selectedElement.key === 'reasons' && typeof selectedElement.index === 'number' ? (
-                <textarea rows={3} value={c.reasons[selectedElement.index] || ''} onChange={e=>{const reasons=[...c.reasons]; reasons[selectedElement.index!] = e.target.value; update({reasons});}} />
-              ) : selectedElement.key === 'greeting' ? (
-                <input value={c.greeting} onChange={e=>update({greeting:e.target.value})} />
-              ) : (['heroSubtitle','heroTitle','secret','buttonText'].includes(selectedElement.key) && templateId !== 'master-proposal') ? (
-                <textarea rows={selectedElement.key==='heroSubtitle'||selectedElement.key==='secret'?3:2} value={String((c as any)[selectedElement.key]||'')} onChange={e=>update({[selectedElement.key]:e.target.value} as Partial<BirthdayContent>)} />
-              ) : templateId === 'master-proposal' ? (
-                selectedElement.key === 'heroTitle' || selectedElement.key === 'heroSubtitle' ? (
-                  <input value={String(masterProposalConfig[selectedElement.key] || '')} onChange={e => updateMasterProposal({ [selectedElement.key]: e.target.value })} />
-                ) : selectedElement.key === 'story' && typeof selectedElement.index === 'number' ? (() => {
-                  const story = (Array.isArray(masterProposalConfig.story) ? masterProposalConfig.story : []) as { title: string; body: string }[];
-                  const item = story[selectedElement.index!] || { title: '', body: '' };
-                  const setItem = (patch: Partial<{ title: string; body: string }>) => { const next = [...story]; next[selectedElement.index!] = { ...item, ...patch }; updateMasterProposal({ story: next }); };
-                  return <div className="builder-grid-2"><Field label="Chapter title"><input value={item.title} onChange={e => setItem({ title: e.target.value })} /></Field><Field label="Chapter text"><textarea rows={4} value={item.body} onChange={e => setItem({ body: e.target.value })} /></Field></div>;
-                })() : selectedElement.key.startsWith('introGate.') ? (() => {
-                  const field = selectedElement.key.split('.')[1];
-                  const gate = (masterProposalConfig.introGate || {}) as Record<string, any>;
-                  if (field === 'prompts' && typeof selectedElement.index === 'number') {
-                    const prompts = (Array.isArray(gate.prompts) ? gate.prompts : []) as { title: string; subtitle: string }[];
-                    const item = prompts[selectedElement.index] || { title: '', subtitle: '' };
-                    const setItem = (patch: Partial<{ title: string; subtitle: string }>) => { const next = [...prompts]; next[selectedElement.index!] = { ...item, ...patch }; updateMasterProposal({ introGate: { ...gate, prompts: next } }); };
-                    return <div className="builder-grid-2"><Field label="Question"><input value={item.title} onChange={e => setItem({ title: e.target.value })} /></Field><Field label="Subtitle"><input value={item.subtitle} onChange={e => setItem({ subtitle: e.target.value })} /></Field></div>;
-                  }
-                  return <input value={String(gate[field] || '')} onChange={e => updateMasterProposal({ introGate: { ...gate, [field]: e.target.value } })} />;
-                })() : selectedElement.key.startsWith('datePlanner.') ? (() => {
-                  const field = selectedElement.key.split('.')[1];
-                  const planner = (masterProposalConfig.datePlanner || {}) as Record<string, any>;
-                  if (field === 'options' && typeof selectedElement.index === 'number') {
-                    const options = (Array.isArray(planner.options) ? planner.options : []) as any[];
-                    const item = options[selectedElement.index] || {};
-                    const setItem = (patch: Record<string, unknown>) => { const next = [...options]; next[selectedElement.index!] = { ...item, ...patch }; updateMasterProposal({ datePlanner: { ...planner, options: next } }); };
-                    return <div className="builder-grid-2"><Field label="Card label"><input value={item.label || ''} onChange={e => setItem({ label: e.target.value })} /></Field><Field label="Ticket title"><input value={item.planTitle || ''} onChange={e => setItem({ planTitle: e.target.value })} /></Field></div>;
-                  }
-                  return <input value={String(planner[field] || '')} onChange={e => updateMasterProposal({ datePlanner: { ...planner, [field]: e.target.value } })} />;
-                })() : null
-              ) : null}
-            </section>}
-            {templateId === 'miss-you-1' && tab === 'overview' && <>
-              <Section eyebrow="MISS YOU 1" title="Make it yours" description="Only the content the original Miss You experience actually uses is editable here. The design and animation stay exactly as supplied.">
-                <div className="builder-grid-2">
-                  <Field label="Person 1 name"><input value={String(missYouConfig.name1 || '')} onChange={e => updateMissYou({ name1: e.target.value })} /></Field>
-                  <Field label="Person 2 name"><input value={String(missYouConfig.name2 || '')} onChange={e => updateMissYou({ name2: e.target.value })} /></Field>
-                  <Field label="Together text"><input value={String(missYouConfig.together || '')} onChange={e => updateMissYou({ together: e.target.value })} /></Field>
-                  <Field label="Start date"><input type="datetime-local" value={String(missYouConfig.memorialDate || '').slice(0,16)} onChange={e => updateMissYou({ memorialDate: e.target.value ? new Date(e.target.value).toISOString() : '' })} /></Field>
-                  <Field label="Opening text"><input value={String(missYouConfig.seedText || '')} onChange={e => updateMissYou({ seedText: e.target.value })} /></Field>
-                </div>
-              </Section>
-            </>}
-
-            {templateId === 'miss-you-1' && tab === 'story' && <>
-              <Section eyebrow="LETTER CONTENT" title="Your Miss You letter" description="Edit the exact three-part letter used by the original template.">
-                {(['paragraph1','paragraph2','paragraph3'] as const).map((key, idx) => <ArrayEditor key={key} title={`Paragraph ${idx + 1}`} items={Array.isArray(missYouConfig[key]) ? missYouConfig[key] as string[] : []} placeholder="Write one line…" multiline onChange={items => updateMissYou({ [key]: items })} />)}
-              </Section>
-              <Section eyebrow="COUNTER" title="Time labels" description="These are the only counter labels used by this template.">
-                <div className="builder-grid-2">
-                  <Field label="Prefix"><input value={String(missYouConfig.timePrefix || '')} onChange={e => updateMissYou({ timePrefix: e.target.value })} /></Field>
-                  <Field label="Days"><input value={String(missYouConfig.dayLabel || '')} onChange={e => updateMissYou({ dayLabel: e.target.value })} /></Field>
-                  <Field label="Hours"><input value={String(missYouConfig.hourLabel || '')} onChange={e => updateMissYou({ hourLabel: e.target.value })} /></Field>
-                  <Field label="Minutes"><input value={String(missYouConfig.minuteLabel || '')} onChange={e => updateMissYou({ minuteLabel: e.target.value })} /></Field>
-                  <Field label="Seconds"><input value={String(missYouConfig.secondLabel || '')} onChange={e => updateMissYou({ secondLabel: e.target.value })} /></Field>
-                </div>
-              </Section>
-            </>}
-
-            {templateId === 'master-proposal' && tab === 'overview' && <>
-              <div className="builder-quickstart"><div className="builder-quick-card"><b>1. Personalize</b><span>Set the recipient and sender names.</span></div><div className="builder-quick-card"><b>2. Set delivery email</b><span>This is where the date ticket is sent automatically.</span></div><div className="builder-quick-card"><b>3. Share</b><span>Save it and create one live link.</span></div></div>
-              <Section eyebrow="MASTER PROPOSAL" title="Who is this for?" description="Only the values this original Valentine experience actually uses are shown here. The design, animation and audio stay exactly as supplied.">
-                <div className="builder-grid-2">
-                  <Field label="Recipient name (shown on the ticket)"><input value={String(masterProposalConfig.toName || '')} onChange={e => updateMasterProposal({ toName: e.target.value })} placeholder="Rodney (The Best Boyfriend)" /></Field>
-                  <Field label="Sender name (shown on the ticket)"><input value={String(masterProposalConfig.fromName || '')} onChange={e => updateMasterProposal({ fromName: e.target.value })} placeholder="Sherry (Your Valentine)" /></Field>
-                  <Field label="Sender sign-off"><input value={String(masterProposalConfig.fromLabel || '')} onChange={e => updateMasterProposal({ fromLabel: e.target.value })} placeholder="Sherry" /></Field>
-                  <Field label="Ticket delivery email"><input type="email" value={String(masterProposalConfig.recipientEmail || '')} onChange={e => updateMasterProposal({ recipientEmail: e.target.value })} placeholder="you@example.com" /></Field>
-                </div>
-                <div className="builder-note mt-4">When a visitor taps "Send Ticket", the date ticket is emailed to this address automatically — no mail app required.</div>
-              </Section>
-              <Section eyebrow="OPENING" title="Hero text" description="The very first words visitors see.">
-                <div className="builder-grid-2">
-                  <Field label="Hero title"><input value={String(masterProposalConfig.heroTitle || '')} onChange={e => updateMasterProposal({ heroTitle: e.target.value })} placeholder="To My Dearest" /></Field>
-                  <Field label="Hero subtitle"><input value={String(masterProposalConfig.heroSubtitle || '')} onChange={e => updateMasterProposal({ heroSubtitle: e.target.value })} placeholder="Scroll slowly" /></Field>
-                </div>
-              </Section>
-            </>}
-
-            {templateId === 'master-proposal' && tab === 'story' && <>
-              <Section eyebrow="OUR STORY" title="Story chapters" description="Each chapter is one full-screen scroll section. Edit the title and text, or add/remove chapters.">
-                <ObjectArrayEditor
-                  title="chapter"
-                  items={(Array.isArray(masterProposalConfig.story) ? masterProposalConfig.story : []) as { title: string; body: string }[]}
-                  fields={[{ key: 'title', label: 'Chapter title', placeholder: 'The Beginning' }, { key: 'body', label: 'Chapter text', placeholder: 'Write the chapter…', multiline: true }]}
-                  newItem={() => ({ title: '', body: '' })}
-                  onChange={items => updateMasterProposal({ story: items })}
-                />
-              </Section>
-              <Section eyebrow="LOVE NOTES" title="Love note jar" description="Short one-line notes a visitor pulls at random from the jar.">
-                <ArrayEditor title="Love notes" items={(Array.isArray(masterProposalConfig.loveNotes) ? masterProposalConfig.loveNotes : []) as string[]} placeholder="Your smile is the best part of my day." onChange={items => updateMasterProposal({ loveNotes: items })} />
-              </Section>
-              <Section eyebrow="BUCKET LIST" title="Future bucket list" description="Things to look forward to together.">
-                <ArrayEditor title="Bucket list items" items={(Array.isArray(masterProposalConfig.bucketList) ? masterProposalConfig.bucketList : []) as string[]} placeholder="Travel to Japan" onChange={items => updateMasterProposal({ bucketList: items })} />
-              </Section>
-            </>}
-
-            {templateId === 'master-proposal' && tab === 'gallery' && <>
-              <Section eyebrow="PHOTOS & VIDEOS" title="Photos & videos" description="Choose a photo or video straight from your phone or computer — or paste a YouTube link instead if you have one.">
-                <ObjectArrayEditor
-                  title="memory"
-                  websiteId={id}
-                  items={(Array.isArray(masterProposalConfig.museum) ? masterProposalConfig.museum : []) as any[]}
-                  fields={[
-                    { key: 'type', label: 'Type', options: ['image', 'video'] },
-                    { key: 'url', label: 'Photo or video', placeholder: 'Choose a file, or paste a YouTube link', upload: { accept: 'image/*,video/*', folder: 'museum' } },
-                    { key: 'title', label: 'Title', placeholder: 'The First Glance' },
-                    { key: 'date', label: 'Date', placeholder: 'January 2025' },
-                    { key: 'description', label: 'Description', placeholder: 'What made this moment special…', multiline: true },
-                  ]}
-                  newItem={() => ({ id: String(Date.now()), type: 'image', url: '', title: '', date: '', description: '' })}
-                  onChange={items => updateMasterProposal({ museum: items })}
-                />
-              </Section>
-            </>}
-
-            {templateId === 'master-proposal' && tab === 'music' && <>
-              <Section eyebrow="SOUNDTRACK" title="Background music" description="This experience uses one single background track. It starts playing right after your visitor finishes the opening section — no playlist, no extra players.">
-                <SingleMediaUpload kind="audio" url={String(masterProposalConfig.bgMusicUrl || '')} onChange={bgMusicUrl => updateMasterProposal({ bgMusicUrl })} websiteId={id} />
-                <div className="builder-note mt-4">Leave it empty to keep the experience completely silent. Visitors get a small mute button in the corner.</div>
-              </Section>
-            </>}
-
-            {templateId === 'master-proposal' && tab === 'letter' && <>
-              <Section eyebrow="FINAL LETTER" title="Closing letter" description="Shown at the very end of the experience.">
-                <Field label="Letter title"><input value={String((masterProposalConfig.finalLetter as any)?.title || '')} onChange={e => updateMasterProposal({ finalLetter: { ...(masterProposalConfig.finalLetter as any || {}), title: e.target.value } })} placeholder="Happy Valentine's Day" /></Field>
-                <ArrayEditor title="Letter paragraphs" items={((masterProposalConfig.finalLetter as any)?.paragraphs || []) as string[]} placeholder="Write a paragraph…" multiline onChange={items => updateMasterProposal({ finalLetter: { ...(masterProposalConfig.finalLetter as any || {}), paragraphs: items } })} />
-                <Field label="Sign-off"><input value={String((masterProposalConfig.finalLetter as any)?.signoff || '')} onChange={e => updateMasterProposal({ finalLetter: { ...(masterProposalConfig.finalLetter as any || {}), signoff: e.target.value } })} placeholder="Forever yours" /></Field>
-              </Section>
-              <Section eyebrow="MOOD REPLIES" title="Mood messages" description="What you say back when a visitor taps how they're feeling. The moods themselves are fixed by the original design — only the words are editable.">
-                <div className="builder-grid-2">
-                  {Object.entries((masterProposalConfig.comfortResponses || {}) as Record<string, { label?: string; response?: string }>).map(([moodId, entry]) => (
-                    <Field key={moodId} label={entry.label || moodId}>
-                      <textarea rows={3} value={entry.response || ''} onChange={e => updateMasterProposal({ comfortResponses: { ...(masterProposalConfig.comfortResponses as any), [moodId]: { ...entry, response: e.target.value } } })} />
-                    </Field>
-                  ))}
-                </div>
-              </Section>
-            </>}
+                      {selectedElement && (
+                        <UniversalElementEditor
+                          selected={selectedElement}
+                          content={c}
+                          templateId={templateId}
+                          websiteId={id}
+                          onChange={update}
+                          onTemplateConfigChange={(patch) => update({ templateConfig: { ...(c.templateConfig || {}), ...patch } })}
+                          onClose={() => setSelectedElement(null)}
+                        />
+                      )}
 
             {tab === 'overview' && templateId !== 'miss-you-1' && templateId !== 'master-proposal' && (templateId === 'wedding-proposal' ? <>
               <div className="builder-quickstart"><div className="builder-quick-card"><b>1. Personalize</b><span>Set the recipient and sender names.</span></div><div className="builder-quick-card"><b>2. Edit the proposal</b><span>Only the words used by this original HTML are editable.</span></div><div className="builder-quick-card"><b>3. Share</b><span>Save it and create one live link.</span></div></div>
@@ -510,12 +399,40 @@ export default function Builder() {
                 </div>
               </Section>
             </> : <>
+              <Section eyebrow="QUICK CUSTOMIZE" title="Make the important changes first" description="Start here on mobile. Everything else stays available in the tabs below, but these are the changes people make most often.">
+                <div className="builder-quick-actions builder-quick-actions-panel">
+                  <button type="button" onClick={() => setTab('opening')}>✍️ Text</button>
+                  <button type="button" onClick={() => document.getElementById('countdown-settings')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>⏳ Countdown</button>
+                  <button type="button" onClick={() => setTab('gallery')}>🖼️ Photos</button>
+                  <button type="button" onClick={() => setTab('music')}>🎵 Music</button>
+                  <button type="button" onClick={() => setTab('theme')}>🎨 Style</button>
+                  <button type="button" onClick={() => setTab('effects')}>✨ Effects</button>
+                </div>
+              </Section>
               <Section eyebrow="IDENTITY" title="Who is this celebration for?" description="These details personalize the experience without changing the master template structure.">
                 <div className="builder-grid-2">
                   <Field label="Person / recipient name"><input value={c.name} onChange={e => update({ name: e.target.value })} placeholder="e.g. Riya" /></Field>
-                  <Field label="Date"><input type="date" value={c.birthday} onChange={e => update({ birthday: e.target.value })} /></Field>
                   <Field label="Relationship"><input value={c.relationship} onChange={e => update({ relationship: e.target.value })} placeholder="Best friend, partner, sister…" /></Field>
                   <Field label="Public button text"><input value={c.buttonText} onChange={e => update({ buttonText: e.target.value })} placeholder="Make a wish" /></Field>
+                </div>
+              </Section>
+              <Section eyebrow="COUNTDOWN" title="Choose exactly when the surprise unlocks" description="Pick both the date and time. The live preview uses the same target, so you can test the result before publishing.">
+                <div id="countdown-settings" className="builder-countdown-card">
+                  <div className="builder-countdown-head">
+                    <div><span className="builder-eyebrow">LIVE TARGET</span><strong>Birthday countdown</strong><small>Visitors will see the countdown until this moment.</small></div>
+                    <label className={`builder-toggle builder-toggle-inline ${c.countdown ? 'on' : ''}`}><span><b>{c.countdown ? 'On' : 'Off'}</b></span><input type="checkbox" checked={c.countdown} onChange={e => toggleEffect('countdown', e.target.checked)} /></label>
+                  </div>
+                  <div className="builder-grid-2">
+                    <Field label="Birthday date & time" hint="Use your local time."><input type="datetime-local" value={(() => { const d = new Date(c.birthday || ''); if (Number.isNaN(d.getTime())) return ''; const pad=(n:number)=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; })()} onChange={e => update({ birthday: e.target.value })} /></Field>
+                    <Field label="Countdown sound" hint="Optional sound during the final countdown."><button type="button" className="builder-inline-jump" onClick={() => setSelectedElement({ key: 'countdownAudioUrl', label: 'Countdown audio', kind: 'audio' })}>🎵 {c.countdownAudioUrl ? 'Change countdown audio' : 'Add countdown audio'} <span>→</span></button></Field>
+                  </div>
+                  <div className="builder-grid-2 mt-3">
+                    <Field label="Countdown title"><input value={c.countdownTitle} onChange={e => update({ countdownTitle: e.target.value })} placeholder="Something special is unlocking...⌛" /></Field>
+                    <Field label="Countdown message"><input value={c.countdownMessage} onChange={e => update({ countdownMessage: e.target.value })} placeholder="⏰ Something is coming soon..." /></Field>
+                    <Field label="Countdown style"><select value={c.countdownStyle} onChange={e => update({ countdownStyle: e.target.value })}><option value="glass">Glass</option><option value="solid">Premium dark</option><option value="minimal">Minimal</option></select></Field>
+                    <Field label="Time labels" hint="Separate with commas: Days, Hours, Mins, Secs"><input value={[c.countdownDaysLabel,c.countdownHoursLabel,c.countdownMinutesLabel,c.countdownSecondsLabel].join(', ')} onChange={e => { const parts=e.target.value.split(',').map(x=>x.trim()); update({ countdownDaysLabel:parts[0]||'Days', countdownHoursLabel:parts[1]||'Hours', countdownMinutesLabel:parts[2]||'Mins', countdownSecondsLabel:parts[3]||'Secs' }); }} /></Field>
+                  </div>
+                  <div className="builder-countdown-status"><span>Target</span><b>{(() => { const d = new Date(c.birthday || ''); return Number.isNaN(d.getTime()) ? 'Choose a date & time' : d.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }); })()}</b></div>
                 </div>
               </Section>
               <Section eyebrow="CONTENT MAP" title="Your experience at a glance" description="Nothing here is decorative: these counters show what will actually render on the published page.">

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import type { BirthdayContent } from '@/lib/types';
 
 type Props = {
-  data?: { name?: string; age?: number; month?: number; day?: number; hour?: number; minute?: number };
+  data?: { name?: string; age?: number; year?: number; month?: number; day?: number; hour?: number; minute?: number };
   content?: BirthdayContent;
   /** Demo/preview mode: countdown always ends 10 seconds after load, then behaves as normal. */
   demo?: boolean;
@@ -20,8 +20,13 @@ function contentToData(content?: BirthdayContent) {
   if (content.birthday) {
     const d = new Date(content.birthday);
     if (!Number.isNaN(d.getTime())) {
+      result.year = d.getFullYear();
       result.month = d.getMonth();
       result.day = d.getDate();
+      // Pass the exact selected date and time to the standalone HTML template.
+      // The editor and the published page therefore share one countdown target.
+      result.hour = d.getHours();
+      result.minute = d.getMinutes();
     }
   }
   return result;
