@@ -844,24 +844,34 @@
         let currentReasonIndex = 0;
         let isTransitioning = false;
         let historyStack = ['countdown'];
+        let historyIndex = 0;
+        try { history.replaceState({ screen: 'countdown' }, '', location.pathname + location.search + '#countdown'); } catch(e) {}
 
         // History management
-        function updateHistory(screen) { 
-            historyStack.push(screen); 
-            try {
-                history.pushState({ screen: screen }, '', '#' + screen);
-            } catch(e) {
-                // Handle history API errors silently
-            }
+        function updateHistory(screen) {
+            if (historyStack[historyIndex] === screen) return;
+            historyStack = historyStack.slice(0, historyIndex + 1);
+            historyStack.push(screen);
+            historyIndex = historyStack.length - 1;
+            try { history.pushState({ screen }, '', '#' + screen); } catch(e) {}
+            notifyHistory();
         }
-
+        function notifyHistory() {
+            try { window.parent.postMessage({ type: 'BB_CANVAS_HISTORY_STATE', canBack: historyIndex > 0, canForward: historyIndex < historyStack.length - 1, screen: historyStack[historyIndex] }, '*'); } catch(e) {}
+        }
+        function canvasHistory(direction) {
+            if (direction === 'back' && historyIndex > 0) { history.back(); return; }
+            if (direction === 'forward' && historyIndex < historyStack.length - 1) { history.forward(); return; }
+        }
         window.addEventListener('popstate', function(event) {
-            if (historyStack.length > 1) { 
-                historyStack.pop(); 
-                showScreen(historyStack[historyStack.length-1]); 
-            } else {
-                showScreen('countdown');
-            }
+            const screen = event.state && event.state.screen ? event.state.screen : (historyStack[historyIndex] || 'countdown');
+            const found = historyStack.lastIndexOf(screen);
+            if (found >= 0) historyIndex = found;
+            showScreen(screen);
+            notifyHistory();
+        });
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'BB_CANVAS_HISTORY') canvasHistory(event.data.direction);
         });
 
         function showScreen(screen) {
@@ -1260,6 +1270,8 @@
                 document.getElementById('secs').textContent = String(secs).padStart(2, '0');
             }
             
+            notifyHistory();
+
             // Play countdown audio in last 10 seconds — now driven by the same
             // totalSecondsLeft value shown on screen, so it fires exactly when the
             // counter reads "10", not a second early or late.
@@ -2089,7 +2101,7 @@ function applyContent(c){
  const pc=document.getElementById('photoContainer');
  if(pc){const items=Array.isArray(c.gallery)?c.gallery:[];pc.innerHTML=items.length?items.map((item,i)=>{const src=safeUrl(item?.url||item?.src||'');if(!src)return '';const title=esc(item?.title||item?.caption||`Memory ${i+1}`);const caption=esc(item?.caption||item?.description||'A beautiful memory.');return `<div class="photo-card" data-src="${esc(src)}" data-bb-key="gallery" data-bb-index="${i}" data-bb-label="Photo ${i+1}" data-bb-type="image" onclick="openLightbox(this.dataset.src)"><img src="${esc(src)}" alt="${title}" class="photo-img"><div class="photo-date">${title}</div><div class="photo-caption">${caption}</div></div>`}).join(''):'<div style="grid-column:1/-1;text-align:center;padding:50px 20px;color:#64748b;font-size:1.1rem">Your memories will appear here once you add photos in the editor. ✨</div>';photoAlbum=Array.from(pc.querySelectorAll('.photo-card img')).map(img=>img.getAttribute('src')).filter(Boolean);lightboxIndex=-1;updateLightboxNavVisibility();}
  const vg=document.getElementById('videoGrid');
- if(vg){const src=safeUrl(c.videoUrl||'');const yt=src.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/i)?.[1];const vm=src.match(/vimeo\.com\/(?:video\/)?(\d+)/i)?.[1];const media=yt?`<iframe src="https://www.youtube.com/embed/${yt}?rel=0" title="YouTube video" style="width:100%;height:420px;border:0;border-radius:18px" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`:vm?`<iframe src="https://player.vimeo.com/video/${vm}" title="Vimeo video" style="width:100%;height:420px;border:0;border-radius:18px" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`:`<video controls preload="metadata" style="width:100%"><source src="${esc(src)}"></video>`;vg.innerHTML=src?`<div class="video-card" data-bb-key="videoUrl" data-bb-label="Special video" data-bb-type="video"><h3>${esc(occasion)} video for ${esc(name)} ❤️</h3><div class="video-wrapper">${media}</div></div>`:'<div class="video-card"><h3>Add a video from the editor 🎥</h3><p style="color:#64748b;padding:15px">No video has been added yet.</p></div>';}
+ if(vg){const src=safeUrl(c.videoUrl||'');const yt=src.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/i)?.[1];const vm=src.match(/vimeo\.com\/(?:video\/)?(\d+)/i)?.[1];const media=yt?`<iframe src="https://www.youtube.com/embed/${yt}?rel=0" title="YouTube video" style="width:100%;height:420px;border:0;border-radius:18px" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`:vm?`<iframe src="https://player.vimeo.com/video/${vm}" title="Vimeo video" style="width:100%;height:420px;border:0;border-radius:18px" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`:`<video controls preload="metadata" style="width:100%"><source src="${esc(src)}"></video>`;const vcap=esc(c.videoCaption||'');vg.innerHTML=src?`<div class="video-card" data-bb-key="videoUrl" data-bb-label="Video section" data-bb-type="video"><h3>${esc(occasion)} video for ${esc(name)} ❤️</h3><div class="video-wrapper">${media}</div>${vcap?`<p data-bb-key="videoCaption" data-bb-label="Video caption" style="margin:12px 0;color:#475569;font-size:1rem;line-height:1.6">${vcap}</p>`:''}</div>`:'<div class="video-card"><h3>Add a video from the editor 🎥</h3><p style="color:#64748b;padding:15px">No video has been added yet.</p></div>';}
  const musicSrc=safeUrl(c.musicUrl||'');
  const countdownSrc=safeUrl(c.countdownAudioUrl||'');
  const wishingSrc=safeUrl(c.wishingAudioUrl||'');
@@ -2240,5 +2252,5 @@ window.addEventListener('DOMContentLoaded',()=>{const root=document.createElemen
 })();
 </script>
 
-<script>(function(){function muteDemo(){try{document.querySelectorAll('audio,video').forEach(function(m){m.muted=true;m.volume=0;var p=m.pause();if(p&&typeof p.catch==='function')p.catch(function(){});});document.querySelectorAll('iframe').forEach(function(f){if(/youtube|vimeo/i.test(f.src||'')){try{f.contentWindow&&f.contentWindow.postMessage(JSON.stringify({event:'command',func:'mute',args:[]}),'*')}catch(_){}}});}catch(_){}}window.addEventListener('message',function(e){if(e&&e.data&&e.data.type==='BB_DEMO_MODE'&&e.data.enabled){muteDemo();setTimeout(muteDemo,200);setTimeout(muteDemo,1200);}});window.addEventListener('load',function(){if(new URLSearchParams(location.search).get('bbDemo')==='1')muteDemo();});})();</script></body>
+<script>(function(){function muteDemo(){try{document.querySelectorAll('audio,video').forEach(function(m){m.muted=true;m.volume=0;var p=m.pause();if(p&&typeof p.catch==='function')p.catch(function(){});});document.querySelectorAll('iframe').forEach(function(f){if(/youtube|vimeo/i.test(f.src||'')){try{f.contentWindow&&f.contentWindow.postMessage(JSON.stringify({event:'command',func:'mute',args:[]}),'*')}catch(_){}}});}catch(_){}}window.addEventListener('message',function(e){if(e&&e.data&&e.data.type==='BB_DEMO_MODE'&&e.data.enabled){muteDemo();setTimeout(muteDemo,200);setTimeout(muteDemo,1200);}});window.addEventListener('load',function(){if(new URLSearchParams(location.search).get('bbDemo')==='1')muteDemo();});})();</script><script>(function(){function playDemoAudio(){try{document.querySelectorAll('audio').forEach(function(a){a.muted=false;a.volume=a.volume>0?a.volume:0.45;a.play&&a.play().catch(function(){});});var btn=document.getElementById('soundBtn');if(btn){try{btn.click();}catch(_){}}var bgm=document.getElementById('bgm');if(bgm){bgm.muted=false;bgm.volume=bgm.volume>0?bgm.volume:0.35;bgm.play&&bgm.play().catch(function(){});}var bg=document.getElementById('backgroundMusic');if(bg){bg.muted=false;bg.volume=bg.volume>0?bg.volume:0.4;bg.play&&bg.play().catch(function(){});}if(typeof window.startAudio==='function'){try{window.startAudio();}catch(_){}}}catch(_){}}window.addEventListener('message',function(e){if(e&&e.data&&e.data.type==='BB_DEMO_PLAY_AUDIO')playDemoAudio();});})();</script></body>
 </html>

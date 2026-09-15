@@ -25,7 +25,7 @@ const presets: Record<string,{label:string;eyebrow:string;headline:string;accent
   festival:{label:'Festival',eyebrow:'Let the celebration begin',headline:'More color. More laughter. More reasons to celebrate.',accent:'#db2777',surface:'#fdf2f8',emoji:'🎊'},
 };
 
-function MissYouTemplate({ content, editorMode = false, onElementSelect }: { content: BirthdayContent; editorMode?: boolean; onElementSelect?: (selection: { key: string; label: string; index?: number; value?: string; kind?: string }) => void }) {
+function MissYouTemplate({ content, editorMode = false, onElementSelect, onHistoryState }: { content: BirthdayContent; editorMode?: boolean; onElementSelect?: (selection: { key: string; label: string; index?: number; value?: string; kind?: string }) => void; onHistoryState?: (state: { canBack?: boolean; canForward?: boolean; screen?: string }) => void }) {
   const [config, setConfig] = React.useState(() => ({ ...getMissYouDefaults(), ...(content.templateConfig || {}) }));
   React.useEffect(() => {
     const next = { ...getMissYouDefaults(), ...(content.templateConfig || {}) };
@@ -34,7 +34,7 @@ function MissYouTemplate({ content, editorMode = false, onElementSelect }: { con
   const src = React.useMemo(() => `/templates/miss-you-1/index.html?config=${encodeURIComponent(JSON.stringify(config))}`, [config]);
   const frameRef = React.useRef<HTMLIFrameElement>(null);
   React.useEffect(() => { const f=frameRef.current; if(!f)return; const post=()=>f.contentWindow?.postMessage({type:'BB_EDITOR_MODE',enabled:!!editorMode},'*'); f.addEventListener('load',post); post(); return()=>f.removeEventListener('load',post); }, [editorMode, src]);
-  React.useEffect(() => { const h=(e:MessageEvent)=>{ if(e.source===frameRef.current?.contentWindow && e.data?.type==='BB_ELEMENT_SELECTED') onElementSelect?.(e.data.selection); }; window.addEventListener('message',h); return()=>window.removeEventListener('message',h); }, [onElementSelect]);
+  React.useEffect(() => { const h=(e:MessageEvent)=>{ if(e.source!==frameRef.current?.contentWindow || !e.data) return; if(e.data.type==='BB_ELEMENT_SELECTED') onElementSelect?.(e.data.selection); if(e.data.type==='BB_CANVAS_HISTORY_STATE') onHistoryState?.(e.data); }; window.addEventListener('message',h); return()=>window.removeEventListener('message',h); }, [onElementSelect, onHistoryState]);
   return <iframe ref={frameRef} title="Miss You 1" src={src} style={{ width: '100%', height: '100%', minHeight: 760, border: 0, display: 'block', background: '#ffe' }} />;
 }
 
@@ -67,7 +67,7 @@ export function getMissYouDefaults() {
   } as Record<string, unknown>;
 }
 
-function MasterProposalTemplate({ content, editorMode, onElementSelect }: { content: BirthdayContent; editorMode?: boolean; onElementSelect?: (selection: { key: string; label: string; index?: number; value?: string; kind?: string }) => void }) {
+function MasterProposalTemplate({ content, editorMode, onElementSelect, onHistoryState }: { content: BirthdayContent; editorMode?: boolean; onElementSelect?: (selection: { key: string; label: string; index?: number; value?: string; kind?: string }) => void; onHistoryState?: (state: { canBack?: boolean; canForward?: boolean; screen?: string }) => void }) {
   const [config, setConfig] = React.useState(() => ({ ...getMasterProposalDefaults(), ...(content.templateConfig || {}) }));
   const frameRef = React.useRef<HTMLIFrameElement>(null);
   React.useEffect(() => {
@@ -86,14 +86,14 @@ function MasterProposalTemplate({ content, editorMode, onElementSelect }: { cont
   }, [editorMode, src]);
   React.useEffect(() => {
     const handler = (event: MessageEvent) => {
-      if (event.data?.type === 'BB_ELEMENT_SELECTED' && event.source === frameRef.current?.contentWindow) {
-        onElementSelect?.(event.data.selection);
-      }
+      if (event.source !== frameRef.current?.contentWindow || !event.data) return;
+      if (event.data.type === 'BB_ELEMENT_SELECTED') onElementSelect?.(event.data.selection);
+      if (event.data.type === 'BB_CANVAS_HISTORY_STATE') onHistoryState?.(event.data);
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, [onElementSelect]);
-  return <iframe ref={frameRef} title="Master Proposal" src={src} style={{ width: '100%', height: '100vh', minHeight: 760, border: 0, display: 'block', background: '#FAF9F6' }} />;
+  }, [onElementSelect, onHistoryState]);
+  return <iframe ref={frameRef} title="Master Proposal" src={src} style={{ width: '100%', height: '100%', minHeight: 0, border: 0, display: 'block', background: '#FAF9F6' }} />;
 }
 
 export function getMasterProposalDefaults() {
@@ -209,10 +209,10 @@ function Editable({ editorMode, onSelect, selection, className, children }: { ed
   </div>;
 }
 
-export default function ExperienceTemplate({variant='romantic',content,editorMode,onElementSelect}:{variant?:string;content:BirthdayContent;editorMode?:boolean;onElementSelect?:(selection:{key:string;label:string;index?:number;value?:string;kind?:string})=>void}){
+export default function ExperienceTemplate({variant='romantic',content,editorMode,onElementSelect,onHistoryState}:{variant?:string;content:BirthdayContent;editorMode?:boolean;onElementSelect?:(selection:{key:string;label:string;index?:number;value?:string;kind?:string})=>void;onHistoryState?:(state:{canBack?:boolean;canForward?:boolean;screen?:string})=>void}){
  if (variant === 'wedding-proposal') return <WeddingProposalTemplate content={content} editorMode={editorMode} onElementSelect={onElementSelect} />;
- if (variant === 'miss-you-1') return <MissYouTemplate content={content} editorMode={editorMode} onElementSelect={onElementSelect} />;
- if (variant === 'master-proposal') return <MasterProposalTemplate content={content} editorMode={editorMode} onElementSelect={onElementSelect} />;
+ if (variant === 'miss-you-1') return <MissYouTemplate content={content} editorMode={editorMode} onElementSelect={onElementSelect} onHistoryState={onHistoryState} />;
+ if (variant === 'master-proposal') return <MasterProposalTemplate content={content} editorMode={editorMode} onElementSelect={onElementSelect} onHistoryState={onHistoryState} />;
  const p=presets[variant]||presets.romantic; const gallery=content.gallery||[];
  return <div style={{minHeight:'100%',background:p.surface,color:variant==='minimal'||variant==='elegant'?'#111827':'white',fontFamily:'ui-sans-serif,system-ui'}}>
   <section style={{padding:'72px 24px',textAlign:'center',background:`radial-gradient(circle at 20% 10%, ${p.accent}55, transparent 35%), ${p.surface}`}}>

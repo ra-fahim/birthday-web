@@ -12,6 +12,7 @@ type Props = {
   recipientId?: string;
   editorMode?: boolean;
   onElementSelect?: (selection: { key: string; label: string; index?: number; value?: string; kind?: string }) => void;
+  onHistoryState?: (state: { canBack?: boolean; canForward?: boolean; screen?: string }) => void;
 };
 
 function contentToData(content?: BirthdayContent) {
@@ -62,17 +63,18 @@ export default function MasterTemplate({ data, content, demo, websiteSlug, recip
     const handler = (event: MessageEvent) => {
       if (event.source !== frameRef.current?.contentWindow || !event.data) return;
       if (event.data.type === 'BB_ELEMENT_SELECTED') onElementSelect?.(event.data.selection);
+      if (event.data.type === 'BB_CANVAS_HISTORY_STATE') onHistoryState?.(event.data);
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, [onElementSelect]);
+  }, [onElementSelect, onHistoryState]);
 
   return (
     <iframe
       ref={frameRef}
       title="Birthday Master Template"
       src={src}
-      className="h-full min-h-[760px] w-full border-0"
+      className="h-full min-h-0 w-full border-0"
       allow="autoplay; microphone; camera; fullscreen"
       sandbox="allow-forms allow-modals allow-popups allow-same-origin allow-scripts"
     />

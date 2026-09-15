@@ -71,13 +71,20 @@ export default function UniversalElementEditor({ selected, content, templateId, 
       return <Field label="Birthday countdown target"><input type="datetime-local" value={toLocalDateTime(String(content.birthday || ''))} onChange={e => onChange({ birthday: e.target.value })} autoFocus /><small className="builder-field-hint">The countdown uses this exact date and time.</small></Field>;
     }
     if (key === 'gallery' && typeof selected.index === 'number') {
-      const item = content.gallery?.[selected.index];
-      if (!item) return <Empty />;
+      const items = [...(content.gallery || [])];
+      const addPhoto = () => onChange({ gallery: [...items, { url: '', caption: '' }] });
+      const remove = (i: number) => onChange({ gallery: items.filter((_, idx) => idx !== i) });
+      const updateAt = (i: number, patch: Partial<GalleryItem>) => onChange({ gallery: items.map((item, idx) => idx === i ? { ...item, ...patch } : item) });
       return <>
-        <div className="universal-editor-media-head"><div className="universal-editor-icon"><ImagePlus size={16}/></div><div><b>Photo</b><span>Memory {selected.index + 1}</span></div></div>
-        <InlineMediaField value={item.url} placeholder="Photo URL" accept="image/*" folder="gallery" websiteId={websiteId} onChange={url => updateGallery({ url })} />
-        <Field label="Caption"><input value={item.caption || ''} onChange={e => updateGallery({ caption: e.target.value })} placeholder="Write a short caption…" /></Field>
-        <Danger onClick={() => updateGallery({}, true)} />
+        <div className="universal-editor-media-head"><div className="universal-editor-icon"><ImagePlus size={16}/></div><div><b>Photo section</b><span>Edit, replace, remove or add memories</span></div></div>
+        <div className="universal-media-section-list">
+          {items.map((item, i) => <div key={i} className="universal-media-section-item">
+            <div className="universal-media-section-item-top"><strong>Photo {i + 1}</strong><button type="button" className="universal-danger compact" onClick={() => remove(i)}><Trash2 size={13}/> Remove</button></div>
+            <InlineMediaField value={item.url} placeholder="Photo URL" accept="image/*" folder="gallery" websiteId={websiteId} onChange={url => updateAt(i, { url })} />
+            <Field label="Caption"><input value={item.caption || ''} onChange={e => updateAt(i, { caption: e.target.value })} placeholder="Caption shown with this photo…" /></Field>
+          </div>)}
+        </div>
+        <button type="button" className="builder-upload-btn universal-add-media" onClick={addPhoto}><ImagePlus size={14}/> Add new photo</button>
       </>;
     }
     if (key === 'musicUrl' || key === 'countdownAudioUrl' || key === 'wishingAudioUrl') {
@@ -94,8 +101,13 @@ export default function UniversalElementEditor({ selected, content, templateId, 
       </>;
     }
     if (key === 'videoUrl') return <>
-      <div className="universal-editor-media-head"><div className="universal-editor-icon"><Video size={16}/></div><div><b>Special video</b><span>Moving memory</span></div></div>
-      <SingleMediaUpload kind="video" url={String(content.videoUrl || '')} websiteId={websiteId} onChange={url => onChange({ videoUrl: url })} />
+      <div className="universal-editor-media-head"><div className="universal-editor-icon"><Video size={16}/></div><div><b>Video section</b><span>Replace, remove, add caption</span></div></div>
+      <div className="universal-media-section-item">
+        <div className="universal-media-section-item-top"><strong>Special video</strong><button type="button" className="universal-danger compact" onClick={() => onChange({ videoUrl: '', videoCaption: '' })}><Trash2 size={13}/> Remove</button></div>
+        <SingleMediaUpload kind="video" url={String(content.videoUrl || '')} websiteId={websiteId} onChange={url => onChange({ videoUrl: url })} />
+        <Field label="Video caption"><textarea rows={3} value={String((content as any).videoCaption || '')} onChange={e => onChange({ videoCaption: e.target.value })} placeholder="Write a caption for the video…" /></Field>
+      </div>
+      <button type="button" className="builder-upload-btn universal-add-media" onClick={() => onChange({ videoUrl: '', videoCaption: '' })}><Video size={14}/> Add / replace video</button>
       <MoreSettings rows={[['Controls','On'],['Autoplay','Off'],['Loop','Off']]} />
     </>;
     if (master && key === 'bgMusicUrl') return <>

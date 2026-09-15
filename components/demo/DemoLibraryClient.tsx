@@ -26,8 +26,16 @@ function DemoModal({ template, onClose }: { template: TemplateDefinition; onClos
   return <div className="demo-modal-backdrop" role="dialog" aria-modal="true" aria-label={`${template.name} demo`} onClick={onClose}>
     <div className="demo-modal" onClick={(e) => e.stopPropagation()}>
       <div className="demo-modal-head"><div><span className="section-kicker">LIVE DEMO</span><h2>{template.name}</h2></div><button className="demo-modal-close" type="button" onClick={onClose} aria-label="Close demo">×</button></div>
-      <div className="demo-modal-frame"><iframe title={`${template.name} demo`} src={src} allow="autoplay; fullscreen; picture-in-picture" /></div>
-      <div className="demo-modal-footer"><p>Live preview is muted and touch-free.</p><Link className="premium-button premium-button-sm" href={`/builder/new?template=${template.slug}`}>Use template →</Link></div>
+      <div className="demo-modal-frame"><iframe
+        title={`${template.name} demo`}
+        src={src}
+        allow="autoplay; fullscreen; picture-in-picture"
+        onLoad={(e) => {
+          e.currentTarget.contentWindow?.postMessage({ type: 'BB_DEMO_PLAY_AUDIO' }, '*');
+          setTimeout(() => e.currentTarget.contentWindow?.postMessage({ type: 'BB_DEMO_PLAY_AUDIO' }, '*'), 350);
+        }}
+      /></div>
+      <div className="demo-modal-footer"><p>Live demo — sound starts when the demo opens.</p><Link className="premium-button premium-button-sm" href={`/builder/new?template=${template.slug}`}>Use template →</Link></div>
     </div>
   </div>;
 }
