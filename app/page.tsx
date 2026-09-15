@@ -2,36 +2,42 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getSessionUser } from '@/lib/auth';
 import TemplateShowcase from '@/components/home/TemplateShowcase';
-import { templatesByCategory } from '@/lib/templates';
 
 export const dynamic = 'force-dynamic';
-export const metadata: Metadata = { title:'Wishly — Create unforgettable digital celebrations', description:'Create interactive websites for birthdays, anniversaries, proposals, weddings, graduations and every meaningful moment.' };
+export const metadata: Metadata = { title:'Wishly Studio — Create moments they remember', description:'Build beautiful interactive celebration websites in minutes.' };
 
-const occasionMeta: Record<string,[string,string,string]> = {
-  birthday:['🎂','Birthday','Turn a birthday into an interactive surprise.'],
-  proposal:['💍','Proposal','Create a proposal they will never forget.'],
-  anniversary:['💕','Anniversary','Celebrate your story, your way.'],
-  wedding:['💒','Wedding','Make the day feel timeless.'],
-  sorry:['🥺','Sorry','Say what matters, beautifully.'],
-  'miss-you':['💌','Miss You','Make the distance feel a little smaller.'],
-  'thank-you':['💐','Thank You','Turn gratitude into something beautiful.'],
-  congratulations:['🏆','Congratulations','Give achievements a page worth remembering.'],
-  graduation:['🎓','Graduation','Make the milestone feel monumental.'],
-  friendship:['🤝','Friendship','Celebrate the people who stay.'],
-  surprise:['🎁','Surprise','Build the reveal around them.'],
-  festival:['🎊','Festival','Bring the celebration to life.'],
-};
-const occasions=Object.keys(templatesByCategory).filter(k=>occasionMeta[k]).map(k=>occasionMeta[k]);
-const features=[['✨','Signature experiences','Cinematic templates with interactions, motion and surprise moments.'],['🎨','Make it yours','Change colors, fonts, photos, music and the details that matter.'],['📸','Memories in one place','Gallery, video, timeline, wishes and keepsakes in a single experience.'],['💬','Connect','Visitors can react, leave wishes and message the creator.'],['📊','Know the moment','See views, shares, reactions and engagement from your dashboard.'],['🔗','Share anywhere','Publish a clean link and share it through social, chat or QR.']];
-export default async function Home(){const u=await getSessionUser().catch(()=>null);return <main className="min-h-screen overflow-hidden"><nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6"><Link href="/" className="text-xl font-black">✨ Wishly</Link><div className="hidden gap-6 text-sm text-zinc-400 md:flex"><Link href="/templates">Templates</Link><Link href="/features">Features</Link><Link href="/pricing">Pricing</Link><Link href="/demo">Live Demo</Link></div><Link className="btn" href={u?'/dashboard':'/signup'}>{u?'Dashboard':'Create yours'}</Link></nav>
-<section className="mx-auto max-w-7xl px-6 pb-24 pt-20 text-center md:pt-28"><div className="mx-auto mb-7 w-fit rounded-full border border-pink-400/20 bg-pink-400/10 px-4 py-2 text-xs font-bold uppercase tracking-[.25em] text-pink-300">CREATE • PERSONALIZE • CELEBRATE</div><h1 className="mx-auto max-w-5xl text-5xl font-black leading-[.95] tracking-tight md:text-8xl">Make a moment<br/><span className="text-pink-400">feel unforgettable.</span></h1><p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-zinc-400">Build a beautiful digital experience for birthdays, love stories, proposals, milestones, surprises and every reason worth celebrating.</p><div className="mt-9 flex flex-wrap justify-center gap-3"><Link className="btn px-6 py-3" href={u?'/builder/new':'/signup'}>Start creating free →</Link><Link className="btn2 px-6 py-3" href="/demo">Explore the master experience</Link></div></section>
-<section className="mx-auto max-w-7xl px-6 pb-24">
-  <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
-    <div><p className="text-sm font-bold uppercase tracking-[.24em] text-pink-400">Template collection</p><h2 className="mt-2 text-4xl font-black md:text-5xl">Choose the feeling before you start.</h2><p className="mt-3 max-w-2xl text-zinc-400">The Master Template sits alongside a full collection of ready-to-edit experiences. Pick one, then make every detail yours.</p></div>
-    <Link className="btn2" href="/templates">View all templates ↗</Link>
-  </div>
-  <TemplateShowcase loggedIn={!!u}/>
-</section>
-<section className="mx-auto max-w-7xl px-6 pb-24"><div className="mb-8"><p className="text-sm font-bold uppercase tracking-widest text-pink-400">Every occasion</p><h2 className="mt-2 text-4xl font-black">Not just birthdays.</h2></div><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{occasions.map(([e,t,d])=><div className="card p-6" key={t}><div className="text-3xl">{e}</div><h3 className="mt-4 text-xl font-bold">{t}</h3><p className="mt-2 text-sm leading-6 text-zinc-400">{d}</p></div>)}</div></section>
-<section className="mx-auto max-w-7xl px-6 pb-24"><div className="mb-8"><p className="text-sm font-bold uppercase tracking-widest text-pink-400">Built like a product</p><h2 className="mt-2 text-4xl font-black">Everything the moment needs.</h2></div><div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{features.map(([i,t,d])=><div className="card p-6" key={t}><div className="text-2xl">{i}</div><h3 className="mt-4 font-bold">{t}</h3><p className="mt-2 text-sm leading-6 text-zinc-400">{d}</p></div>)}</div></section>
-<section className="mx-auto max-w-5xl px-6 pb-28 text-center"><div className="rounded-[32px] border border-pink-400/20 bg-pink-400/10 p-10 md:p-16"><p className="text-sm font-bold uppercase tracking-widest text-pink-300">Your next story starts here</p><h2 className="mt-4 text-4xl font-black md:text-6xl">Create something they’ll keep.</h2><Link className="btn mt-8 inline-flex" href={u?'/builder/new':'/signup'}>Create your experience</Link></div></section><footer className="border-t border-white/10 px-6 py-8 text-center text-sm text-zinc-500">Wishly — digital wishes & celebrations.</footer></main>}
+const chips=[['🎂','Birthday'],['💍','Proposal'],['💕','Anniversary'],['💒','Wedding'],['💌','Miss You'],['🎓','Graduation']];
+const features=[['01','Visual editor','Tap any part of your page and edit it instantly. No complicated forms.'],['02','Your memories, beautifully','Photos, gallery, video, letters, wishes and music all live in one experience.'],['03','Made for phones','Design comfortably from mobile, preview every breakpoint and publish with confidence.']];
+
+export default async function Home(){
+ const u=await getSessionUser().catch(()=>null);
+ return <main className="premium-site">
+  <nav className="premium-nav"><div className="premium-container premium-nav-inner"><Link href="/" className="brand-lockup"><span className="brand-mark">✦</span><span><b>Wishly</b><small>Studio</small></span></Link><div className="premium-nav-links"><Link href="/templates">Templates</Link><Link href="/features">Features</Link><Link href="/pricing">Pricing</Link><Link href="/demo">Demo</Link></div><div className="premium-nav-actions"><Link className="nav-text" href={u?'/dashboard':'/login'}>{u?'Dashboard':'Log in'}</Link><Link className="premium-button premium-button-sm" href={u?'/builder/new':'/signup'}>{u?'Create website':'Start free'} <span>→</span></Link></div></div></nav>
+
+  <section className="hero premium-container">
+   <div className="hero-copy">
+    <div className="eyebrow"><span>✦</span> DIGITAL EXPERIENCES FOR REAL FEELINGS</div>
+    <h1>Make their moment feel <em>unforgettable.</em></h1>
+    <p>Create a beautiful, interactive website for the person, story or celebration that matters. Pick a template, make it yours, share one link.</p>
+    <div className="hero-actions"><Link className="premium-button" href={u?'/builder/new':'/signup'}>Create for free <span>→</span></Link><Link className="premium-button premium-button-ghost" href="/demo"><span className="play-dot">▶</span> See the experience</Link></div>
+    <div className="hero-proof"><span><b>⚡</b> Fast to create</span><span><b>📱</b> Mobile first</span><span><b>🔗</b> One shareable link</span></div>
+   </div>
+   <div className="hero-art">
+    <div className="hero-orbit orbit-a"></div><div className="hero-orbit orbit-b"></div>
+    <div className="hero-card hero-card-back"><small>FOR SOMEONE SPECIAL</small><strong>Keep the memories close.</strong><span>Photos · Music · Wishes</span></div>
+    <div className="hero-card hero-card-main"><div className="hero-card-top"><span>✦ WISHLy STUDIO</span><span>•••</span></div><div className="hero-photo"><span>♥</span></div><p>A little corner of the internet, made just for you.</p><div className="hero-mini-actions"><i>♡</i><i>♫</i><i>✉</i></div></div>
+    <div className="floating-badge badge-one">✓ Auto-saved</div><div className="floating-badge badge-two">🎵 Music on</div>
+   </div>
+  </section>
+
+  <section className="occasion-strip"><div className="premium-container"><p className="section-kicker">START WITH A FEELING</p><div className="occasion-row">{chips.map(([i,t])=><Link href={`/templates?occasion=${t.toLowerCase().replace(' ','-')}`} key={t}><span>{i}</span>{t}<b>↗</b></Link>)}</div></div></section>
+
+  <section className="premium-container showcase-section"><div className="section-heading-row"><div><p className="section-kicker">TEMPLATE COLLECTION</p><h2>Beautiful before you even edit it.</h2><p>Distinct visual styles, ready for your story.</p></div><Link className="text-link" href="/templates">Browse all templates →</Link></div><TemplateShowcase loggedIn={!!u}/></section>
+
+  <section className="feature-section"><div className="premium-container"><div className="section-heading center"><p className="section-kicker">WHY WISHLY</p><h2>Simple enough for anyone.<br/><span>Premium enough to keep.</span></h2></div><div className="feature-grid">{features.map(([n,t,d])=><article className="feature-card" key={n}><span className="feature-number">{n}</span><div className="feature-icon">✦</div><h3>{t}</h3><p>{d}</p></article>)}</div></div></section>
+
+  <section className="premium-container cta-section"><div className="cta-panel"><div><p className="section-kicker">YOUR NEXT STORY</p><h2>Make something they’ll want to open twice.</h2><p>Start with a template. Finish with something that feels like them.</p></div><Link className="premium-button" href={u?'/builder/new':'/signup'}>Start creating <span>→</span></Link></div></section>
+
+  <footer className="premium-footer"><div className="premium-container footer-inner"><div className="brand-lockup"><span className="brand-mark">✦</span><span><b>Wishly</b><small>Studio</small></span></div><div className="footer-links"><Link href="/templates">Templates</Link><Link href="/features">Features</Link><Link href="/pricing">Pricing</Link><Link href="/faq">FAQ</Link><Link href="/contact">Contact</Link></div><small>© {new Date().getFullYear()} Wishly Studio</small></div></footer>
+ </main>
+}

@@ -48,13 +48,13 @@ export default function Login() {
   }
 
   return (
-    <main className="mx-auto max-w-md px-6 py-24">
-      <div className="card p-7">
+    <main className="auth-shell">
+      <section className="auth-brand-side"><div className="auth-brand-card"><div className="brand-lockup"><span className="brand-mark">✦</span><span><b>Wishly</b><small>Studio</small></span></div><h1>Welcome back to your <span>creative space.</span></h1><p>Your celebrations, memories and stories—kept beautifully in one place.</p><div className="auth-points"><div className="auth-point"><i>✦</i> Edit directly on your design</div><div className="auth-point"><i>↶</i> Undo and redo whenever you need</div><div className="auth-point"><i>📱</i> Build from your phone</div></div></div></section><section className="auth-form-side"><div className="auth-form-card">
         <h1 className="text-3xl font-bold">Welcome back</h1>
 
         <a
           href="/api/auth/google"
-          className="mt-6 flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white px-4 py-3 font-medium text-zinc-900 transition hover:bg-zinc-100"
+          className="auth-google mt-6"
         >
           <span className="text-lg font-bold">G</span>
           Continue with Google
@@ -98,7 +98,7 @@ export default function Login() {
           {' • '}
           <Link href="/forgot-password" className="text-pink-400">Forgot password</Link>
         </p>
-      </div>
+      </div></section>
     </main>
   );
 }
