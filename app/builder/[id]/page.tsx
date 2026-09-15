@@ -337,9 +337,9 @@ export default function Builder() {
     if (value === 'gallery') return hasGalleryMedia;
     if (value === 'video') return hasVideoMedia;
     if (value === 'music') return hasMusicMedia || templateId === 'wedding-proposal';
-    if (templateId === 'wedding-proposal') return value === 'overview' || value === 'opening' || value === 'music';
-    if (templateId === 'miss-you-1') return value === 'overview' || value === 'story' || value === 'music';
-    if (templateId === 'master-proposal') return ['overview', 'opening', 'story', 'gallery', 'music', 'letter'].includes(value);
+    if (templateId === 'wedding-proposal') return ['overview', 'opening', 'music'].includes(value as string);
+    if (templateId === 'miss-you-1') return ['overview', 'story', 'music'].includes(value as string);
+    if (templateId === 'master-proposal') return ['overview', 'opening', 'story', 'gallery', 'music', 'letter'].includes(value as string);
     return value !== 'social' || templateId === 'master';
   });
   const activeTab = visibleTabs.find(x => x[0] === tab) || visibleTabs[0];
