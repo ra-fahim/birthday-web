@@ -219,7 +219,12 @@ export default function ExperienceTemplate({variant='romantic',content,editorMod
    <div style={{fontSize:42}}>{p.emoji}</div><p style={{letterSpacing:3,textTransform:'uppercase',fontSize:12,color:p.accent,fontWeight:800}}>{p.eyebrow}</p>
    <Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'heroTitle',label:'Hero title'}}><h1 style={{fontSize:'clamp(38px,8vw,78px)',lineHeight:1.02,maxWidth:900,margin:'18px auto',fontWeight:900}}>{content.name ? `${content.name}, ${content.heroTitle || p.headline}` : (content.heroTitle || p.headline)}</h1></Editable>
    <Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'heroSubtitle',label:'Hero subtitle'}}><p data-bb-value style={{maxWidth:650,margin:'20px auto',opacity:.75,fontSize:18}}>{content.heroSubtitle || 'A personalized celebration, made to be remembered.'}</p></Editable>
-   {content.birthday && <div style={{display:'inline-block',marginTop:14,padding:'10px 18px',borderRadius:999,border:`1px solid ${p.accent}66`}}>{new Date(content.birthday).toLocaleDateString()}</div>}
+   <Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'buttonText',label:'Main button',kind:'button'}}>
+    <button type="button" data-bb-value style={{marginTop:22,padding:'13px 20px',border:0,borderRadius:999,background:p.accent,color:'#fff',fontWeight:800,cursor:'pointer',boxShadow:`0 12px 30px ${p.accent}33`}}>{content.buttonText || 'Start the celebration ✨'}</button>
+   </Editable>
+   {content.birthday && <Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'birthday',label:'Date'}}>
+    <div data-bb-value style={{display:'inline-block',marginTop:14,padding:'10px 18px',borderRadius:999,border:`1px solid ${p.accent}66`}}>{new Date(content.birthday).toLocaleDateString()}</div>
+   </Editable>}
   </section>
   <section style={{maxWidth:1050,margin:'0 auto',padding:'55px 24px'}}>
    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:18}}>

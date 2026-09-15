@@ -309,13 +309,13 @@
             <div class="count-item"><span class="count-number" id="mins">00</span><span class="count-label">Mins</span></div>
             <div class="count-item"><span class="count-number" id="secs">00</span><span class="count-label">Secs</span></div>
         </div>
-        <div class="countdown-message" id="countdownMessage"></div>
+        <div class="countdown-message" id="countdownMessage" data-bb-key="countdownMessage" data-bb-label="Countdown message"></div>
     </div>
 
     <div class="greeting-screen" id="greetingScreen">
         <h1 id="greetingTitle" data-bb-key="greeting" data-bb-label="Greeting title">Happy Birthday Pagli❤️🎂💫</h1>
         <div class="greeting-text" id="greetingText" data-bb-key="greeting" data-bb-label="Greeting message"></div>
-        <button class="enter-btn" id="enterWorldBtn" onclick="goToCakeScreen()">Click to enter your world 💕</button>
+        <button class="enter-btn" id="enterWorldBtn" data-bb-key="buttonText" data-bb-label="Enter button" onclick="goToCakeScreen()">Click to enter your world 💕</button>
     </div>
 
     <div class="cake-screen" id="cakeScreen">
@@ -477,12 +477,12 @@
             <div class="candles" id="candles"></div>
             <div class="cake-status" id="cakeStatus"></div>
             <div class="cut-hint" id="cutHint">🔪 Press and drag anywhere on the cake — cut it your way</div>
-            <button class="cake-next-btn" id="cakeNextBtn" onclick="goToReasonsScreen()" style="display:none;">Enter your story 💫</button>
+            <button class="cake-next-btn" id="cakeNextBtn" data-bb-key="cakeNextButton" data-bb-label="Cake next button" onclick="goToReasonsScreen()" style="display:none;">Enter your story 💫</button>
         </div>
     </div>
 
     <div class="reasons-screen" id="reasonsScreen">
-        <div class="reasons-header"><h1 id="reasonsTitle">Happy Birthday Just Friend.. 💖</h1></div>
+        <div class="reasons-header"><h1 id="reasonsTitle" data-bb-key="heroTitle" data-bb-label="Reasons heading">Happy Birthday Just Friend.. 💖</h1></div>
         <div class="reasons-container" id="reasonsContainer"></div>
         <div class="reason-counter" id="reasonCounter">Reason 1 of 4</div>
         <button class="reasons-btn" id="reasonsBtn" data-bb-key="reasonsButton" data-bb-label="Reasons button" onclick="handleReasonClick()">Show me another reason 💕</button>
@@ -490,11 +490,11 @@
 
     <div class="photo-screen" id="photoScreen">
         <div class="photo-header">
-            <h1 id="photoTitle">The Beautiful Moments</h1>
-            <p id="photoSubtitle">Every moment spent with you has been magical. Let's cherish these precious memories.</p>
+            <h1 id="photoTitle" data-bb-key="photoTitle" data-bb-label="Gallery heading">The Beautiful Moments</h1>
+            <p id="photoSubtitle" data-bb-key="photoSubtitle" data-bb-label="Gallery subtitle">Every moment spent with you has been magical. Let's cherish these precious memories.</p>
         </div>
         <div class="photo-container" id="photoContainer"></div>
-        <button class="photo-next-btn" id="photoNextBtn" onclick="goToVideoScreen()">Continue the story 🎥</button>
+        <button class="photo-next-btn" id="photoNextBtn" data-bb-key="photoNextButton" data-bb-label="Gallery next button" onclick="goToVideoScreen()">Continue the story 🎥</button>
     </div>
 
     <div class="video-screen" id="videoScreen">
@@ -518,9 +518,9 @@
             <div class="envelope-hint">Tap the envelope to open it</div>
         </div>
         <div class="letter-container" id="letterContainer">
-            <h2 id="letterTitle">A Letter for You 💌</h2>
+            <h2 id="letterTitle" data-bb-key="letterTitle" data-bb-label="Letter heading">A Letter for You 💌</h2>
             <div class="letter-content" id="letterContent"></div>
-            <button class="letter-return-btn" id="letterReturnBtn" onclick="goToSecretScreen()">Keep going ✨</button>
+            <button class="letter-return-btn" id="letterReturnBtn" data-bb-key="letterButton" data-bb-label="Letter button" onclick="goToSecretScreen()">Keep going ✨</button>
         </div>
     </div>
 
