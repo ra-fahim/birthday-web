@@ -264,7 +264,7 @@
         <source src="https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3" type="audio/mpeg">
     </audio>
     
-    <audio id="birthdayWish" preload="auto" loop>
+    <audio id="birthdayWish" data-bb-key="musicUrl" data-bb-label="Background music" preload="auto" loop>
         <source src="https://res.cloudinary.com/dpctt0wao/video/upload/v178s6820547/ub7xhj7db3ngyig8nntr.mp3" type="audio/mpeg">
     </audio>
 
@@ -313,8 +313,8 @@
     </div>
 
     <div class="greeting-screen" id="greetingScreen">
-        <h1 id="greetingTitle">Happy Birthday Pagli❤️🎂💫</h1>
-        <div class="greeting-text" id="greetingText"></div>
+        <h1 id="greetingTitle" data-bb-key="greeting" data-bb-label="Greeting title">Happy Birthday Pagli❤️🎂💫</h1>
+        <div class="greeting-text" id="greetingText" data-bb-key="greeting" data-bb-label="Greeting message"></div>
         <button class="enter-btn" id="enterWorldBtn" onclick="goToCakeScreen()">Click to enter your world 💕</button>
     </div>
 
@@ -485,7 +485,7 @@
         <div class="reasons-header"><h1 id="reasonsTitle">Happy Birthday Just Friend.. 💖</h1></div>
         <div class="reasons-container" id="reasonsContainer"></div>
         <div class="reason-counter" id="reasonCounter">Reason 1 of 4</div>
-        <button class="reasons-btn" id="reasonsBtn" onclick="handleReasonClick()">Show me another reason 💕</button>
+        <button class="reasons-btn" id="reasonsBtn" data-bb-key="reasonsButton" data-bb-label="Reasons button" onclick="handleReasonClick()">Show me another reason 💕</button>
     </div>
 
     <div class="photo-screen" id="photoScreen">
@@ -498,10 +498,10 @@
     </div>
 
     <div class="video-screen" id="videoScreen">
-        <h2 id="videoTitle">A Special Video Message</h2>
+        <h2 id="videoTitle" data-bb-key="videoTitle" data-bb-label="Video title">A Special Video Message</h2>
         <div class="video-container">
             <div class="video-grid" id="videoGrid"></div>
-            <button class="video-next-btn" id="videoNextBtn" onclick="goToLetterScreen()">See your letter 💌</button>
+            <button class="video-next-btn" id="videoNextBtn" data-bb-key="videoNextButton" data-bb-label="Video next button" onclick="goToLetterScreen()">See your letter 💌</button>
         </div>
     </div>
 
@@ -526,13 +526,13 @@
 
     <div class="secret-screen" id="secretScreen">
         <div class="secret-container">
-            <h2 id="secretTitle">A little secret for you ✨</h2>
-            <p id="secretMessage" class="secret-message"></p>
+            <h2 id="secretTitle" data-bb-key="secretTitle" data-bb-label="Secret title">A little secret for you ✨</h2>
+            <p id="secretMessage" data-bb-key="secret" data-bb-label="Secret message" class="secret-message"></p>
             <img src="https://res.cloudinary.com/dpctt0wao/image/upload/v1786828377/dcdqkuihl9g0ztwpugoar.png" 
                  alt="Secret Memory" 
                  class="secret-photo" 
                  onclick="openLightbox('https://res.cloudinary.com/dpctt0wao/image/upload/v1786828377/cdqdkuihl9g0ztwpugoar.png')">
-            <button class="soulmate-btn" id="secretButton" onclick="goToInstagram()">
+            <button class="soulmate-btn" id="secretButton" data-bb-key="secretButton" data-bb-label="Secret button" onclick="goToInstagram()">
                 <i class="fab fa-instagram"></i> See Your Friend
             </button>
         </div>
@@ -2242,5 +2242,6 @@ window.addEventListener('message',e=>{
 })();
 </script>
 
-</body>
+<script>(function(){var enabled=false,observer=null;function style(){if(document.getElementById('bb-inline-editor-style'))return;var s=document.createElement('style');s.id='bb-inline-editor-style';s.textContent='.bb-editor-mode [data-bb-key]{outline:2px dashed transparent;outline-offset:4px;cursor:pointer}.bb-editor-mode [data-bb-key]:hover{outline-color:rgba(192,128,129,.72)}.bb-inline-edit{position:absolute;z-index:99999;width:30px;height:30px;border-radius:999px;border:1px solid rgba(255,255,255,.35);background:rgba(15,15,20,.9);color:#fff;display:none;place-items:center;box-shadow:0 10px 25px rgba(0,0,0,.25);cursor:pointer;font-size:13px}.bb-editor-mode [data-bb-key]:hover>.bb-inline-edit{display:grid}';document.head.appendChild(s)}function install(){style();document.querySelectorAll('[data-bb-key]').forEach(function(el){if(el.querySelector(':scope>.bb-inline-edit'))return;if(getComputedStyle(el).position==='static')el.style.position='relative';var b=document.createElement('span');b.className='bb-inline-edit';b.setAttribute('role','button');b.setAttribute('tabindex','0');b.textContent='✏';b.title='Edit '+(el.dataset.bbLabel||el.dataset.bbKey);b.onclick=function(e){e.preventDefault();e.stopPropagation();parent.postMessage({type:'BB_ELEMENT_SELECTED',selection:{key:el.dataset.bbKey,label:el.dataset.bbLabel||el.dataset.bbKey,index:el.dataset.bbIndex!==undefined?Number(el.dataset.bbIndex):undefined,value:(el.textContent||'').trim(),kind:el.tagName==='IMG'?'image':el.tagName==='VIDEO'?'video':'text'}},'*')};el.appendChild(b)})}function globalActions(){if(document.getElementById('bb-global-edit-actions'))return;var w=document.createElement('div');w.id='bb-global-edit-actions';w.style.cssText='position:fixed;left:16px;bottom:16px;z-index:99999;display:flex;gap:8px;';var b=document.createElement('button');b.textContent='🎵';b.title='Edit background music';b.style.cssText='width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(15,15,20,.9);color:#fff;cursor:pointer;box-shadow:0 8px 25px rgba(0,0,0,.25)';b.onclick=function(){parent.postMessage({type:'BB_ELEMENT_SELECTED',selection:{key:'musicUrl',label:'Background music',kind:'audio'}},'*')};w.appendChild(b);document.body.appendChild(w)}
+window.addEventListener('message',function(e){if(!e.data)return;if(e.data.type==='BB_EDITOR_MODE'){enabled=!!e.data.enabled;style();document.body.classList.toggle('bb-editor-mode',enabled);if(enabled){install();globalActions();var ga=document.getElementById('bb-global-edit-actions');if(ga)ga.style.display='flex'}else{var ga=document.getElementById('bb-global-edit-actions');if(ga)ga.style.display='none'}}});observer=new MutationObserver(function(){if(enabled)install()});observer.observe(document.documentElement,{subtree:true,childList:true});window.addEventListener('load',function(){if(enabled)install()});})();</script></body>
 </html>

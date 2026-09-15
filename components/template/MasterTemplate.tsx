@@ -11,7 +11,7 @@ type Props = {
   websiteSlug?: string;
   recipientId?: string;
   editorMode?: boolean;
-  onElementSelect?: (selection: { key: string; label: string; index?: number; value: string }) => void;
+  onElementSelect?: (selection: { key: string; label: string; index?: number; value?: string; kind?: string }) => void;
 };
 
 function contentToData(content?: BirthdayContent) {

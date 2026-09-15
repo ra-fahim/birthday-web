@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Redo2, Undo2 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { defaultContent, BirthdayContent } from '@/lib/types';
 import { MasterTemplate } from '@/components/template/MasterTemplate';
@@ -9,6 +10,7 @@ import { SingleMediaUpload, GalleryUpload, InlineMediaField } from './MediaUploa
 import FeatureControls from './FeatureControls';
 import { TimelineEditor, MemoriesEditor, WishlistEditor, GuestbookToggle } from './ContentListEditors';
 import { templateCatalog } from '@/lib/templates';
+import UniversalElementEditor from './UniversalElementEditor';
 
 // Keep the complete occasion list stable even when an occasion has no templates yet.
 // New HTML templates can then be registered under any of these categories later.
@@ -54,7 +56,7 @@ const TABS = [
 ] as const;
 
 type TabId = typeof TABS[number][0];
-type CanvasSelection = { key: string; label: string; index?: number; value: string };
+type CanvasSelection = { key: string; label: string; index?: number; value?: string; kind?: string };
 
 function Section({ eyebrow, title, description, children }: { eyebrow?: string; title: string; description?: string; children: React.ReactNode }) {
   return <section className="builder-section">
@@ -181,10 +183,43 @@ export default function Builder() {
   const [device, setDevice] = useState<'desktop'|'tablet'|'mobile'>('desktop');
   const [selectedElement, setSelectedElement] = useState<CanvasSelection | null>(null);
   const [publicUrl, setPublicUrl] = useState('');
+  const [past, setPast] = useState<BirthdayContent[]>([]);
+  const [future, setFuture] = useState<BirthdayContent[]>([]);
+
+  const commitContent = useCallback((next: BirthdayContent) => {
+    setC(prev => {
+      setPast(h => [...h.slice(-39), prev]);
+      setFuture([]);
+      return next;
+    });
+    setDirty(true);
+  }, []);
+
+  const undo = useCallback(() => {
+    setPast(history => {
+      const previous = history[history.length - 1];
+      if (!previous) return history;
+      setC(current => { setFuture(f => [...f.slice(-39), current]); return previous; });
+      return history.slice(0, -1);
+    });
+    setDirty(true);
+    setSelectedElement(null);
+  }, []);
+
+  const redo = useCallback(() => {
+    setFuture(history => {
+      const next = history[history.length - 1];
+      if (!next) return history;
+      setC(current => { setPast(p => [...p.slice(-39), current]); return next; });
+      return history.slice(0, -1);
+    });
+    setDirty(true);
+    setSelectedElement(null);
+  }, []);
 
   useEffect(() => {
     fetch('/api/websites/' + id).then(r => r.json()).then(j => {
-      if (j.content) setC({ ...defaultContent, ...j.content });
+      if (j.content) { setC({ ...defaultContent, ...j.content }); setPast([]); setFuture([]); }
       if (j.slug) setSlug(j.slug);
       if (j.status) setStatus(j.status);
       const storedOccasion = typeof j.content?.occasion === 'string' ? j.content.occasion : 'birthday';
@@ -217,7 +252,7 @@ export default function Builder() {
     });
   }, [id]);
 
-  const update = (patch: Partial<BirthdayContent>) => { setC(prev => ({ ...prev, ...patch })); setDirty(true); };
+  const update = useCallback((patch: Partial<BirthdayContent>) => { commitContent({ ...c, ...patch }); }, [c, commitContent]);
   const updateArray = (key: keyof BirthdayContent, value: unknown) => update({ [key]: value } as Partial<BirthdayContent>);
   const toggleEffect = (key: keyof BirthdayContent, checked: boolean) => update({ [key]: checked } as Partial<BirthdayContent>);
 
@@ -228,7 +263,7 @@ export default function Builder() {
   useEffect(() => {
     const handler = (event: MessageEvent) => {
       if (event.data?.type !== 'BB_TEXT_EDITED') return;
-      const raw = event.data.selection as { key?: unknown; label?: unknown; index?: unknown; value?: unknown } | null;
+      const raw = event.data.selection as { key?: unknown; label?: unknown; index?: unknown; value?: unknown; kind?: unknown } | null;
       if (!raw || typeof raw.key !== 'string') return;
       const value = String(raw.value ?? '').trim();
       if (!value) return;
@@ -246,7 +281,7 @@ export default function Builder() {
       } else if (raw.key in c) {
         update({ [raw.key]: value } as Partial<BirthdayContent>);
       }
-      setSelectedElement({ key: raw.key, label, index, value });
+      setSelectedElement({ key: raw.key, label, index, value, kind: typeof raw.kind === 'string' ? raw.kind : undefined });
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
@@ -284,7 +319,7 @@ export default function Builder() {
   const previewContent = useMemo(() => ({ ...c, occasion, templateId }), [c, occasion, templateId]);
   const resetToMasterDefaults = () => {
     const keepName = c.name;
-    setC({ ...defaultContent, name: keepName || defaultContent.name, templateId: 'master', occasion: 'birthday' });
+    commitContent({ ...defaultContent, name: keepName || defaultContent.name, templateId: 'master', occasion: 'birthday' });
     setTemplateId('master'); setOccasion('birthday'); setDirty(true); setMsg('Master template defaults restored.');
   };
 
@@ -293,7 +328,7 @@ export default function Builder() {
       <div className="builder-brand"><div className="builder-logo">W</div><div><strong>Wishly Studio</strong><span>Experience editor</span></div></div>
       <div className="builder-top-actions">
         <div className={`builder-status ${dirty ? 'is-dirty' : ''}`}><i />{dirty ? 'Unsaved changes' : status === 'published' ? 'Published' : 'All changes saved'}</div>
-        <button className="builder-ghost" onClick={() => router.push('/dashboard')}>Exit</button>
+        <button className="builder-icon-btn" onClick={undo} disabled={!past.length} title="Undo" aria-label="Undo"><Undo2 size={15}/></button><button className="builder-icon-btn" onClick={redo} disabled={!future.length} title="Redo" aria-label="Redo"><Redo2 size={15}/></button><button className="builder-ghost" onClick={() => router.push('/dashboard')}>Exit</button>
         <button className="builder-save" onClick={() => save(false)}>Save draft</button>
         <button className="builder-publish" onClick={() => save(true)}>Create Live Link ↗</button>
       </div>
@@ -307,7 +342,7 @@ export default function Builder() {
         </div>
 
         <div className="builder-selector-grid">
-          <div><span>Occasion</span><select value={occasion} onChange={e => { const nextOccasion = e.target.value; const nextTemplate = firstTemplateForOccasion(nextOccasion); setOccasion(nextOccasion); setTemplateId(nextTemplate); if (nextTemplate === 'miss-you-1' && !c.templateConfig) setC(prev => ({ ...prev, templateConfig: getMissYouDefaults() })); if (nextTemplate === 'master-proposal' && !c.templateConfig) setC(prev => ({ ...prev, templateConfig: getMasterProposalDefaults() })); setDirty(true); }}>{AVAILABLE_OCCASIONS.map(([value, emoji, label]) => <option value={value} key={value}>{emoji} {label}</option>)}</select></div>
+          <div><span>Occasion</span><select value={occasion} onChange={e => { const nextOccasion = e.target.value; const nextTemplate = firstTemplateForOccasion(nextOccasion); setOccasion(nextOccasion); setTemplateId(nextTemplate); if (nextTemplate === 'miss-you-1' && !c.templateConfig) commitContent({ ...c, templateConfig: getMissYouDefaults() }); else if (nextTemplate === 'master-proposal' && !c.templateConfig) commitContent({ ...c, templateConfig: getMasterProposalDefaults() }); else setDirty(true); }}>{AVAILABLE_OCCASIONS.map(([value, emoji, label]) => <option value={value} key={value}>{emoji} {label}</option>)}</select></div>
           <div><span>Experience</span><select value={templateId} disabled={!occasionTemplates.length} onChange={e => { setTemplateId(e.target.value); setDirty(true); }}>
             {!occasionTemplates.length && <option value="">No {currentOccasion[2]} template added yet</option>}
             {occasionTemplates.map((t) => <option value={t.slug} key={t.slug}>{t.name}</option>)}
@@ -335,53 +370,23 @@ export default function Builder() {
           {visibleTabs.map(([value, icon, label]) => <button key={value} className={tab === value ? 'active' : ''} onClick={() => setTab(value)}><span>{icon}</span>{label}{templateId !== 'master-proposal' && ['gallery','story','timeline','memories','wishlist'].includes(value) && <b>{value === 'story' ? c.reasons.length : value === 'gallery' ? c.gallery.length : value === 'timeline' ? c.timeline.length : value === 'memories' ? c.memories.length : c.wishlist.length}</b>}{templateId === 'master-proposal' && value === 'story' && <b>{Array.isArray(masterProposalConfig.story) ? masterProposalConfig.story.length : 0}</b>}{templateId === 'master-proposal' && value === 'gallery' && <b>{Array.isArray(masterProposalConfig.museum) ? masterProposalConfig.museum.length : 0}</b>}</button>)}
         </nav>
 
-        <div className="builder-side-tip"><span>⌘</span><div><b>Easy mode</b><p>Edit here or directly on the page. When ready, create one live link for this website.</p></div></div>
+        <div className="builder-side-tip"><span>✦</span><div><b>Easy mode</b><p>Hover a part of the template and tap ✏ to edit. Use Undo/Redo anytime.</p></div></div>
       </aside>
 
       <section className="builder-workspace">
         <div className="builder-editor-panel">
-          <div className="builder-panel-head"><div><div className="builder-eyebrow">{activeTab?.[1]} {activeTab?.[2]}</div><h2>{activeTab?.[2]}</h2></div><span className="builder-live-pill">● LIVE</span></div>
+          <div className="builder-panel-head"><div><div className="builder-eyebrow">CANVAS EDITOR</div><h2>{selectedElement ? selectedElement.label : 'Select anything to edit'}</h2></div><span className="builder-live-pill">● LIVE PREVIEW</span></div>
           <div className="builder-form-scroll">
-                      {selectedElement && <section className="builder-selection-card">
-              <div><span className="builder-eyebrow">CANVAS SELECTION</span><h3>{selectedElement.label}</h3><p>Double-click text in the preview to edit it directly.</p></div>
-              <button className="builder-clear-selection" onClick={()=>setSelectedElement(null)}>Clear</button>
-              {selectedElement.key === 'reasons' && typeof selectedElement.index === 'number' ? (
-                <textarea rows={3} value={c.reasons[selectedElement.index] || ''} onChange={e=>{const reasons=[...c.reasons]; reasons[selectedElement.index!] = e.target.value; update({reasons});}} />
-              ) : selectedElement.key === 'greeting' ? (
-                <input value={c.greeting} onChange={e=>update({greeting:e.target.value})} />
-              ) : (['heroSubtitle','heroTitle','secret','buttonText'].includes(selectedElement.key) && templateId !== 'master-proposal') ? (
-                <textarea rows={selectedElement.key==='heroSubtitle'||selectedElement.key==='secret'?3:2} value={String((c as any)[selectedElement.key]||'')} onChange={e=>update({[selectedElement.key]:e.target.value} as Partial<BirthdayContent>)} />
-              ) : templateId === 'master-proposal' ? (
-                selectedElement.key === 'heroTitle' || selectedElement.key === 'heroSubtitle' ? (
-                  <input value={String(masterProposalConfig[selectedElement.key] || '')} onChange={e => updateMasterProposal({ [selectedElement.key]: e.target.value })} />
-                ) : selectedElement.key === 'story' && typeof selectedElement.index === 'number' ? (() => {
-                  const story = (Array.isArray(masterProposalConfig.story) ? masterProposalConfig.story : []) as { title: string; body: string }[];
-                  const item = story[selectedElement.index!] || { title: '', body: '' };
-                  const setItem = (patch: Partial<{ title: string; body: string }>) => { const next = [...story]; next[selectedElement.index!] = { ...item, ...patch }; updateMasterProposal({ story: next }); };
-                  return <div className="builder-grid-2"><Field label="Chapter title"><input value={item.title} onChange={e => setItem({ title: e.target.value })} /></Field><Field label="Chapter text"><textarea rows={4} value={item.body} onChange={e => setItem({ body: e.target.value })} /></Field></div>;
-                })() : selectedElement.key.startsWith('introGate.') ? (() => {
-                  const field = selectedElement.key.split('.')[1];
-                  const gate = (masterProposalConfig.introGate || {}) as Record<string, any>;
-                  if (field === 'prompts' && typeof selectedElement.index === 'number') {
-                    const prompts = (Array.isArray(gate.prompts) ? gate.prompts : []) as { title: string; subtitle: string }[];
-                    const item = prompts[selectedElement.index] || { title: '', subtitle: '' };
-                    const setItem = (patch: Partial<{ title: string; subtitle: string }>) => { const next = [...prompts]; next[selectedElement.index!] = { ...item, ...patch }; updateMasterProposal({ introGate: { ...gate, prompts: next } }); };
-                    return <div className="builder-grid-2"><Field label="Question"><input value={item.title} onChange={e => setItem({ title: e.target.value })} /></Field><Field label="Subtitle"><input value={item.subtitle} onChange={e => setItem({ subtitle: e.target.value })} /></Field></div>;
-                  }
-                  return <input value={String(gate[field] || '')} onChange={e => updateMasterProposal({ introGate: { ...gate, [field]: e.target.value } })} />;
-                })() : selectedElement.key.startsWith('datePlanner.') ? (() => {
-                  const field = selectedElement.key.split('.')[1];
-                  const planner = (masterProposalConfig.datePlanner || {}) as Record<string, any>;
-                  if (field === 'options' && typeof selectedElement.index === 'number') {
-                    const options = (Array.isArray(planner.options) ? planner.options : []) as any[];
-                    const item = options[selectedElement.index] || {};
-                    const setItem = (patch: Record<string, unknown>) => { const next = [...options]; next[selectedElement.index!] = { ...item, ...patch }; updateMasterProposal({ datePlanner: { ...planner, options: next } }); };
-                    return <div className="builder-grid-2"><Field label="Card label"><input value={item.label || ''} onChange={e => setItem({ label: e.target.value })} /></Field><Field label="Ticket title"><input value={item.planTitle || ''} onChange={e => setItem({ planTitle: e.target.value })} /></Field></div>;
-                  }
-                  return <input value={String(planner[field] || '')} onChange={e => updateMasterProposal({ datePlanner: { ...planner, [field]: e.target.value } })} />;
-                })() : null
-              ) : null}
-            </section>}
+                      {!selectedElement && <div className="builder-quickstart"><button className="builder-quick-card" type="button" onClick={()=>setSelectedElement({key:'musicUrl',label:'Background music',kind:'audio'})}><b>🎵 Music</b><span>Add or replace your soundtrack.</span></button><button className="builder-quick-card" type="button" onClick={()=>setSelectedElement({key:'gallery',label:'Add photo',index:c.gallery.length,kind:'image'})}><b>＋ Photo</b><span>Add a new memory.</span></button><button className="builder-quick-card" type="button" onClick={()=>setSelectedElement({key:'reasons',label:'Add reason',index:c.reasons.length,kind:'text'})}><b>＋ Reason</b><span>Add another story point.</span></button></div>}
+                      {selectedElement && <UniversalElementEditor
+              selected={selectedElement}
+              content={c}
+              templateId={templateId}
+              websiteId={id}
+              onChange={update}
+              onTemplateConfigChange={patch => update({ templateConfig: { ...((c.templateConfig || {}) as Record<string, unknown>), ...patch } })}
+              onClose={() => setSelectedElement(null)}
+            />}
             {templateId === 'miss-you-1' && tab === 'overview' && <>
               <Section eyebrow="MISS YOU 1" title="Make it yours" description="Only the content the original Miss You experience actually uses is editable here. The design and animation stay exactly as supplied.">
                 <div className="builder-grid-2">
@@ -629,10 +634,10 @@ export default function Builder() {
 
             {tab === 'effects' && <Section eyebrow="MOTION" title="Control the magic" description="These switches are wired to the master template. Turn effects on or off and preview the result immediately."><div className="builder-toggle-grid">{EFFECTS.map(([key, label]) => <label key={key} className={`builder-toggle ${c[key] ? 'on' : ''}`}><span><b>{label}</b><small>{c[key] ? 'Enabled' : 'Disabled'}</small></span><input type="checkbox" checked={c[key]} onChange={e => toggleEffect(key as keyof BirthdayContent, e.target.checked)} /></label>)}</div></Section>}
 
-            {tab === 'timeline' && <Section eyebrow="YOUR JOURNEY" title="Timeline" description="Add real milestones. They render inside the public experience instead of being a dashboard-only setting."><TimelineEditor content={c} onChange={next => { setC(next); setDirty(true); }} /></Section>}
-            {tab === 'memories' && <Section eyebrow="LITTLE THINGS" title="Memories" description="Short memory snippets that visitors can discover in the experience."><MemoriesEditor content={c} onChange={next => { setC(next); setDirty(true); }} /></Section>}
-            {tab === 'wishlist' && <Section eyebrow="WISHES" title="Wishlist" description="Add gift ideas or future wishes that visitors can see."><WishlistEditor content={c} onChange={next => { setC(next); setDirty(true); }} /></Section>}
-            {tab === 'guestbook' && <Section eyebrow="COMMUNITY" title="Guestbook" description="Let visitors leave messages on the published experience."><GuestbookToggle content={c} onChange={next => { setC(next); setDirty(true); }} /></Section>}
+            {tab === 'timeline' && <Section eyebrow="YOUR JOURNEY" title="Timeline" description="Add real milestones. They render inside the public experience instead of being a dashboard-only setting."><TimelineEditor content={c} onChange={next => { commitContent(next); }} /></Section>}
+            {tab === 'memories' && <Section eyebrow="LITTLE THINGS" title="Memories" description="Short memory snippets that visitors can discover in the experience."><MemoriesEditor content={c} onChange={next => { commitContent(next); }} /></Section>}
+            {tab === 'wishlist' && <Section eyebrow="WISHES" title="Wishlist" description="Add gift ideas or future wishes that visitors can see."><WishlistEditor content={c} onChange={next => { commitContent(next); }} /></Section>}
+            {tab === 'guestbook' && <Section eyebrow="COMMUNITY" title="Guestbook" description="Let visitors leave messages on the published experience."><GuestbookToggle content={c} onChange={next => { commitContent(next); }} /></Section>}
 
             {tab === 'social' && <Section eyebrow="SHARE YOUR WORLD" title="Social / Friend link" description="These links power the social buttons at the end of the Master Template. Add the profile or page you want your friends, soulmate, or guests to visit.">
               <div className="builder-grid-2">
@@ -642,12 +647,12 @@ export default function Builder() {
               <div className="builder-note mt-4">Leave a field empty to keep the original Master Template link. Your links are saved with this website and will be included in its published version.</div>
             </Section>}
 
-            {tab === 'growth' && <FeatureControls content={c} onChange={next => { setC(next); setDirty(true); }} websiteId={id} siteSlug={slug} siteStatus={status} />}
+            {tab === 'growth' && <FeatureControls content={c} onChange={next => { commitContent(next); }} websiteId={id} siteSlug={slug} siteStatus={status} />}
 
             {tab === 'advanced' && <>
               <Section eyebrow="SEARCH" title="SEO" description="Control how your published celebration appears when shared or discovered."><div className="builder-grid-2"><Field label="SEO title"><input value={c.seoTitle} onChange={e => update({ seoTitle: e.target.value })} /></Field><Field label="SEO description"><textarea rows={4} value={c.seoDescription} onChange={e => update({ seoDescription: e.target.value })} /></Field></div></Section>
               <Section eyebrow="CUSTOM" title="Custom CSS" description="Optional advanced styling for your published site. Use this only if you know CSS."><textarea className="builder-code" rows={12} value={c.customCss} onChange={e => update({ customCss: e.target.value })} placeholder="/* Your CSS */" /></Section>
-              <Section eyebrow="LANGUAGE & TOOLS" title="Advanced features" description="These controls are wired through the existing feature layer."><FeatureControls content={c} onChange={next => { setC(next); setDirty(true); }} websiteId={id} siteSlug={slug} siteStatus={status} /></Section>
+              <Section eyebrow="LANGUAGE & TOOLS" title="Advanced features" description="These controls are wired through the existing feature layer."><FeatureControls content={c} onChange={next => { commitContent(next); }} websiteId={id} siteSlug={slug} siteStatus={status} /></Section>
             </>}
           </div>
         </div>
@@ -655,7 +660,7 @@ export default function Builder() {
         <section className="builder-preview-panel">
           <div className="builder-preview-head"><div><span>LIVE PREVIEW</span><strong>{c.name || 'Untitled celebration'}</strong></div><div className="builder-preview-actions">
   {(['desktop','tablet','mobile'] as const).map(d => <button key={d} className={`builder-device ${device===d?'active':''}`} onClick={()=>setDevice(d)}>{d[0].toUpperCase()+d.slice(1)}</button>)}
-  {templateId !== 'wedding-proposal' && templateId !== 'miss-you-1' && <button className={`builder-device ${editorMode?'active':''}`} onClick={()=>setEditorMode(v=>!v)}>✎ Edit on canvas</button>}
+  <button className={`builder-device ${editorMode?'active':''}`} onClick={()=>setEditorMode(v=>!v)}>✎ {editorMode ? 'Edit mode' : 'Preview mode'}</button>
 </div></div>
           {status === 'published' && publicUrl && <div className="builder-live-link"><div><span>YOUR LIVE LINK</span><strong>{publicUrl}</strong></div><div className="builder-live-link-actions"><button onClick={() => navigator.clipboard?.writeText(publicUrl)}>Copy link</button><a href={publicUrl} target="_blank" rel="noreferrer">Open ↗</a></div></div>}
           <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}>{templateId === 'master' ? <MasterTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div>
