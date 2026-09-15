@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Menu, X } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { defaultContent, BirthdayContent } from '@/lib/types';
 import { MasterTemplate } from '@/components/template/MasterTemplate';
@@ -10,6 +11,7 @@ import FeatureControls from './FeatureControls';
 import UniversalElementEditor from './UniversalElementEditor';
 import { TimelineEditor, MemoriesEditor, WishlistEditor, GuestbookToggle } from './ContentListEditors';
 import { templateCatalog } from '@/lib/templates';
+import { getTemplateInspection } from '@/lib/template-inspector';
 
 // Keep the complete occasion list stable even when an occasion has no templates yet.
 // New HTML templates can then be registered under any of these categories later.
@@ -178,6 +180,31 @@ function ObjectArrayEditor<T extends Record<string, any>>({ title, description, 
   </div>;
 }
 
+function TemplateSourceMap({ templateId }: { templateId: string }) {
+  const info = getTemplateInspection(templateId);
+  return <Section eyebrow="SOURCE-AWARE EDITOR" title="What this template actually contains" description="The Studio first maps the real template source, then only applies editing controls that belong to this template.">
+    <div className="builder-quickstart">
+      <div className="builder-quick-card"><b>Source checked</b><span>{info.sourceFiles.join(' · ')}</span></div>
+      <div className="builder-quick-card"><b>Editable areas</b><span>{info.editableAreas.join(' · ')}</span></div>
+    </div>
+    <div className="builder-grid-2 mt-4">
+      {info.media.map(slot => <div key={slot.key} className="builder-item builder-item-card" style={{display:'flex',flexDirection:'column',alignItems:'stretch',gap:6}}>
+        <div className="builder-item-card-head"><span className="builder-item-card-num">{slot.kind === 'audio' ? '♫' : slot.kind === 'video' ? '▶' : '▧'} {slot.label}</span><span className="builder-eyebrow">{slot.sourceType === 'code-generated' ? 'CODE' : 'MEDIA'}</span></div>
+        <small>{slot.behavior}</small>
+        {typeof slot.count === 'number' && <small>{slot.count ? `${slot.count} source items detected.` : 'User-defined item count.'}</small>}
+      </div>)}
+    </div>
+  </Section>;
+}
+
+function MusicSlotCard({ icon, title, description, value, onChange, websiteId }: { icon: string; title: string; description: string; value: string; onChange: (value: string) => void; websiteId: string }) {
+  return <div className="builder-item builder-item-card" style={{display:'flex',flexDirection:'column',alignItems:'stretch',gap:10}}>
+    <div className="builder-item-card-head"><span className="builder-item-card-num">{icon} {title}</span>{value && <span className="builder-live-pill">READY</span>}</div>
+    <small>{description}</small>
+    <SingleMediaUpload kind="audio" url={value || ''} onChange={onChange} websiteId={websiteId} />
+  </div>;
+}
+
 export default function Builder() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -194,6 +221,7 @@ export default function Builder() {
   const [device, setDevice] = useState<'desktop'|'tablet'|'mobile'>('desktop');
   const [selectedElement, setSelectedElement] = useState<CanvasSelection | null>(null);
   const [publicUrl, setPublicUrl] = useState('');
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetch('/api/websites/' + id).then(r => r.json()).then(j => {
@@ -283,7 +311,7 @@ export default function Builder() {
   const masterProposalConfig = useMemo(() => ({ ...getMasterProposalDefaults(), ...(c.templateConfig || {}) }), [c.templateConfig]);
   const updateMasterProposal = (patch: Record<string, unknown>) => update({ templateConfig: { ...masterProposalConfig, ...patch } });
   const visibleTabs = templateId === 'wedding-proposal'
-    ? TABS.filter(([value]) => value === 'overview' || value === 'opening')
+    ? TABS.filter(([value]) => value === 'overview' || value === 'opening' || value === 'music')
     : templateId === 'miss-you-1'
       ? TABS.filter(([value]) => value === 'overview' || value === 'story' || value === 'music')
       : templateId === 'master-proposal'
@@ -296,7 +324,14 @@ export default function Builder() {
   useEffect(() => {
     if (!visibleTabs.some(([value]) => value === tab)) setTab('overview');
     setSelectedElement(null);
+    setMobileSidebarOpen(false);
   }, [templateId]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.body.style.overflow = mobileSidebarOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileSidebarOpen]);
   useEffect(() => {
     const group = EDIT_GROUPS.find(([, , , tabs]) => tabs.includes(tab as TabId));
     if (group) setEditGroup(group[0]);
@@ -310,7 +345,13 @@ export default function Builder() {
 
   return <main className="builder-shell">
     <header className="builder-topbar">
-      <div className="builder-brand"><div className="builder-logo">W</div><div><strong>Wishly Studio</strong><span>Experience editor</span></div></div>
+      <div className="builder-brand">
+        <button type="button" className="builder-mobile-menu-btn" onClick={() => setMobileSidebarOpen(v => !v)} aria-label={mobileSidebarOpen ? 'Close studio menu' : 'Open studio menu'} aria-expanded={mobileSidebarOpen}>
+          {mobileSidebarOpen ? <X size={18} /> : <Menu size={18} />}
+        </button>
+        <div className="builder-logo">W</div>
+        <div><strong>Wishly Studio</strong><span>Experience editor</span></div>
+      </div>
       <div className="builder-top-actions">
         <div className={`builder-status ${dirty ? 'is-dirty' : ''}`}><i />{dirty ? 'Unsaved changes' : status === 'published' ? 'Published' : 'All changes saved'}</div>
         <button className="builder-ghost" onClick={() => router.push('/dashboard')}>Exit</button>
@@ -319,8 +360,13 @@ export default function Builder() {
       </div>
     </header>
 
+    <div className={`builder-mobile-sidebar-overlay ${mobileSidebarOpen ? 'is-open' : ''}`} onClick={() => setMobileSidebarOpen(false)} aria-hidden={!mobileSidebarOpen} />
     <div className="builder-layout">
-      <aside className="builder-sidebar">
+      <aside className={`builder-sidebar ${mobileSidebarOpen ? 'is-mobile-open' : ''}`}>
+        <div className="builder-mobile-sidebar-head">
+          <div><span className="builder-eyebrow">STUDIO MENU</span><strong>Build your website</strong></div>
+          <button type="button" onClick={() => setMobileSidebarOpen(false)} aria-label="Close menu"><X size={18} /></button>
+        </div>
         <div className="builder-project-card">
           <div className="builder-project-icon">{currentOccasion[1]}</div>
           <div className="min-w-0"><div className="builder-eyebrow">CURRENT PROJECT</div><h1>{c.name || 'Untitled celebration'}</h1><p>{currentOccasion[2]} · {occasionTemplates.find(t => t.slug === templateId)?.name || 'No template added yet'}</p></div>
@@ -352,10 +398,10 @@ export default function Builder() {
 
         <nav className="builder-nav builder-category-nav">
           <div className="builder-nav-label">EDIT YOUR WEBSITE</div>
-          {visibleGroups.map(g => <button key={g.id} className={activeGroup?.id === g.id ? 'active' : ''} onClick={() => { setEditGroup(g.id); setTab(g.tabs[0] as TabId); }}><span>{g.icon}</span>{g.label}<b>{g.tabs.length}</b></button>)}
+          {visibleGroups.map(g => <button key={g.id} className={activeGroup?.id === g.id ? 'active' : ''} onClick={() => { setEditGroup(g.id); setTab(g.tabs[0] as TabId); setMobileSidebarOpen(false); }}><span>{g.icon}</span>{g.label}<b>{g.tabs.length}</b></button>)}
         </nav>
         <div className="builder-subnav">
-          {groupTabs?.map(([value, icon, label]) => <button key={value} className={tab === value ? 'active' : ''} onClick={() => setTab(value as TabId)}><span>{icon}</span>{label}</button>)}
+          {groupTabs?.map(([value, icon, label]) => <button key={value} className={tab === value ? 'active' : ''} onClick={() => { setTab(value as TabId); setMobileSidebarOpen(false); }}><span>{icon}</span>{label}</button>)}
         </div>
 
         <div className="builder-side-tip"><span>⌘</span><div><b>Easy mode</b><p>Edit here or directly on the page. When ready, create one live link for this website.</p></div></div>
@@ -366,6 +412,7 @@ export default function Builder() {
           <div className="builder-panel-head"><div><div className="builder-eyebrow">{activeGroup?.icon} {activeGroup?.label || 'Editor'}</div><h2>{activeTab?.[2]}</h2></div><span className="builder-live-pill">● LIVE</span></div>
           <div className="builder-mobile-category-tabs">{visibleGroups.map(g => <button key={g.id} className={activeGroup?.id === g.id ? 'active' : ''} onClick={() => { setEditGroup(g.id); setTab(g.tabs[0] as TabId); }}><span>{g.icon}</span>{g.label}</button>)}</div>
           <div className="builder-form-scroll">
+            {tab === 'overview' && <TemplateSourceMap templateId={templateId} />}
                       {selectedElement && (
                         <UniversalElementEditor
                           selected={selectedElement}
@@ -524,13 +571,19 @@ export default function Builder() {
               <ArrayEditor title="Your reasons" description="Add as many reasons as you want. The master template will automatically update its counter and sequence." items={c.reasons} placeholder="e.g. Your laugh always makes my day…" multiline onChange={items => updateArray('reasons', items)} />
             </Section>}
 
-            {tab === 'gallery' && <Section eyebrow="MEMORIES" title="Photo gallery" description="Upload the actual photos used by the cinematic photo scene. No fake placeholder cards are required."><GalleryUpload items={c.gallery} onChange={gallery => update({ gallery })} websiteId={id} /><div className="builder-note mt-4">{c.gallery.length ? `${c.gallery.length} photo${c.gallery.length > 1 ? 's' : ''} ready for the experience.` : 'No photos yet — upload your memories to make this section yours.'}</div></Section>}
+            {tab === 'gallery' && templateId === 'master' && <Section eyebrow="MEMORIES" title="Photo gallery" description="This template has one photo sequence. Add local files or public image URLs."><GalleryUpload items={c.gallery} onChange={gallery => update({ gallery })} websiteId={id} /><div className="builder-note mt-4">{c.gallery.length ? `${c.gallery.length} photo${c.gallery.length > 1 ? 's' : ''} ready for the experience.` : 'No photos yet — upload your memories to make this section yours.'}</div></Section>}
+            {tab === 'gallery' && templateId === 'master-proposal' && <Section eyebrow="MUSEUM" title="Photos & videos" description="This template was built with a mixed museum. Each memory keeps its own type, title and media URL."><ObjectArrayEditor title="memory" description="Choose Photo or Video per item. For video, YouTube links are supported by the original template." items={(Array.isArray(masterProposalConfig.museum) ? masterProposalConfig.museum : []) as any[]} fields={[{key:'type',label:'Media type',options:['image','video']},{key:'url',label:'Public media URL',placeholder:'https://…',upload:{accept:'image/*,video/*',folder:'museum',}},{key:'thumbnail',label:'Video thumbnail (optional)',placeholder:'https://…',upload:{accept:'image/*',folder:'museum-thumbnails'}},{key:'title',label:'Title',placeholder:'Our favorite memory'},{key:'date',label:'Date / label',placeholder:'January 2026'},{key:'description',label:'Description',placeholder:'A little story…',multiline:true}]} newItem={() => ({id:String(Date.now()),type:'image',url:'',thumbnail:'',title:'New Memory',date:'',description:''})} websiteId={id} onChange={items => updateMasterProposal({ museum: items })} /></Section>}
 
-            {templateId === 'miss-you-1' && tab === 'music' && <Section eyebrow="SOUNDTRACK" title="Background music" description="This template only needs one audio track. Replace it here without changing the original experience."><SingleMediaUpload kind="audio" url={String(missYouConfig.musicUrl || '')} onChange={musicUrl => updateMissYou({ musicUrl })} websiteId={id} /><div className="builder-note mt-4">Leave it empty to keep the original Miss You 1 music file.</div></Section>}
-
-            {tab === 'music' && templateId !== 'miss-you-1' && <Section eyebrow="SOUNDTRACK" title="Background music" description="Upload the track that plays through the cinematic experience."><SingleMediaUpload kind="audio" url={c.musicUrl} onChange={musicUrl => update({ musicUrl })} websiteId={id} /><div className="builder-note mt-4">Audio playback still respects browser autoplay rules; visitors may need to tap once before sound starts.</div></Section>}
-
-            {tab === 'video' && <Section eyebrow="MOVING MEMORIES" title="Special video" description="Upload one video for the master experience. The video scene remains in the same position in the story."><SingleMediaUpload kind="video" url={c.videoUrl} onChange={videoUrl => update({ videoUrl })} websiteId={id} /><div className="builder-grid-2 mt-4"><Field label="Video section title"><input value="A Special Video Message" readOnly /></Field><Field label="Status"><input value={c.videoUrl ? 'Ready to play' : 'No video uploaded'} readOnly /></Field></div></Section>}
+            {tab === 'music' && templateId === 'master' && <Section eyebrow="SOUNDTRACK" title="Template music layers" description="This exact template contains three separate audio elements, so each one gets its own editor here.">
+              <div className="space-y-5">
+                <MusicSlotCard icon="🎵" title="Background music" description="Main soundtrack — loops while the experience is running." value={c.musicUrl} onChange={musicUrl => update({ musicUrl })} websiteId={id} />
+                <MusicSlotCard icon="⏳" title="Countdown audio" description="Separate sound used in the final countdown window." value={c.countdownAudioUrl} onChange={countdownAudioUrl => update({ countdownAudioUrl })} websiteId={id} />
+                <MusicSlotCard icon="🎉" title="Wishing / birthday audio" description="Separate sound played when the celebration unlocks." value={c.wishingAudioUrl} onChange={wishingAudioUrl => update({ wishingAudioUrl })} websiteId={id} />
+              </div>
+            </Section>}
+            {templateId === 'miss-you-1' && tab === 'music' && <Section eyebrow="SOUNDTRACK" title="Background music" description="This template contains one audio element. Replace the bundled track with an uploaded file or public direct audio URL."><SingleMediaUpload kind="audio" url={String(missYouConfig.musicUrl || '')} onChange={musicUrl => updateMissYou({ musicUrl })} websiteId={id} /></Section>}
+            {templateId === 'master-proposal' && tab === 'music' && <Section eyebrow="SOUNDTRACK" title="Background music" description="The source code contains one BackgroundMusic component and one configurable soundtrack URL."><SingleMediaUpload kind="audio" url={String(masterProposalConfig.bgMusicUrl || '')} onChange={bgMusicUrl => updateMasterProposal({ bgMusicUrl })} websiteId={id} /></Section>}
+            {templateId === 'wedding-proposal' && tab === 'music' && <Section eyebrow="SOURCE MUSIC" title="Built-in wedding soundtrack" description="This template does not use an uploaded music file. Its music and sound effects are generated in the original JavaScript with AudioContext, so the Studio preserves that exact behavior."><div className="builder-protected"><span>♫</span><div><b>Code-generated audio</b><p>The source contains a generated music layer plus sound effects. There is no external audio URL in this template to replace.</p></div></div></Section>}
 
             {tab === 'letter' && <Section eyebrow="THE LETTER" title="Your letter" description="The envelope animation stays fixed, but the words inside the letter are fully editable line by line."><ArrayEditor title="Letter lines" description="Each item becomes a handwritten line in the reveal animation." items={c.letter} placeholder="Write one line for the letter…" multiline onChange={items => updateArray('letter', items)} /><div className="builder-note mt-4">The protected core message is separate from this editable letter. This lets the template keep its signature reveal while still giving you a real writing surface.</div></Section>}
 

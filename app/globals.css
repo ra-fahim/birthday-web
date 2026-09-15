@@ -224,3 +224,36 @@ html{scroll-behavior:smooth}body{background:var(--bg);color:var(--text);font-fam
 .builder-category-nav button b{background:rgba(255,255,255,.06);border-radius:999px;padding:2px 6px}.builder-subnav{display:grid;gap:5px;margin:8px 0 0;padding:0 4px 8px;border-bottom:1px solid rgba(255,255,255,.06)}.builder-subnav button{width:100%;display:flex;align-items:center;gap:8px;padding:7px 9px;border:0;background:transparent;color:#71717a;border-radius:8px;text-align:left;font-size:10px;cursor:pointer}.builder-subnav button:hover{background:rgba(255,255,255,.035);color:#d4d4d8}.builder-subnav button.active{background:rgba(236,72,153,.08);color:#fff}.builder-subnav button span{width:16px;text-align:center}.builder-mobile-category-tabs{display:none;overflow:auto;gap:6px;padding:8px 14px;border-bottom:1px solid rgba(255,255,255,.07);scrollbar-width:none}.builder-mobile-category-tabs::-webkit-scrollbar{display:none}.builder-mobile-category-tabs button{flex:0 0 auto;display:flex;align-items:center;gap:5px;border:1px solid rgba(255,255,255,.08);background:#101014;color:#a1a1aa;border-radius:999px;padding:7px 10px;font-size:10px;font-weight:800;white-space:nowrap}.builder-mobile-category-tabs button.active{color:#fff;border-color:rgba(236,72,153,.3);background:rgba(236,72,153,.11)}
 @media(max-width:900px){.builder-mobile-category-tabs{display:flex}.builder-subnav{display:none}.builder-sidebar{display:none}.builder-panel-head{height:58px}.builder-form-scroll{padding:12px}.builder-section{padding:14px;border-radius:14px}.builder-grid-2{grid-template-columns:1fr}.builder-quick-actions-panel{grid-template-columns:1fr 1fr!important}}
 @media(max-width:520px){.builder-mobile-category-tabs{padding:7px 10px}.builder-mobile-category-tabs button{font-size:9px;padding:7px 9px}.builder-quick-actions-panel{grid-template-columns:1fr 1fr!important}.builder-countdown-card{padding:12px!important}}
+
+/* ===== Mobile studio drawer: keep template + every editing option accessible ===== */
+.builder-mobile-menu-btn{display:none;width:34px;height:34px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.035);color:#e4e4e7;border-radius:10px;place-items:center;cursor:pointer;flex:0 0 auto}
+.builder-mobile-sidebar-head{display:none}
+.builder-mobile-sidebar-overlay{display:none}
+@media(max-width:900px){
+  .builder-mobile-menu-btn{display:grid}
+  .builder-sidebar{display:flex!important;position:fixed!important;left:-320px;top:74px;bottom:0;width:min(310px,88vw);height:calc(100vh - 74px)!important;z-index:140;padding:14px!important;border-right:1px solid rgba(255,255,255,.1)!important;border-bottom:0!important;background:rgba(10,10,14,.98)!important;box-shadow:24px 0 70px rgba(0,0,0,.38);flex-direction:column;transition:left .22s ease;overflow:auto}
+  .builder-sidebar.is-mobile-open{left:0}
+  .builder-mobile-sidebar-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 4px 12px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,.07)}
+  .builder-mobile-sidebar-head strong{display:block;margin-top:3px;font-size:13px}
+  .builder-mobile-sidebar-head button{width:32px;height:32px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);color:#d4d4d8;border-radius:9px;display:grid;place-items:center;cursor:pointer}
+  .builder-mobile-sidebar-overlay{display:block;position:fixed;inset:74px 0 0;background:rgba(0,0,0,.48);backdrop-filter:blur(2px);z-index:135;opacity:0;pointer-events:none;transition:opacity .22s ease}
+  .builder-mobile-sidebar-overlay.is-open{opacity:1;pointer-events:auto}
+  .builder-selector-grid{margin-top:12px}
+  .builder-selector-grid>div{padding:11px}
+  .builder-selector-grid select{font-size:13px;min-height:30px}
+  .builder-category-nav{margin-top:2px}
+  .builder-nav-label{display:block!important;padding-top:12px}
+  .builder-nav{display:block!important;overflow:visible!important}
+  .builder-nav button{width:100%!important;min-width:0!important;margin:2px 0!important}
+  .builder-subnav{display:grid!important;overflow:visible!important}
+  .builder-side-tip{display:flex!important;margin-top:auto}
+  .builder-topbar{z-index:150}
+}
+@media(max-width:560px){
+  .builder-sidebar{top:64px;height:calc(100vh - 64px)!important}
+  .builder-mobile-sidebar-overlay{inset:64px 0 0}
+  .builder-mobile-sidebar-head{padding-bottom:10px}
+  .builder-mobile-menu-btn{width:32px;height:32px;border-radius:9px}
+  .builder-brand{gap:8px!important}
+  .builder-brand strong{font-size:13px!important}
+}

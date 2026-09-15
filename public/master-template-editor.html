@@ -2089,7 +2089,7 @@ function applyContent(c){
  const pc=document.getElementById('photoContainer');
  if(pc){const items=Array.isArray(c.gallery)?c.gallery:[];pc.innerHTML=items.length?items.map((item,i)=>{const src=safeUrl(item?.url||item?.src||'');if(!src)return '';const title=esc(item?.title||item?.caption||`Memory ${i+1}`);const caption=esc(item?.caption||item?.description||'A beautiful memory.');return `<div class="photo-card" data-src="${esc(src)}" data-bb-key="gallery" data-bb-index="${i}" data-bb-label="Photo ${i+1}" data-bb-type="image" onclick="openLightbox(this.dataset.src)"><img src="${esc(src)}" alt="${title}" class="photo-img"><div class="photo-date">${title}</div><div class="photo-caption">${caption}</div></div>`}).join(''):'<div style="grid-column:1/-1;text-align:center;padding:50px 20px;color:#64748b;font-size:1.1rem">Your memories will appear here once you add photos in the editor. ✨</div>';photoAlbum=Array.from(pc.querySelectorAll('.photo-card img')).map(img=>img.getAttribute('src')).filter(Boolean);lightboxIndex=-1;updateLightboxNavVisibility();}
  const vg=document.getElementById('videoGrid');
- if(vg){const src=safeUrl(c.videoUrl||'');vg.innerHTML=src?`<div class="video-card" data-bb-key="videoUrl" data-bb-label="Special video" data-bb-type="video"><h3>${esc(occasion)} video for ${esc(name)} ❤️</h3><div class="video-wrapper"><video controls preload="metadata"><source src="${esc(src)}" type="video/mp4"></video></div></div>`:'<div class="video-card"><h3>Add a video from the editor 🎥</h3><p style="color:#64748b;padding:15px">No video has been uploaded yet.</p></div>';}
+ if(vg){const src=safeUrl(c.videoUrl||'');const yt=src.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/i)?.[1];const vm=src.match(/vimeo\.com\/(?:video\/)?(\d+)/i)?.[1];const media=yt?`<iframe src="https://www.youtube.com/embed/${yt}?rel=0" title="YouTube video" style="width:100%;height:420px;border:0;border-radius:18px" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`:vm?`<iframe src="https://player.vimeo.com/video/${vm}" title="Vimeo video" style="width:100%;height:420px;border:0;border-radius:18px" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`:`<video controls preload="metadata" style="width:100%"><source src="${esc(src)}"></video>`;vg.innerHTML=src?`<div class="video-card" data-bb-key="videoUrl" data-bb-label="Special video" data-bb-type="video"><h3>${esc(occasion)} video for ${esc(name)} ❤️</h3><div class="video-wrapper">${media}</div></div>`:'<div class="video-card"><h3>Add a video from the editor 🎥</h3><p style="color:#64748b;padding:15px">No video has been added yet.</p></div>';}
  const musicSrc=safeUrl(c.musicUrl||'');
  const countdownSrc=safeUrl(c.countdownAudioUrl||'');
  const wishingSrc=safeUrl(c.wishingAudioUrl||'');
@@ -2215,7 +2215,9 @@ window.addEventListener('DOMContentLoaded',()=>{const root=document.createElemen
         b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();select(el)});
         el.appendChild(b);
       }
-      el.addEventListener('click',function(e){if(!enabled)return; if(e.target && e.target.closest('.wishly-edit-badge'))return; e.preventDefault();e.stopPropagation();select(el)},true);
+      var lastTouch=0;
+      el.addEventListener('dblclick',function(e){if(!enabled)return; if(e.target && e.target.closest('.wishly-edit-badge'))return; e.preventDefault();e.stopPropagation();select(el)},true);
+      el.addEventListener('touchend',function(e){if(!enabled)return; if(e.target && e.target.closest('.wishly-edit-badge'))return; var now=Date.now(); if(now-lastTouch<360){ e.preventDefault(); e.stopPropagation(); select(el); lastTouch=0; } else { lastTouch=now; }},true);
     });
   }
   function installAudio(){
