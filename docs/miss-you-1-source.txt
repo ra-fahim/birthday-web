@@ -1,0 +1,2 @@
+Miss You 1 imported from the user-supplied ZIP New folder (2)(1).zip.
+The original HTML/CSS/JS/assets are kept under public/templates/miss-you-1; config.js adds only a runtime data bridge so the same experience can be personalized.
