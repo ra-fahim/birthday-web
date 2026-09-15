@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import { ImagePlus, Music2, Video, Upload, Trash2, CheckCircle2 } from 'lucide-react';
 import type { GalleryItem } from '@/lib/types';
 
-async function uploadFile(file: File, folder: string, websiteId: string): Promise<string> {
+export async function uploadFile(file: File, folder: string, websiteId: string): Promise<string> {
   const fd = new FormData();
   fd.append('file', file);
   fd.append('folder', folder);
@@ -58,6 +58,47 @@ export function SingleMediaUpload({
     </div>}
     <input ref={inputRef} type="file" accept={isVideo ? 'video/*' : 'audio/*'} className="hidden" onChange={pick}/>
     {error && <p className="text-sm text-red-500">{error}</p>}
+  </div>;
+}
+
+// Small "text field + upload button" combo for use inside list rows (a museum
+// item's photo/video, a song's audio/album art). Keeps the URL text field
+// (for people who already have a YouTube/Spotify link) but adds a one-tap
+// "Choose file" option next to it, so nobody is forced to know what a URL is.
+export function InlineMediaField({
+  value,
+  onChange,
+  placeholder,
+  accept,
+  folder,
+  websiteId,
+}: {
+  value: string;
+  onChange: (url: string) => void;
+  placeholder?: string;
+  accept: string;
+  folder: string;
+  websiteId: string;
+}) {
+  const [busy, setBusy] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function pick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setBusy(true);
+    try { onChange(await uploadFile(file, folder, websiteId)); }
+    catch (err: any) { alert(err.message || 'Upload failed'); }
+    finally { setBusy(false); }
+  }
+
+  return <div className="builder-inline-media">
+    <input value={value} placeholder={placeholder} onChange={e => onChange(e.target.value)} />
+    <button type="button" className="builder-inline-upload-btn" onClick={() => inputRef.current?.click()} disabled={busy}>
+      <Upload size={12} />{busy ? 'Uploading…' : 'Choose file'}
+    </button>
+    <input ref={inputRef} type="file" accept={accept} className="hidden" onChange={pick} />
   </div>;
 }
 

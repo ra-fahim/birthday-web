@@ -98,3 +98,24 @@
 .builder-template-empty>div{width:68px;height:68px;display:grid;place-items:center;border-radius:20px;background:rgba(236,72,153,.12);border:1px solid rgba(236,72,153,.28);font-size:28px;margin-bottom:18px}
 .builder-template-empty h3{margin:0;font-size:28px;font-weight:800}
 .builder-template-empty p{max-width:520px;margin:12px auto 0;color:rgba(255,255,255,.58);line-height:1.7}
+
+/* --- List reorder + inline upload + progress hint (builder UX pass) ---
+   Colors match the light "MASTERCLASS STUDIO OVERRIDES" theme above, since
+   that block loads after the original dark theme and is what actually renders. */
+.builder-reorder{display:flex;align-items:center;gap:4px;flex:0 0 auto}
+.builder-drag-handle{cursor:grab;color:#94a3b8;font-size:13px;user-select:none;padding:0 2px}
+.builder-reorder button{border:1px solid #e2e8f0;background:#fff;color:#64748b;border-radius:6px;width:20px;height:20px;font-size:11px;line-height:1;cursor:pointer}
+.builder-reorder button:disabled{opacity:.35;cursor:default}
+.builder-reorder button:not(:disabled):hover{background:#eff6ff;color:#2563eb;border-color:#dbeafe}
+.builder-item-card{position:relative}
+.builder-item-card-head{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.builder-item-card-num{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8}
+.builder-inline-media{display:flex;gap:6px;align-items:center}
+.builder-inline-media input{flex:1;min-width:0}
+.builder-inline-upload-btn{flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;padding:0 10px;height:38px;border-radius:9px;border:1px solid #dbeafe;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.builder-inline-upload-btn:disabled{opacity:.6;cursor:default}
+.builder-progress{margin:4px 4px 10px;padding:10px 11px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc}
+.builder-progress-label span{font-size:10px;font-weight:700;color:#475569}
+.builder-progress-bar{margin-top:7px;height:5px;border-radius:999px;background:#e2e8f0;overflow:hidden}
+.builder-progress-fill{height:100%;background:linear-gradient(90deg,#ec4899,#2563eb);border-radius:999px;transition:width .25s ease}
+@media(max-width:980px){.builder-progress{display:none}}

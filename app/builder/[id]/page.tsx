@@ -1,11 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { defaultContent, BirthdayContent } from '@/lib/types';
 import { MasterTemplate } from '@/components/template/MasterTemplate';
 import ExperienceTemplate, { getMissYouDefaults, getMasterProposalDefaults } from '@/components/template/ExperienceTemplates';
-import { SingleMediaUpload, GalleryUpload } from './MediaUploader';
+import { SingleMediaUpload, GalleryUpload, InlineMediaField } from './MediaUploader';
 import FeatureControls from './FeatureControls';
 import { TimelineEditor, MemoriesEditor, WishlistEditor, GuestbookToggle } from './ContentListEditors';
 import { templateCatalog } from '@/lib/templates';
@@ -62,11 +62,32 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   return <label className="builder-field"><span>{label}</span>{hint && <small>{hint}</small>}{children}</label>;
 }
 
+function reorder<T>(items: T[], from: number, to: number): T[] {
+  if (to < 0 || to >= items.length) return items;
+  const next = items.slice();
+  const [moved] = next.splice(from, 1);
+  next.splice(to, 0, moved);
+  return next;
+}
+
+// Drag handle + up/down buttons shared by both list editors below. Native
+// HTML5 drag-and-drop (no extra library) for people who want to drag, plus
+// buttons for everyone else — dragging is fiddly on a phone.
+function ReorderControls({ index, count, onMove }: { index: number; count: number; onMove: (from: number, to: number) => void }) {
+  return <div className="builder-reorder">
+    <span className="builder-drag-handle" title="Drag to reorder">⠿</span>
+    <button type="button" onClick={() => onMove(index, index - 1)} disabled={index === 0} aria-label="Move up">↑</button>
+    <button type="button" onClick={() => onMove(index, index + 1)} disabled={index === count - 1} aria-label="Move down">↓</button>
+  </div>;
+}
+
 function ArrayEditor({ title, description, items, placeholder, onChange, multiline = false }: {
   title: string; description?: string; items: string[]; placeholder: string; onChange: (items: string[]) => void; multiline?: boolean;
 }) {
   const [draft, setDraft] = useState('');
+  const dragFrom = useRef<number | null>(null);
   const add = () => { const value = draft.trim(); if (!value) return; onChange([...items, value]); setDraft(''); };
+  const move = (from: number, to: number) => onChange(reorder(items, from, to));
   return <div className="builder-list-editor">
     <div><h3>{title}</h3>{description && <p>{description}</p>}</div>
     <div className="builder-add-row">
@@ -74,29 +95,56 @@ function ArrayEditor({ title, description, items, placeholder, onChange, multili
       <button className="builder-mini-btn" onClick={add}>+ Add</button>
     </div>
     <div className="builder-item-list">
-      {items.map((item, i) => <div className="builder-item" key={`${item}-${i}`}><span>{item}</span><button onClick={() => onChange(items.filter((_, idx) => idx !== i))} aria-label={`Remove item ${i + 1}`}>×</button></div>)}
+      {items.map((item, i) => <div
+        className="builder-item"
+        key={`${item}-${i}`}
+        draggable
+        onDragStart={() => { dragFrom.current = i; }}
+        onDragOver={e => e.preventDefault()}
+        onDrop={() => { if (dragFrom.current !== null) move(dragFrom.current, i); dragFrom.current = null; }}
+      >
+        <ReorderControls index={i} count={items.length} onMove={move} />
+        <span>{item}</span>
+        <button onClick={() => onChange(items.filter((_, idx) => idx !== i))} aria-label={`Remove item ${i + 1}`}>×</button>
+      </div>)}
       {!items.length && <div className="builder-empty">Nothing added yet. Add your first item above.</div>}
     </div>
   </div>;
 }
 
-function ObjectArrayEditor<T extends Record<string, any>>({ title, description, items, fields, onChange, newItem }: {
+function ObjectArrayEditor<T extends Record<string, any>>({ title, description, items, fields, onChange, newItem, websiteId }: {
   title: string; description?: string; items: T[];
-  fields: { key: keyof T; label: string; placeholder?: string; multiline?: boolean; options?: string[] }[];
-  onChange: (items: T[]) => void; newItem: () => T;
+  fields: { key: keyof T; label: string; placeholder?: string; multiline?: boolean; options?: string[]; upload?: { accept: string; folder: string } }[];
+  onChange: (items: T[]) => void; newItem: () => T; websiteId?: string;
 }) {
   const update = (i: number, key: keyof T, value: string) => onChange(items.map((it, idx) => idx === i ? { ...it, [key]: value } : it));
   const remove = (i: number) => onChange(items.filter((_, idx) => idx !== i));
   const add = () => onChange([...items, newItem()]);
+  const move = (from: number, to: number) => onChange(reorder(items, from, to));
+  const dragFrom = useRef<number | null>(null);
   return <div className="builder-list-editor">
     <div><h3>{title}</h3>{description && <p>{description}</p>}</div>
     <div className="builder-item-list" style={{ flexDirection: 'column', gap: 12, display: 'flex' }}>
       {items.map((item, i) => (
-        <div key={i} className="builder-item" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 6, display: 'flex' }}>
+        <div
+          key={i}
+          className="builder-item builder-item-card"
+          style={{ flexDirection: 'column', alignItems: 'stretch', gap: 6, display: 'flex' }}
+          draggable
+          onDragStart={() => { dragFrom.current = i; }}
+          onDragOver={e => e.preventDefault()}
+          onDrop={() => { if (dragFrom.current !== null) move(dragFrom.current, i); dragFrom.current = null; }}
+        >
+          <div className="builder-item-card-head">
+            <ReorderControls index={i} count={items.length} onMove={move} />
+            <span className="builder-item-card-num">{title} {i + 1}</span>
+          </div>
           {fields.map(f => f.options ? (
             <select key={String(f.key)} value={String(item[f.key] ?? '')} onChange={e => update(i, f.key, e.target.value)}>
               {f.options.map(o => <option key={o} value={o}>{o}</option>)}
             </select>
+          ) : f.upload && websiteId ? (
+            <InlineMediaField key={String(f.key)} value={String(item[f.key] ?? '')} placeholder={f.placeholder || f.label} accept={f.upload.accept} folder={f.upload.folder} websiteId={websiteId} onChange={value => update(i, f.key, value)} />
           ) : f.multiline ? (
             <textarea key={String(f.key)} rows={2} placeholder={f.placeholder || f.label} value={String(item[f.key] ?? '')} onChange={e => update(i, f.key, e.target.value)} />
           ) : (
@@ -244,6 +292,22 @@ export default function Builder() {
           </select></div>
         </div>
 
+        {(() => {
+          // Small progress hint: how many of the fillable list sections have
+          // at least one item. Not a hard gate — just "here's what's left".
+          const trackedTabs = visibleTabs.filter(([value]) => ['gallery', 'story', 'timeline', 'memories', 'wishlist', 'music'].includes(value));
+          const countFor = (value: string) => templateId === 'master-proposal'
+            ? (value === 'story' ? (Array.isArray(masterProposalConfig.story) ? masterProposalConfig.story.length : 0)
+              : value === 'gallery' ? (Array.isArray(masterProposalConfig.museum) ? masterProposalConfig.museum.length : 0)
+              : value === 'music' ? (Array.isArray(masterProposalConfig.songs) ? masterProposalConfig.songs.length : 0) : 0)
+            : (value === 'story' ? c.reasons.length : value === 'gallery' ? c.gallery.length : value === 'timeline' ? c.timeline.length : value === 'memories' ? c.memories.length : value === 'wishlist' ? c.wishlist.length : 0);
+          const filled = trackedTabs.filter(([value]) => countFor(value) > 0).length;
+          return trackedTabs.length > 0 ? <div className="builder-progress">
+            <div className="builder-progress-label"><span>{filled}/{trackedTabs.length} sections started</span></div>
+            <div className="builder-progress-bar"><div className="builder-progress-fill" style={{ width: `${trackedTabs.length ? (filled / trackedTabs.length) * 100 : 0}%` }} /></div>
+          </div> : null;
+        })()}
+
         <nav className="builder-nav">
           <div className="builder-nav-label">EDIT EXPERIENCE</div>
           {visibleTabs.map(([value, icon, label]) => <button key={value} className={tab === value ? 'active' : ''} onClick={() => setTab(value)}><span>{icon}</span>{label}{templateId !== 'master-proposal' && ['gallery','story','timeline','memories','wishlist'].includes(value) && <b>{value === 'story' ? c.reasons.length : value === 'gallery' ? c.gallery.length : value === 'timeline' ? c.timeline.length : value === 'memories' ? c.memories.length : c.wishlist.length}</b>}{templateId === 'master-proposal' && value === 'story' && <b>{Array.isArray(masterProposalConfig.story) ? masterProposalConfig.story.length : 0}</b>}{templateId === 'master-proposal' && value === 'gallery' && <b>{Array.isArray(masterProposalConfig.museum) ? masterProposalConfig.museum.length : 0}</b>}{templateId === 'master-proposal' && value === 'music' && <b>{Array.isArray(masterProposalConfig.songs) ? masterProposalConfig.songs.length : 0}</b>}</button>)}
@@ -361,13 +425,14 @@ export default function Builder() {
             </>}
 
             {templateId === 'master-proposal' && tab === 'gallery' && <>
-              <Section eyebrow="MUSEUM OF OUR LOVE" title="Photos & videos" description="Each item can be a photo, an uploaded video, or a YouTube link (paste the YouTube URL as the file URL for video items).">
+              <Section eyebrow="PHOTOS & VIDEOS" title="Photos & videos" description="Choose a photo or video straight from your phone or computer — or paste a YouTube link instead if you have one.">
                 <ObjectArrayEditor
                   title="memory"
+                  websiteId={id}
                   items={(Array.isArray(masterProposalConfig.museum) ? masterProposalConfig.museum : []) as any[]}
                   fields={[
                     { key: 'type', label: 'Type', options: ['image', 'video'] },
-                    { key: 'url', label: 'File URL', placeholder: 'https://… or a YouTube link' },
+                    { key: 'url', label: 'Photo or video', placeholder: 'Choose a file, or paste a YouTube link', upload: { accept: 'image/*,video/*', folder: 'museum' } },
                     { key: 'title', label: 'Title', placeholder: 'The First Glance' },
                     { key: 'date', label: 'Date', placeholder: 'January 2025' },
                     { key: 'description', label: 'Description', placeholder: 'What made this moment special…', multiline: true },
@@ -379,15 +444,16 @@ export default function Builder() {
             </>}
 
             {templateId === 'master-proposal' && tab === 'music' && <>
-              <Section eyebrow="OUR SOUNDTRACK" title="Playlist" description="Each track's audio URL can be an uploaded mp3, a YouTube link, or a Spotify track link (open.spotify.com/track/…) — Spotify links play through Spotify's own embedded player.">
+              <Section eyebrow="OUR SOUNDTRACK" title="Playlist" description="Choose an audio file straight from your device — or paste a YouTube link or Spotify track link (open.spotify.com/track/…) instead.">
                 <ObjectArrayEditor
                   title="track"
+                  websiteId={id}
                   items={(Array.isArray(masterProposalConfig.songs) ? masterProposalConfig.songs : []) as any[]}
                   fields={[
                     { key: 'title', label: 'Song title', placeholder: 'Song title' },
                     { key: 'artist', label: 'Artist', placeholder: 'Artist' },
-                    { key: 'audioUrl', label: 'Audio URL', placeholder: 'YouTube, Spotify track link, or mp3 URL' },
-                    { key: 'albumArt', label: 'Album art URL', placeholder: 'https://… (leave blank for YouTube — auto-filled)' },
+                    { key: 'audioUrl', label: 'Audio', placeholder: 'Choose an audio file, or paste a YouTube/Spotify link', upload: { accept: 'audio/*', folder: 'music' } },
+                    { key: 'albumArt', label: 'Album art', placeholder: 'Choose an image (leave blank for YouTube — auto-filled)', upload: { accept: 'image/*', folder: 'gallery' } },
                     { key: 'note', label: 'Why this song', placeholder: 'For the moment I realized you were the one.', multiline: true },
                   ]}
                   newItem={() => ({ id: String(Date.now()), title: '', artist: '', albumArt: '', note: '', audioUrl: '' })}
@@ -402,7 +468,7 @@ export default function Builder() {
                 <ArrayEditor title="Letter paragraphs" items={((masterProposalConfig.finalLetter as any)?.paragraphs || []) as string[]} placeholder="Write a paragraph…" multiline onChange={items => updateMasterProposal({ finalLetter: { ...(masterProposalConfig.finalLetter as any || {}), paragraphs: items } })} />
                 <Field label="Sign-off"><input value={String((masterProposalConfig.finalLetter as any)?.signoff || '')} onChange={e => updateMasterProposal({ finalLetter: { ...(masterProposalConfig.finalLetter as any || {}), signoff: e.target.value } })} placeholder="Forever yours" /></Field>
               </Section>
-              <Section eyebrow="COMFORT CORNER" title="Mood messages" description="What you say back when a visitor taps how they're feeling. The moods themselves are fixed by the original design — only the words are editable.">
+              <Section eyebrow="MOOD REPLIES" title="Mood messages" description="What you say back when a visitor taps how they're feeling. The moods themselves are fixed by the original design — only the words are editable.">
                 <div className="builder-grid-2">
                   {Object.entries((masterProposalConfig.comfortResponses || {}) as Record<string, { label?: string; response?: string }>).map(([moodId, entry]) => (
                     <Field key={moodId} label={entry.label || moodId}>
