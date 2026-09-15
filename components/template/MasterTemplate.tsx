@@ -76,7 +76,7 @@ export default function MasterTemplate({ data, content, demo, websiteSlug, recip
       src={src}
       className="h-full min-h-0 w-full border-0"
       allow="autoplay; microphone; camera; fullscreen"
-      sandbox="allow-forms allow-modals allow-popups allow-same-origin allow-scripts"
+      sandbox="allow-forms allow-modals allow-popups allow-same-origin allow-scripts" style={{ width: '100%', height: '100%', minHeight: 0, display: 'block', border: 0 }}
     />
   );
 }

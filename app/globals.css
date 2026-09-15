@@ -423,3 +423,67 @@ body.bb-editor-mode .wishly-edit-badge{display:grid!important}
 @media(max-width:900px){body.bb-editor-mode .wishly-edit-badge{width:32px!important;height:32px!important;top:-7px!important;right:-7px!important;font-size:12px!important}}
 body.bb-editor-mode .bb-inline-edit{display:grid!important}
 @media(max-width:900px){body.bb-editor-mode .bb-inline-edit{width:32px!important;height:32px!important;right:6px!important;top:6px!important;font-size:12px!important}}
+
+/* v23: keep the rendered template fully fitted inside the Studio preview box.
+   The editor frame must size the real iframe/stage, not leave a large empty
+   area below a short iframe. */
+.builder-preview-canvas .builder-canvas-stage > iframe{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:100%!important;
+  flex:1 1 auto!important;
+  border:0!important;
+}
+.builder-preview-canvas .builder-canvas-stage{
+  display:flex!important;
+  flex-direction:column!important;
+  align-self:stretch!important;
+}
+@media(max-width:900px){
+  .builder-preview-canvas{min-height:520px!important;height:520px!important;}
+  .builder-preview-canvas.device-mobile .builder-canvas-stage,
+  .builder-preview-canvas.device-tablet .builder-canvas-stage{
+    height:100%!important;
+  }
+  .builder-preview-frame{overflow:hidden!important;}
+}
+@media(max-width:560px){
+  .builder-preview-canvas{min-height:520px!important;height:520px!important;}
+}
+
+/* ===== v24: guarantee the real template viewport fills the Studio canvas =====
+   The template itself uses fixed/100%-viewport screens, so the iframe must
+   receive an explicit, resolved height.  Percentage heights alone can collapse
+   in the nested flex layout on some mobile browsers. */
+.builder-preview-frame > .builder-preview-canvas{
+  position:relative!important;
+  flex:1 1 auto!important;
+  height:auto!important;
+  min-height:0!important;
+}
+.builder-preview-frame > .builder-preview-canvas > .builder-canvas-stage{
+  position:relative!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  flex:1 1 auto!important;
+}
+.builder-preview-frame > .builder-preview-canvas > .builder-canvas-stage > iframe{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  max-height:none!important;
+  flex:1 1 auto!important;
+}
+@media (max-width:900px){
+  .builder-preview-frame{height:680px!important;min-height:680px!important;}
+  .builder-preview-canvas{height:auto!important;min-height:0!important;}
+  .builder-canvas-stage{height:100%!important;min-height:0!important;}
+  .builder-preview-canvas.device-mobile .builder-canvas-stage,
+  .builder-preview-canvas.device-tablet .builder-canvas-stage{height:100%!important;}
+}
+@media (max-width:560px){
+  .builder-preview-frame{height:660px!important;min-height:660px!important;}
+}
