@@ -54,17 +54,18 @@ const TABS = [
   ['growth', '↗', 'Growth'], ['advanced', '⚙', 'Advanced'],
 ] as const;
 
-const EDIT_GROUPS = [
+type TabId = typeof TABS[number][0];
+type EditGroup = readonly [string, string, string, readonly TabId[]];
+
+const EDIT_GROUPS: readonly EditGroup[] = [
   ['content', '✍', 'Content', ['overview','opening']],
   ['story', '♡', 'Story', ['story','timeline','memories','wishlist','guestbook','letter']],
   ['media', '▧', 'Photos & Music', ['gallery','music','video']],
   ['style', '◈', 'Style & Effects', ['theme','effects']],
   ['share', '↗', 'Share & Growth', ['social','growth']],
   ['advanced', '⚙', 'Advanced', ['advanced']],
-] as const;
+];
 type EditGroupId = typeof EDIT_GROUPS[number][0];
-
-type TabId = typeof TABS[number][0];
 type CanvasSelection = { key: string; label: string; index?: number; value?: string; kind?: string };
 
 function Section({ eyebrow, title, description, children }: { eyebrow?: string; title: string; description?: string; children: React.ReactNode }) {
@@ -297,7 +298,7 @@ export default function Builder() {
     setSelectedElement(null);
   }, [templateId]);
   useEffect(() => {
-    const group = EDIT_GROUPS.find(([, , , tabs]) => tabs.includes(tab as any));
+    const group = EDIT_GROUPS.find(([, , , tabs]) => tabs.includes(tab as TabId));
     if (group) setEditGroup(group[0]);
   }, [tab]);
   const previewContent = useMemo(() => ({ ...c, occasion, templateId }), [c, occasion, templateId]);
