@@ -18,25 +18,18 @@ export const DEFAULT_TICKET_CONFIG: TicketConfig = {
   fromLabel: 'Sherry',
 };
 
+import { getSiteConfig } from './siteConfig';
+
 let cached: TicketConfig | null = null;
 
 export function getTicketConfig(): TicketConfig {
   if (cached) return cached;
-  cached = { ...DEFAULT_TICKET_CONFIG };
-  try {
-    const params = new URLSearchParams(window.location.search);
-    const raw = params.get('config');
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      cached = {
-        recipientEmail: typeof parsed.recipientEmail === 'string' && parsed.recipientEmail.trim() ? parsed.recipientEmail.trim() : cached.recipientEmail,
-        toName: typeof parsed.toName === 'string' && parsed.toName.trim() ? parsed.toName : cached.toName,
-        fromName: typeof parsed.fromName === 'string' && parsed.fromName.trim() ? parsed.fromName : cached.fromName,
-        fromLabel: typeof parsed.fromLabel === 'string' && parsed.fromLabel.trim() ? parsed.fromLabel : cached.fromLabel,
-      };
-    }
-  } catch {
-    // ignore malformed config, keep defaults
-  }
+  const parsed = getSiteConfig();
+  cached = {
+    recipientEmail: parsed.recipientEmail?.trim() || DEFAULT_TICKET_CONFIG.recipientEmail,
+    toName: parsed.toName?.trim() || DEFAULT_TICKET_CONFIG.toName,
+    fromName: parsed.fromName?.trim() || DEFAULT_TICKET_CONFIG.fromName,
+    fromLabel: parsed.fromLabel?.trim() || DEFAULT_TICKET_CONFIG.fromLabel,
+  };
   return cached;
 }

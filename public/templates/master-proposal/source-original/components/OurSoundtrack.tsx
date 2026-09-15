@@ -4,6 +4,8 @@ import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { Music, Pause, Play, Heart, Volume2, AlertCircle, ChevronDown, ChevronUp, SkipBack, SkipForward } from 'lucide-react';
 import { Toast } from './Toast';
 import { getYouTubeId, loadYouTubeIframeAPI, fetchYouTubeOEmbed } from '../utils/youtube';
+import { getSpotifyEmbedSrc } from '../utils/spotify';
+import { getSiteConfig } from '../utils/siteConfig';
 
 interface Song {
   id: string;
@@ -27,7 +29,7 @@ interface Song {
 // Keep them filled in if you want to override what YouTube reports.
 // -----------------------------------------------------------------------------
 
-const SONGS: Song[] = [
+const DEFAULT_SONGS: Song[] = [
   {
     id: '1',
     title: "I Knew I Loved You",
@@ -115,6 +117,10 @@ interface OurSoundtrackProps {
 }
 
 export const OurSoundtrack: React.FC<OurSoundtrackProps> = ({ isIntroComplete = true }) => {
+  const siteConfig = getSiteConfig();
+  const SONGS: Song[] = siteConfig.songs?.length
+    ? siteConfig.songs.map((s, i) => ({ id: s.id || String(i), title: s.title, artist: s.artist, albumArt: s.albumArt, note: s.note, audioUrl: s.audioUrl }))
+    : DEFAULT_SONGS;
   const [currentSong, setCurrentSong] = useState<Song>(SONGS[0]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState(false);
@@ -208,6 +214,8 @@ export const OurSoundtrack: React.FC<OurSoundtrackProps> = ({ isIntroComplete = 
 
   const resolveSong = (song: Song): Song => ({ ...song, ...metaOverrides[song.id] });
   const displayCurrentSong = resolveSong(currentSong);
+  const spotifyEmbedSrc = getSpotifyEmbedSrc(displayCurrentSong.audioUrl);
+  const isSpotify = !!spotifyEmbedSrc;
 
   const goToPrevious = () => {
     if (currentIndex <= 0) {
@@ -241,6 +249,7 @@ export const OurSoundtrack: React.FC<OurSoundtrackProps> = ({ isIntroComplete = 
 
   // Handle Play/Pause Toggle
   const togglePlay = async () => {
+    if (isSpotify) return; // Spotify's own embedded player handles playback.
     const ytId = getYouTubeId(currentSong.audioUrl);
     if (ytId) {
       const player = await getOrCreateYouTubePlayer(ytId);
@@ -290,6 +299,12 @@ export const OurSoundtrack: React.FC<OurSoundtrackProps> = ({ isIntroComplete = 
 
   // Effect to handle source change and auto-play
   useEffect(() => {
+    if (getSpotifyEmbedSrc(currentSong.audioUrl)) {
+      // Spotify plays entirely inside its own embed — stop our own players.
+      audioRef.current?.pause();
+      ytPlayerRef.current?.pauseVideo?.();
+      return;
+    }
     const ytId = getYouTubeId(currentSong.audioUrl);
 
     if (ytId) {
@@ -352,7 +367,7 @@ export const OurSoundtrack: React.FC<OurSoundtrackProps> = ({ isIntroComplete = 
           <audio
             ref={audioRef}
             preload="none"
-            src={getYouTubeId(currentSong.audioUrl) ? undefined : currentSong.audioUrl}
+            src={getYouTubeId(currentSong.audioUrl) || isSpotify ? undefined : currentSong.audioUrl}
             onEnded={() => {
               if (currentIndex < SONGS.length - 1) {
                 setCurrentSong(SONGS[currentIndex + 1]);
@@ -371,6 +386,30 @@ export const OurSoundtrack: React.FC<OurSoundtrackProps> = ({ isIntroComplete = 
           />
 
           {/* Vinyl Player Visualization */}
+          {spotifyEmbedSrc ? (
+            <div className="flex-1 flex flex-col items-center w-full max-w-sm">
+              <h3 className="font-serif text-2xl text-love-text dark:text-love-dark-text italic px-4 font-bold text-center">
+                {displayCurrentSong.title}
+              </h3>
+              <p className="text-sm uppercase tracking-widest text-love-accent dark:text-love-dark-accent mb-6 font-semibold">
+                {displayCurrentSong.artist}
+              </p>
+              <iframe
+                style={{ borderRadius: 12 }}
+                src={spotifyEmbedSrc}
+                width="100%"
+                height="152"
+                frameBorder={0}
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                loading="lazy"
+                title={displayCurrentSong.title}
+              />
+              <div className="flex items-center justify-center gap-3 mt-6">
+                <button type="button" onClick={goToPrevious} className="w-12 h-12 rounded-full bg-love-accent/20 dark:bg-love-dark-accent/20 text-love-text dark:text-love-dark-text flex items-center justify-center hover:scale-105 active:scale-95 transition-transform" aria-label="Previous song"><SkipBack className="w-5 h-5" /></button>
+                <button type="button" onClick={goToNext} className="w-12 h-12 rounded-full bg-love-accent/20 dark:bg-love-dark-accent/20 text-love-text dark:text-love-dark-text flex items-center justify-center hover:scale-105 active:scale-95 transition-transform" aria-label="Next song"><SkipForward className="w-5 h-5" /></button>
+              </div>
+            </div>
+          ) : (
           <div className="flex-1 flex flex-col items-center">
             <div className="relative w-64 h-64 md:w-80 md:h-80 shadow-2xl rounded-full bg-black border-4 border-gray-800 flex items-center justify-center overflow-hidden">
               {/* Vinyl Texture */}
@@ -461,6 +500,8 @@ export const OurSoundtrack: React.FC<OurSoundtrackProps> = ({ isIntroComplete = 
               )}
             </div>
           </div>
+
+          )}
 
           {/* Playlist & Notes */}
           <div className="flex-1 w-full max-w-md min-w-0">

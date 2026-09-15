@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cloud, Sun, Battery, Heart, Frown, Smile, Play, Pause, Volume2, Mic, Shrink } from 'lucide-react';
+import { getSiteConfig } from '../utils/siteConfig';
 
 interface Mood {
   id: string;
@@ -11,7 +12,7 @@ interface Mood {
   audioSrc: string; // Path to the heartfelt voice message
 }
 
-const MOODS: Mood[] = [
+const DEFAULT_MOODS: Mood[] = [
   {
     id: 'tired',
     label: "I'm Tired",
@@ -63,6 +64,12 @@ const MOODS: Mood[] = [
 ];
 
 export const ComfortCorner: React.FC = () => {
+  const siteConfig = getSiteConfig();
+  const overrides = siteConfig.comfortResponses || {};
+  const MOODS: Mood[] = DEFAULT_MOODS.map((mood) => {
+    const o = overrides[mood.id];
+    return o ? { ...mood, label: o.label?.trim() || mood.label, response: o.response?.trim() || mood.response } : mood;
+  });
   const [activeMood, setActiveMood] = useState<Mood | null>(null);
 
   // Stop audio when mood changes

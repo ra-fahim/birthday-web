@@ -1,8 +1,18 @@
 import React from 'react';
 import { Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { getSiteConfig } from '../utils/siteConfig';
 
 export const FinalLetter: React.FC = () => {
+  const siteConfig = getSiteConfig();
+  const letter = siteConfig.finalLetter;
+  const title = letter?.title?.trim() || "Happy Valentine's Day";
+  const paragraphs = letter?.paragraphs?.length ? letter.paragraphs : [
+    "Words often fail to capture the depth of what I feel, but I hope this small gesture reminds you of how incredibly special you are to me.",
+    "You are my best friend, my confidant, and my greatest love. Thank you for filling my days with light and my heart with peace.",
+    "I love you, more than yesterday, but less than tomorrow.",
+  ];
+  const signoff = letter?.signoff?.trim() || 'Forever yours';
   return (
     <div className="relative max-w-2xl w-full bg-love-card dark:bg-love-dark-card p-8 md:p-16 shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-love-pink/30 dark:border-love-dark-accent/20 text-center transition-colors duration-700">
       {/* Decorative corners */}
@@ -20,23 +30,15 @@ export const FinalLetter: React.FC = () => {
         <Heart className="w-6 h-6 mx-auto text-love-accent dark:text-love-dark-accent mb-8" fill="currentColor" />
         
         <h3 className="font-serif text-3xl md:text-4xl italic text-love-text dark:text-love-dark-text mb-8">
-          Happy Valentine's Day
+          {title}
         </h3>
         
         <div className="space-y-6 font-light text-love-text/90 dark:text-love-dark-text/90 leading-loose">
-          <p>
-            Words often fail to capture the depth of what I feel, but I hope this small gesture reminds you of how incredibly special you are to me.
-          </p>
-          <p>
-            You are my best friend, my confidant, and my greatest love. Thank you for filling my days with light and my heart with peace.
-          </p>
-          <p>
-            I love you, more than yesterday, but less than tomorrow.
-          </p>
+          {paragraphs.map((p, i) => <p key={i}>{p}</p>)}
         </div>
 
         <div className="mt-12 pt-8 border-t border-love-accent/10 dark:border-love-dark-accent/10">
-          <p className="font-serif italic text-xl text-love-text dark:text-love-dark-text">Forever yours</p>
+          <p className="font-serif italic text-xl text-love-text dark:text-love-dark-text">{signoff}</p>
         </div>
       </motion.div>
     </div>

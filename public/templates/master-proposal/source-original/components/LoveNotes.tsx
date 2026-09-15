@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Sparkles, RefreshCw, X } from 'lucide-react';
+import { getSiteConfig } from '../utils/siteConfig';
 
-const NOTES = [
+const DEFAULT_NOTES = [
   "I love how hard you work for your dreams.",
   "Your smile is literally the best part of my day.",
   "You make even boring things fun just by being there.",
@@ -22,6 +23,8 @@ const NOTES = [
 ];
 
 export const LoveNotes: React.FC = () => {
+  const siteConfig = getSiteConfig();
+  const NOTES = siteConfig.loveNotes?.length ? siteConfig.loveNotes : DEFAULT_NOTES;
   const [currentNote, setCurrentNote] = useState<string | null>(null);
   const [isShaking, setIsShaking] = useState(false);
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Star, Plane, GraduationCap, Dog, Home, Camera } from 'lucide-react';
+import { getSiteConfig } from '../utils/siteConfig';
 
 interface BucketItem {
   id: string;
@@ -8,7 +9,7 @@ interface BucketItem {
   icon: React.ReactNode;
 }
 
-const BUCKET_ITEMS: BucketItem[] = [
+const DEFAULT_BUCKET_ITEMS: BucketItem[] = [
   { id: '1', text: "Graduate Together", icon: <GraduationCap className="w-5 h-5" /> },
   { id: '2', text: "Late Night Road Trip", icon: <Camera className="w-5 h-5" /> },
   { id: '3', text: "Travel to Japan", icon: <Plane className="w-5 h-5" /> },
@@ -18,6 +19,10 @@ const BUCKET_ITEMS: BucketItem[] = [
 ];
 
 export const BucketList: React.FC = () => {
+  const siteConfig = getSiteConfig();
+  const BUCKET_ITEMS: BucketItem[] = siteConfig.bucketList?.length
+    ? siteConfig.bucketList.map((text, i) => ({ id: String(i), text, icon: DEFAULT_BUCKET_ITEMS[i % DEFAULT_BUCKET_ITEMS.length].icon }))
+    : DEFAULT_BUCKET_ITEMS;
   // We use state to track checked items (persists only for session, which is fine for this gesture)
   const [checkedItems, setCheckedItems] = useState<string[]>([]);
 

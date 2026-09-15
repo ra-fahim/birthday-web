@@ -80,6 +80,37 @@ function ArrayEditor({ title, description, items, placeholder, onChange, multili
   </div>;
 }
 
+function ObjectArrayEditor<T extends Record<string, any>>({ title, description, items, fields, onChange, newItem }: {
+  title: string; description?: string; items: T[];
+  fields: { key: keyof T; label: string; placeholder?: string; multiline?: boolean; options?: string[] }[];
+  onChange: (items: T[]) => void; newItem: () => T;
+}) {
+  const update = (i: number, key: keyof T, value: string) => onChange(items.map((it, idx) => idx === i ? { ...it, [key]: value } : it));
+  const remove = (i: number) => onChange(items.filter((_, idx) => idx !== i));
+  const add = () => onChange([...items, newItem()]);
+  return <div className="builder-list-editor">
+    <div><h3>{title}</h3>{description && <p>{description}</p>}</div>
+    <div className="builder-item-list" style={{ flexDirection: 'column', gap: 12, display: 'flex' }}>
+      {items.map((item, i) => (
+        <div key={i} className="builder-item" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 6, display: 'flex' }}>
+          {fields.map(f => f.options ? (
+            <select key={String(f.key)} value={String(item[f.key] ?? '')} onChange={e => update(i, f.key, e.target.value)}>
+              {f.options.map(o => <option key={o} value={o}>{o}</option>)}
+            </select>
+          ) : f.multiline ? (
+            <textarea key={String(f.key)} rows={2} placeholder={f.placeholder || f.label} value={String(item[f.key] ?? '')} onChange={e => update(i, f.key, e.target.value)} />
+          ) : (
+            <input key={String(f.key)} placeholder={f.placeholder || f.label} value={String(item[f.key] ?? '')} onChange={e => update(i, f.key, e.target.value)} />
+          ))}
+          <button className="builder-mini-btn" onClick={() => remove(i)}>Remove</button>
+        </div>
+      ))}
+    </div>
+    <button className="builder-mini-btn mt-2" onClick={add}>+ Add {title}</button>
+    {!items.length && <div className="builder-empty">Nothing added yet.</div>}
+  </div>;
+}
+
 export default function Builder() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -173,7 +204,7 @@ export default function Builder() {
     : templateId === 'miss-you-1'
       ? TABS.filter(([value]) => value === 'overview' || value === 'story' || value === 'music')
       : templateId === 'master-proposal'
-        ? TABS.filter(([value]) => value === 'overview')
+        ? TABS.filter(([value]) => ['overview', 'story', 'gallery', 'music', 'letter'].includes(value))
         : TABS.filter(([value]) => value !== 'social' || templateId === 'master');
   const activeTab = visibleTabs.find(x => x[0] === tab) || visibleTabs[0];
   useEffect(() => {
@@ -214,7 +245,7 @@ export default function Builder() {
 
         <nav className="builder-nav">
           <div className="builder-nav-label">EDIT EXPERIENCE</div>
-          {visibleTabs.map(([value, icon, label]) => <button key={value} className={tab === value ? 'active' : ''} onClick={() => setTab(value)}><span>{icon}</span>{label}{['gallery','story','timeline','memories','wishlist'].includes(value) && <b>{value === 'story' ? c.reasons.length : value === 'gallery' ? c.gallery.length : value === 'timeline' ? c.timeline.length : value === 'memories' ? c.memories.length : c.wishlist.length}</b>}</button>)}
+          {visibleTabs.map(([value, icon, label]) => <button key={value} className={tab === value ? 'active' : ''} onClick={() => setTab(value)}><span>{icon}</span>{label}{templateId !== 'master-proposal' && ['gallery','story','timeline','memories','wishlist'].includes(value) && <b>{value === 'story' ? c.reasons.length : value === 'gallery' ? c.gallery.length : value === 'timeline' ? c.timeline.length : value === 'memories' ? c.memories.length : c.wishlist.length}</b>}{templateId === 'master-proposal' && value === 'story' && <b>{Array.isArray(masterProposalConfig.story) ? masterProposalConfig.story.length : 0}</b>}{templateId === 'master-proposal' && value === 'gallery' && <b>{Array.isArray(masterProposalConfig.museum) ? masterProposalConfig.museum.length : 0}</b>}{templateId === 'master-proposal' && value === 'music' && <b>{Array.isArray(masterProposalConfig.songs) ? masterProposalConfig.songs.length : 0}</b>}</button>)}
         </nav>
 
         <div className="builder-side-tip"><span>⌘</span><div><b>Easy mode</b><p>Edit here or directly on the page. When ready, create one live link for this website.</p></div></div>
@@ -272,6 +303,83 @@ export default function Builder() {
                   <Field label="Ticket delivery email"><input type="email" value={String(masterProposalConfig.recipientEmail || '')} onChange={e => updateMasterProposal({ recipientEmail: e.target.value })} placeholder="you@example.com" /></Field>
                 </div>
                 <div className="builder-note mt-4">When a visitor taps "Send Ticket", the date ticket is emailed to this address automatically — no mail app required.</div>
+              </Section>
+              <Section eyebrow="OPENING" title="Hero text" description="The very first words visitors see.">
+                <div className="builder-grid-2">
+                  <Field label="Hero title"><input value={String(masterProposalConfig.heroTitle || '')} onChange={e => updateMasterProposal({ heroTitle: e.target.value })} placeholder="To My Dearest" /></Field>
+                  <Field label="Hero subtitle"><input value={String(masterProposalConfig.heroSubtitle || '')} onChange={e => updateMasterProposal({ heroSubtitle: e.target.value })} placeholder="Scroll slowly" /></Field>
+                </div>
+              </Section>
+            </>}
+
+            {templateId === 'master-proposal' && tab === 'story' && <>
+              <Section eyebrow="OUR STORY" title="Story chapters" description="Each chapter is one full-screen scroll section. Edit the title and text, or add/remove chapters.">
+                <ObjectArrayEditor
+                  title="chapter"
+                  items={(Array.isArray(masterProposalConfig.story) ? masterProposalConfig.story : []) as { title: string; body: string }[]}
+                  fields={[{ key: 'title', label: 'Chapter title', placeholder: 'The Beginning' }, { key: 'body', label: 'Chapter text', placeholder: 'Write the chapter…', multiline: true }]}
+                  newItem={() => ({ title: '', body: '' })}
+                  onChange={items => updateMasterProposal({ story: items })}
+                />
+              </Section>
+              <Section eyebrow="LOVE NOTES" title="Love note jar" description="Short one-line notes a visitor pulls at random from the jar.">
+                <ArrayEditor title="Love notes" items={(Array.isArray(masterProposalConfig.loveNotes) ? masterProposalConfig.loveNotes : []) as string[]} placeholder="Your smile is the best part of my day." onChange={items => updateMasterProposal({ loveNotes: items })} />
+              </Section>
+              <Section eyebrow="BUCKET LIST" title="Future bucket list" description="Things to look forward to together.">
+                <ArrayEditor title="Bucket list items" items={(Array.isArray(masterProposalConfig.bucketList) ? masterProposalConfig.bucketList : []) as string[]} placeholder="Travel to Japan" onChange={items => updateMasterProposal({ bucketList: items })} />
+              </Section>
+            </>}
+
+            {templateId === 'master-proposal' && tab === 'gallery' && <>
+              <Section eyebrow="MUSEUM OF OUR LOVE" title="Photos & videos" description="Each item can be a photo, an uploaded video, or a YouTube link (paste the YouTube URL as the file URL for video items).">
+                <ObjectArrayEditor
+                  title="memory"
+                  items={(Array.isArray(masterProposalConfig.museum) ? masterProposalConfig.museum : []) as any[]}
+                  fields={[
+                    { key: 'type', label: 'Type', options: ['image', 'video'] },
+                    { key: 'url', label: 'File URL', placeholder: 'https://… or a YouTube link' },
+                    { key: 'title', label: 'Title', placeholder: 'The First Glance' },
+                    { key: 'date', label: 'Date', placeholder: 'January 2025' },
+                    { key: 'description', label: 'Description', placeholder: 'What made this moment special…', multiline: true },
+                  ]}
+                  newItem={() => ({ id: String(Date.now()), type: 'image', url: '', title: '', date: '', description: '' })}
+                  onChange={items => updateMasterProposal({ museum: items })}
+                />
+              </Section>
+            </>}
+
+            {templateId === 'master-proposal' && tab === 'music' && <>
+              <Section eyebrow="OUR SOUNDTRACK" title="Playlist" description="Each track's audio URL can be an uploaded mp3, a YouTube link, or a Spotify track link (open.spotify.com/track/…) — Spotify links play through Spotify's own embedded player.">
+                <ObjectArrayEditor
+                  title="track"
+                  items={(Array.isArray(masterProposalConfig.songs) ? masterProposalConfig.songs : []) as any[]}
+                  fields={[
+                    { key: 'title', label: 'Song title', placeholder: 'Song title' },
+                    { key: 'artist', label: 'Artist', placeholder: 'Artist' },
+                    { key: 'audioUrl', label: 'Audio URL', placeholder: 'YouTube, Spotify track link, or mp3 URL' },
+                    { key: 'albumArt', label: 'Album art URL', placeholder: 'https://… (leave blank for YouTube — auto-filled)' },
+                    { key: 'note', label: 'Why this song', placeholder: 'For the moment I realized you were the one.', multiline: true },
+                  ]}
+                  newItem={() => ({ id: String(Date.now()), title: '', artist: '', albumArt: '', note: '', audioUrl: '' })}
+                  onChange={items => updateMasterProposal({ songs: items })}
+                />
+              </Section>
+            </>}
+
+            {templateId === 'master-proposal' && tab === 'letter' && <>
+              <Section eyebrow="FINAL LETTER" title="Closing letter" description="Shown at the very end of the experience.">
+                <Field label="Letter title"><input value={String((masterProposalConfig.finalLetter as any)?.title || '')} onChange={e => updateMasterProposal({ finalLetter: { ...(masterProposalConfig.finalLetter as any || {}), title: e.target.value } })} placeholder="Happy Valentine's Day" /></Field>
+                <ArrayEditor title="Letter paragraphs" items={((masterProposalConfig.finalLetter as any)?.paragraphs || []) as string[]} placeholder="Write a paragraph…" multiline onChange={items => updateMasterProposal({ finalLetter: { ...(masterProposalConfig.finalLetter as any || {}), paragraphs: items } })} />
+                <Field label="Sign-off"><input value={String((masterProposalConfig.finalLetter as any)?.signoff || '')} onChange={e => updateMasterProposal({ finalLetter: { ...(masterProposalConfig.finalLetter as any || {}), signoff: e.target.value } })} placeholder="Forever yours" /></Field>
+              </Section>
+              <Section eyebrow="COMFORT CORNER" title="Mood messages" description="What you say back when a visitor taps how they're feeling. The moods themselves are fixed by the original design — only the words are editable.">
+                <div className="builder-grid-2">
+                  {Object.entries((masterProposalConfig.comfortResponses || {}) as Record<string, { label?: string; response?: string }>).map(([moodId, entry]) => (
+                    <Field key={moodId} label={entry.label || moodId}>
+                      <textarea rows={3} value={entry.response || ''} onChange={e => updateMasterProposal({ comfortResponses: { ...(masterProposalConfig.comfortResponses as any), [moodId]: { ...entry, response: e.target.value } } })} />
+                    </Field>
+                  ))}
+                </div>
               </Section>
             </>}
 

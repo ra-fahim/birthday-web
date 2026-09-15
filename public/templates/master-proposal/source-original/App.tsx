@@ -4,7 +4,8 @@ import { motion, useScroll, useSpring, AnimatePresence } from 'framer-motion';
 import { Section } from './components/Section';
 import { IntroGate } from './components/IntroGate';
 import { InAppBrowserGuard } from './components/InAppBrowserGuard';
-import { STORY_DATA } from './data';
+import { STORY_DATA as DEFAULT_STORY_DATA } from './data';
+import { getSiteConfig } from './utils/siteConfig';
 
 // Lazy load heavy components
 const FinalLetter = React.lazy(() => import('./components/FinalLetter').then(module => ({ default: module.FinalLetter })));
@@ -205,6 +206,10 @@ const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<ThemeType>('blush');
   const [showThemePicker, setShowThemePicker] = useState(false);
+  const siteConfig = getSiteConfig();
+  const heroTitle = siteConfig.heroTitle?.trim() || 'To My Dearest';
+  const heroSubtitle = siteConfig.heroSubtitle?.trim() || 'Scroll slowly';
+  const STORY_DATA = siteConfig.story?.length ? siteConfig.story : DEFAULT_STORY_DATA;
 
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
@@ -384,7 +389,7 @@ const App: React.FC = () => {
           transition={{ duration: 1.5, delay: 0.8, ease: "easeOut" }}
           className="font-serif text-5xl md:text-7xl lg:text-8xl font-light italic mb-6 text-love-text dark:text-love-dark-text tracking-tight drop-shadow-sm"
         >
-          To My Dearest
+          {heroTitle}
         </motion.h1>
 
         <motion.p
@@ -393,7 +398,7 @@ const App: React.FC = () => {
           transition={{ duration: 1.5, delay: 1.3 }}
           className="text-sm md:text-base uppercase tracking-[0.3em] text-love-accent/80 dark:text-love-dark-accent/80 mt-4 font-medium"
         >
-          Scroll slowly
+          {heroSubtitle}
         </motion.p>
 
         <motion.div
@@ -418,7 +423,7 @@ const App: React.FC = () => {
               transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
               className="block font-serif text-3xl md:text-4xl text-love-accent/50 dark:text-love-dark-accent/50 mb-6"
             >
-              {item.number}
+              {item.number || String(index + 1)}
             </motion.span>
 
             {/* Title with Slide Up & Blur */}

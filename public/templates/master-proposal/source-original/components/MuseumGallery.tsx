@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, X } from 'lucide-react';
 import { OptimizedImage } from './OptimizedImage';
 import { getYouTubeId, youtubeThumbnail } from '../utils/youtube';
+import { getSiteConfig } from '../utils/siteConfig';
 
 // Types for our museum items
 type MediaType = 'image' | 'video';
@@ -25,7 +26,7 @@ interface MuseumItem {
 //   - for videos only, a YouTube link (e.g. 'https://youtu.be/XXXXXXXXXXX') — no need
 //     to add a `thumbnail`, it's pulled from YouTube automatically.
 // -----------------------------------------------------------------------------
-const MUSEUM_ITEMS: MuseumItem[] = [
+const DEFAULT_MUSEUM_ITEMS: MuseumItem[] = [
   {
     id: '1',
     type: 'image',
@@ -81,6 +82,8 @@ const MUSEUM_ITEMS: MuseumItem[] = [
 
 export const MuseumGallery: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<MuseumItem | null>(null);
+  const siteConfig = getSiteConfig();
+  const MUSEUM_ITEMS = siteConfig.museum?.length ? siteConfig.museum : DEFAULT_MUSEUM_ITEMS;
 
   const closeLightbox = useCallback(() => setSelectedItem(null), []);
 
@@ -112,7 +115,7 @@ export const MuseumGallery: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-16">
         {MUSEUM_ITEMS.map((item, index) => (
           <MuseumFrame
-            key={item.id}
+            key={item.id || index}
             item={item}
             index={index}
             onOpenFullView={() => setSelectedItem(item)}
