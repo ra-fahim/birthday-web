@@ -5,6 +5,9 @@ import { Menu, X } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { defaultContent, BirthdayContent } from '@/lib/types';
 import { MasterTemplate } from '@/components/template/MasterTemplate';
+import MasterBirthdayEditor from '../MasterBirthdayEditor';
+import MasterBirthdayTemplate from '@/components/template/MasterBirthdayTemplate';
+import { getMasterBirthdayConfig } from '@/lib/master-birthday';
 import ExperienceTemplate, { getMissYouDefaults, getMasterProposalDefaults } from '@/components/template/ExperienceTemplates';
 import { SingleMediaUpload, GalleryUpload, InlineMediaField } from './MediaUploader';
 import FeatureControls from './FeatureControls';
@@ -317,10 +320,11 @@ export default function Builder() {
   const visibleTabs = TABS.filter(([value]) => {
     if (value === 'gallery') return hasGalleryMedia;
     if (value === 'video') return hasVideoMedia;
-    if (value === 'music') return hasMusicMedia || templateId === 'wedding-proposal';
+    if (value === 'music') return hasMusicMedia || ['wedding-proposal','master-birthday'].includes(templateId);
     if (templateId === 'wedding-proposal') return ['overview', 'opening', 'music'].includes(value as string);
     if (templateId === 'miss-you-1') return ['overview', 'story', 'music'].includes(value as string);
     if (templateId === 'master-proposal') return ['overview', 'opening', 'story', 'gallery', 'music', 'letter'].includes(value as string);
+    if (templateId === 'master-birthday') return ['overview','opening','story','gallery','music','video','letter','theme','effects'].includes(value as string);
     return value !== 'social' || templateId === 'master';
   });
   const activeTab = visibleTabs.find(x => x[0] === tab) || visibleTabs[0];
@@ -425,6 +429,8 @@ export default function Builder() {
           <div className="builder-panel-head"><div><div className="builder-eyebrow">{activeGroup?.icon} {activeGroup?.label || 'Editor'}</div><h2>{activeTab?.[2]}</h2></div><span className="builder-live-pill">● LIVE</span></div>
           <div className="builder-mobile-category-tabs">{visibleGroups.map(g => <button key={g.id} className={activeGroup?.id === g.id ? 'active' : ''} onClick={() => { setEditGroup(g.id); setTab(g.tabs[0] as TabId); setMobileToolsOpen(true); }}><span>{g.icon}</span>{g.label}</button>)}</div>
           <div className="builder-form-scroll">
+            {templateId === 'master-birthday' && <MasterBirthdayEditor tab={tab as string} config={getMasterBirthdayConfig(c)} websiteId={id} onChange={(masterBirthday) => update({ templateConfig: { ...(c.templateConfig || {}), masterBirthday } })} />}
+
             {tab === 'overview' && templateId !== 'miss-you-1' && templateId !== 'master-proposal' && (templateId === 'wedding-proposal' ? <>
               <div className="builder-quickstart"><div className="builder-quick-card"><b>1. Personalize</b><span>Set the recipient and sender names.</span></div><div className="builder-quick-card"><b>2. Edit the proposal</b><span>Only the words used by this original HTML are editable.</span></div><div className="builder-quick-card"><b>3. Share</b><span>Save it and create one live link.</span></div></div>
               <Section eyebrow="IDENTITY" title="Who is this proposal for?" description="Only the values used by the Wedding Proposal template are shown.">
@@ -567,7 +573,7 @@ export default function Builder() {
               <Section eyebrow="PRIVATE LINKS" title="Recipient-specific personalization" description="Create multiple private versions of the same experience from Growth → Personalized links."><div className="builder-protected"><span>🔗</span><div><b>Same design, different recipient</b><p>Each recipient can receive a unique link and a private personal note without changing the master layout.</p></div></div></Section>
             </>)}
 
-            {tab === 'story' && templateId !== 'miss-you-1' && <Section eyebrow="THE HEART OF THE STORY" title="Reasons" description="These are the cards visitors reveal one by one. Unlike the old version, every reason is now editable here and updates the live preview immediately.">
+            {tab === 'story' && templateId !== 'miss-you-1' && templateId !== 'master-birthday' && <Section eyebrow="THE HEART OF THE STORY" title="Reasons" description="These are the cards visitors reveal one by one. Unlike the old version, every reason is now editable here and updates the live preview immediately.">
               <ArrayEditor title="Your reasons" description="Add as many reasons as you want. The master template will automatically update its counter and sequence." items={c.reasons} placeholder="e.g. Your laugh always makes my day…" multiline onChange={items => updateArray('reasons', items)} />
             </Section>}
 
@@ -652,7 +658,7 @@ export default function Builder() {
             </div>
           </div>
           {status === 'published' && publicUrl && <div className="builder-live-link"><div><span>YOUR LIVE LINK</span><strong>{publicUrl}</strong></div><div className="builder-live-link-actions"><button onClick={() => navigator.clipboard?.writeText(publicUrl)}>Copy link</button><a href={publicUrl} target="_blank" rel="noreferrer">Open ↗</a></div></div>}
-          <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}><div className="builder-canvas-stage">{templateId === 'master' ? <MasterTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div></div>
+          <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}><div className="builder-canvas-stage">{templateId === 'master-birthday' ? <MasterBirthdayTemplate content={previewContent} demo={false} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId === 'master' ? <MasterTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div></div>
           {selectedElement && editorMode && (
             <section className="builder-context-editor" aria-label="Selected element editor">
               <div className="builder-context-editor-head">

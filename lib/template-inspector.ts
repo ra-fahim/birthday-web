@@ -19,6 +19,19 @@ export type TemplateInspection = {
 // public/templates. They intentionally describe each template separately;
 // the studio must never assume every template has the same media structure.
 export const templateInspections: Record<string, TemplateInspection> = {
+  'master-birthday': {
+    slug: 'master-birthday',
+    sourceFiles: ['/master-birthday.html', '/master-birthday-editor.html', '/docs/master-birthday-original.html'],
+    summary: 'The supplied original Birthday HTML/CSS/JS source, kept intact and wrapped with template-specific data hydration for Studio and live publishing.',
+    media: [
+      { key: 'gallery', label: 'Photo / Memory collection', kind: 'image', behavior: 'Multiple original photos plus user-added memories. Upload or public image URL.', sourceType: 'file-or-url', count: 6 },
+      { key: 'videos', label: 'Video collection', kind: 'video', behavior: 'Multiple original videos plus user-added videos. Direct video, YouTube or upload.', sourceType: 'file-or-url', count: 4 },
+      { key: 'countdownAudioUrl', label: 'Countdown audio', kind: 'audio', behavior: 'Original countdown sound slot.', sourceType: 'file-or-url' },
+      { key: 'soundtrack', label: 'Our Soundtrack', kind: 'audio', behavior: 'Multiple tracks; direct audio, YouTube/playlist or Spotify links are supported by the data layer.', sourceType: 'file-or-url', count: 1 },
+      { key: 'background-video', label: 'Built-in background video', kind: 'video', behavior: 'Original template background video. Can be overridden by the safe visual customization control.', sourceType: 'code-generated' },
+    ],
+    editableAreas: ['basic identity', 'countdown', 'greeting', 'cake interaction', 'reasons', 'photo memories', 'lightbox', 'video collection', 'soundtrack', 'letter', 'secret section', 'visual customization', 'effects']
+  },
   master: {
     slug: 'master',
     sourceFiles: ['/master-template.html', '/master-template-editor.html'],

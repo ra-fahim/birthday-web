@@ -5,7 +5,7 @@ export type TemplateDefinition = {
   category: string;
   emoji: string;
   accent: string;
-  kind: 'master' | 'wedding-proposal' | 'miss-you-1' | 'master-proposal';
+  kind: 'master' | 'master-birthday' | 'wedding-proposal' | 'miss-you-1' | 'master-proposal';
   originalHtml?: string;
 };
 
@@ -21,6 +21,16 @@ export const templateCatalog: TemplateDefinition[] = [
     accent: '#ec4899',
     kind: 'master',
     originalHtml: '/master-template.html',
+  },
+  {
+    slug: 'master-birthday',
+    name: 'Master Birthday',
+    description: 'The supplied original Birthday HTML/CSS/JS experience, preserved as a template-native editor experience.',
+    category: 'birthday',
+    emoji: '🎂',
+    accent: '#ff69b4',
+    kind: 'master-birthday',
+    originalHtml: '/master-birthday.html',
   },
   {
     slug: 'wedding-proposal',

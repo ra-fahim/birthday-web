@@ -74,7 +74,6 @@ export default function PublicNavbar({ user }: { user: PublicNavbarUser }) {
                   </div>
                   <div className="profile-popover-links">
                     <Link href="/profile" onClick={close}>Profile settings <span>↗</span></Link>
-                    <Link href="/profile" onClick={close}>Profile settings <span>↗</span></Link>
                     {user.role === 'admin' && <Link href="/admin" onClick={close}>Admin dashboard <span>↗</span></Link>}
                     <a href="/api/auth/logout">Log out <span>↪</span></a>
                   </div>
@@ -100,7 +99,6 @@ export default function PublicNavbar({ user }: { user: PublicNavbarUser }) {
               {user ? <>
                 <Link href="/dashboard" onClick={close}>Dashboard</Link>
                 <Link href="/builder/new" onClick={close}>Create website</Link>
-                <Link href="/profile" onClick={close}>Profile settings</Link>
                 <Link href="/profile" onClick={close}>Profile settings</Link>
                 {user.role === 'admin' && <Link href="/admin" onClick={close}>Admin</Link>}
                 <a href="/api/auth/logout">Log out</a>

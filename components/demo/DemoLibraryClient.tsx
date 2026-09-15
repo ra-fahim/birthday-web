@@ -6,6 +6,7 @@ import type { TemplateDefinition } from '@/lib/templates';
 
 const labels: Record<string, string> = { birthday:'Birthday', wedding:'Wedding', proposal:'Proposal', 'miss-you':'Miss You' };
 const demoSrc: Record<string,string> = {
+  'master-birthday':'/master-birthday.html?demo=1&bbDemo=1',
   master:'/master-template.html?demo=1&bbDemo=1',
   'wedding-proposal':'/templates/wedding-proposal-original.html?bbDemo=1',
   'master-proposal':'/templates/master-proposal/index.html?bbDemo=1',

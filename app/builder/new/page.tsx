@@ -3,6 +3,7 @@ import { getSessionUser, isApprovalRequired } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { defaultContent } from '@/lib/types';
 import { templateBySlug } from '@/lib/templates';
+import { getMasterBirthdayContentSeed } from '@/lib/master-birthday';
 
 export default async function New({ searchParams }: { searchParams?: { template?: string; occasion?: string } }) {
   const u = await getSessionUser();
@@ -14,7 +15,7 @@ export default async function New({ searchParams }: { searchParams?: { template?
   const occasion = searchParams?.occasion && templateBySlug[requestedTemplate]?.category === searchParams.occasion
     ? searchParams.occasion
     : template.category;
-  const seed = { ...defaultContent, occasion, templateId: template.slug };
+  const seed = template.slug === 'master-birthday' ? getMasterBirthdayContentSeed() : { ...defaultContent, occasion, templateId: template.slug };
   const label = `${template.name} — ${occasion[0].toUpperCase()}${occasion.slice(1)} `;
   const s = await db.website.create({ data: { userId: u.id, slug: `celebration-${Date.now()}`, title: label.trim(), templateId: template.slug, content: seed } });
   redirect(`/builder/${s.id}`);
