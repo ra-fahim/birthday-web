@@ -22,6 +22,11 @@ function contentToData(content?: BirthdayContent) {
     if (!Number.isNaN(d.getTime())) {
       result.month = d.getMonth();
       result.day = d.getDate();
+      // Pass the selected time to the standalone HTML template as well.
+      // The old builder only sent month/day, which made the countdown silently
+      // fall back to midnight even when a user chose a specific time.
+      result.hour = d.getHours();
+      result.minute = d.getMinutes();
     }
   }
   return result;

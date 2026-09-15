@@ -51,6 +51,18 @@ export default function UniversalElementEditor({ selected, content, templateId, 
       }
       return <><Field label={`Reason ${selected.index + 1}`}><textarea rows={4} autoFocus value={items[selected.index] || ''} onChange={e=>onChange({ reasons: items.map((x,i)=>i===selected.index ? e.target.value : x) })} /></Field><div className="universal-editor-grid"><button type="button" className="builder-mini-btn" onClick={()=>onChange({ reasons:items.filter((_,i)=>i!==selected.index) })}>Remove</button><button type="button" className="builder-mini-btn" onClick={()=>onChange({ reasons:[...items,''] })}>＋ Add another</button></div></>;
     }
+    if (['countdownTitle','countdownMessage','countdownDaysLabel','countdownHoursLabel','countdownMinutesLabel','countdownSecondsLabel'].includes(key)) {
+      return <TextField value={String(common ?? '')} multiline={key === 'countdownMessage'} onChange={value => onChange({ [key]: value } as Partial<BirthdayContent>)} />;
+    }
+    if (key === 'birthday') {
+      const toLocalDateTime = (value: string) => {
+        const d = new Date(value || '');
+        if (Number.isNaN(d.getTime())) return '';
+        const pad = (n: number) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      };
+      return <Field label="Birthday countdown target"><input type="datetime-local" value={toLocalDateTime(String(content.birthday || ''))} onChange={e => onChange({ birthday: e.target.value })} autoFocus /><small className="builder-field-hint">The countdown uses this exact date and time.</small></Field>;
+    }
     if (key === 'gallery' && typeof selected.index === 'number') {
       const item = content.gallery?.[selected.index];
       if (!item) return <Empty />;

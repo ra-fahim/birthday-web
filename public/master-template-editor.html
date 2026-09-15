@@ -302,12 +302,12 @@
     </div>
 
     <div class="countdown-screen" id="countdownScreen">
-        <h1 class="countdown-title">Something special is unlocking...⌛</h1>
+        <h1 class="countdown-title" data-bb-key="countdownTitle" data-bb-label="Countdown title">Something special is unlocking...⌛</h1>
         <div class="countdown-box">
-            <div class="count-item"><span class="count-number" id="days">00</span><span class="count-label">Days</span></div>
-            <div class="count-item"><span class="count-number" id="hours">00</span><span class="count-label">Hours</span></div>
-            <div class="count-item"><span class="count-number" id="mins">00</span><span class="count-label">Mins</span></div>
-            <div class="count-item"><span class="count-number" id="secs">00</span><span class="count-label">Secs</span></div>
+            <div class="count-item"><span class="count-number" id="days">00</span><span class="count-label" data-bb-key="countdownDaysLabel" data-bb-label="Days label">Days</span></div>
+            <div class="count-item"><span class="count-number" id="hours">00</span><span class="count-label" data-bb-key="countdownHoursLabel" data-bb-label="Hours label">Hours</span></div>
+            <div class="count-item"><span class="count-number" id="mins">00</span><span class="count-label" data-bb-key="countdownMinutesLabel" data-bb-label="Minutes label">Mins</span></div>
+            <div class="count-item"><span class="count-number" id="secs">00</span><span class="count-label" data-bb-key="countdownSecondsLabel" data-bb-label="Seconds label">Secs</span></div>
         </div>
         <div class="countdown-message" id="countdownMessage" data-bb-key="countdownMessage" data-bb-label="Countdown message"></div>
     </div>
@@ -2057,6 +2057,9 @@ function applyContent(c){
  set('secretTitle',c.secretTitle||'A little secret for you ✨');
  set('secretMessage',c.secret||'You found the secret! 🎁');
  set('secretButton',c.secretButton||'See Your Friend');
+ const countdownTitle=document.querySelector('.countdown-title');if(countdownTitle)countdownTitle.textContent=c.countdownTitle||'Something special is unlocking...⌛';
+ const countdownMessage=document.getElementById('countdownMessage');if(countdownMessage)countdownMessage.textContent=c.countdownMessage||'Get ready for a little surprise...';
+ const countdownLabels=[['countdownDaysLabel','Days'],['countdownHoursLabel','Hours'],['countdownMinutesLabel','Mins'],['countdownSecondsLabel','Secs']];countdownLabels.forEach(([key,def],i)=>{const el=document.querySelectorAll('.count-label')[i];if(el)el.textContent=c[key]||def;});
  const enter=document.getElementById('enterWorldBtn'); if(enter)enter.textContent=c.buttonText||'Click to enter your world 💕';
  const social=c.social||{}; const instagram=social.instagram||'https://www.instagram.com/rafahimn'; const facebook=social.facebook||'https://www.facebook.com/rafahimn'; setHref('.social-btn.instagram',instagram); setHref('.social-btn.facebook',facebook); const secretButton=document.getElementById('secretButton'); if(secretButton){secretButton.onclick=()=>window.open(instagram,'_blank','noopener,noreferrer')}
  const cakeNext=document.getElementById('cakeNextBtn'); if(cakeNext)cakeNext.textContent=c.cakeNextButton||'Enter your story 💫';
