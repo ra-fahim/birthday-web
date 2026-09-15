@@ -55,6 +55,11 @@
         .count-number { font-size:clamp(28px,6vw,40px); font-weight:800; color:#fff; display:block; text-shadow:2px 2px 8px rgba(0,0,0,0.3); }
         .count-label { font-size:12px; color:rgba(255,255,255,0.95); letter-spacing:1px; text-shadow:1px 1px 4px rgba(0,0,0,0.3); }
         .countdown-message { font-size:clamp(16px,4vw,24px); color:#fff; margin-top:20px; font-weight:400; text-shadow:2px 2px 8px rgba(0,0,0,0.3); }
+        /* Builder countdown presets */
+        .countdown-screen.bb-countdown-solid .count-item { background:rgba(15,23,42,.72); border-color:rgba(255,255,255,.14); backdrop-filter:blur(12px); }
+        .countdown-screen.bb-countdown-minimal { background:rgba(15,23,42,.88); backdrop-filter:blur(14px); }
+        .countdown-screen.bb-countdown-minimal .count-item { background:transparent; border-color:rgba(255,255,255,.18); border-radius:12px; }
+        .countdown-screen.bb-countdown-minimal .count-number { text-shadow:none; }
         .greeting-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(-45deg,#fee9f7,#e8f5fe,#fef2e8,#f0ffe8); background-size:400% 400%; animation:gradientBG 15s ease infinite; z-index:900; padding:20px; text-align:center; }
         .greeting-screen.show { display:flex; }
         @keyframes gradientBG { 0%{ background-position:0% 50%; } 50%{ background-position:100% 50%; } 100%{ background-position:0% 50%; } }
@@ -1180,8 +1185,7 @@
             
             // Update message — kept generic on purpose so the countdown screen doesn't reveal
             // this is a birthday surprise before the reveal happens
-            document.getElementById('countdownMessage').innerHTML = 
-                `⏰ Something is coming soon...`;
+            document.getElementById('countdownMessage').textContent = (window.BB_COUNTDOWN_MESSAGE || '⏰ Something is coming soon...');
             
             if (isBirthdayToday) {
                 // It's birthday!
@@ -2087,6 +2091,8 @@ function applyContent(c){
  if(typeof countdownAudio!=='undefined' && countdownAudio){setMediaSource(countdownAudio,countdownSrc);}
  if(typeof birthdayAudio!=='undefined' && birthdayAudio){setMediaSource(birthdayAudio,wishingSrc);}
  window.BB_SETTINGS={...window.BB_SETTINGS,countdown:c.countdown!==false,confetti:c.confetti!==false,fireworks:c.fireworks!==false,hearts:c.hearts!==false,balloons:c.balloons!==false};
+ window.BB_COUNTDOWN_MESSAGE=String(c.countdownMessage||'⏰ Something is coming soon...');
+ const countdownScreen=document.getElementById('countdownScreen'); if(countdownScreen){ countdownScreen.classList.remove('bb-countdown-glass','bb-countdown-solid','bb-countdown-minimal'); const preset=c.countdownStyle==='solid'?'bb-countdown-solid':c.countdownStyle==='minimal'?'bb-countdown-minimal':'bb-countdown-glass'; countdownScreen.classList.add(preset); }
  const heartsLayer=document.getElementById('floatingHearts');if(heartsLayer)heartsLayer.style.display=window.BB_SETTINGS.hearts?'':'none';
  if(window.BB_SETTINGS.countdown===false){const cs=document.getElementById('countdownScreen');if(cs){cs.classList.remove('show');cs.classList.add('hide')}const gs=document.getElementById('greetingScreen');if(gs)gs.classList.add('show');}else{const cs=document.getElementById('countdownScreen');if(cs)cs.classList.add('show');}
  const palette=c.primaryColor||'#ec4899', fontMap={sans:'Quicksand',script:'Dancing Script',bubble:'Bubblegum Sans',comic:'Comic Neue',caveat:'Caveat'}, selectedFont=fontMap[c.font]||fontMap.sans;

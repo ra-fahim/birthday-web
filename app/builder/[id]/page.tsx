@@ -431,7 +431,7 @@ export default function Builder() {
                     <Field label="Countdown style"><select value={c.countdownStyle} onChange={e => update({ countdownStyle: e.target.value })}><option value="glass">Glass</option><option value="solid">Premium dark</option><option value="minimal">Minimal</option></select></Field>
                     <Field label="Time labels" hint="Separate with commas: Days, Hours, Mins, Secs"><input value={[c.countdownDaysLabel,c.countdownHoursLabel,c.countdownMinutesLabel,c.countdownSecondsLabel].join(', ')} onChange={e => { const parts=e.target.value.split(',').map(x=>x.trim()); update({ countdownDaysLabel:parts[0]||'Days', countdownHoursLabel:parts[1]||'Hours', countdownMinutesLabel:parts[2]||'Mins', countdownSecondsLabel:parts[3]||'Secs' }); }} /></Field>
                   </div>
-                  <div className="builder-countdown-status"><span>Target</span><b>{new Date(c.birthday || '').toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</b></div>
+                  <div className="builder-countdown-status"><span>Target</span><b>{(() => { const d = new Date(c.birthday || ''); return Number.isNaN(d.getTime()) ? 'Choose a date & time' : d.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }); })()}</b></div>
                 </div>
               </Section>
               <Section eyebrow="CONTENT MAP" title="Your experience at a glance" description="Nothing here is decorative: these counters show what will actually render on the published page.">
