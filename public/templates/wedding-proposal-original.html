@@ -1207,5 +1207,5 @@ window.addEventListener('pointerdown', e => {
 }, { passive:true });
 
 </script>
-</body>
+<script>(function(){function muteDemo(){try{document.querySelectorAll('audio,video').forEach(function(m){m.muted=true;m.volume=0;var p=m.pause();if(p&&typeof p.catch==='function')p.catch(function(){});});document.querySelectorAll('iframe').forEach(function(f){if(/youtube|vimeo/i.test(f.src||'')){try{f.contentWindow&&f.contentWindow.postMessage(JSON.stringify({event:'command',func:'mute',args:[]}),'*')}catch(_){}}});}catch(_){}}window.addEventListener('message',function(e){if(e&&e.data&&e.data.type==='BB_DEMO_MODE'&&e.data.enabled){muteDemo();setTimeout(muteDemo,200);setTimeout(muteDemo,1200);}});window.addEventListener('load',function(){if(new URLSearchParams(location.search).get('bbDemo')==='1')muteDemo();});})();</script></body>
 </html>

@@ -1,6 +1,25 @@
 import Link from 'next/link';
 import { getSessionUser } from '@/lib/auth';
-import { templatesByCategory } from '@/lib/templates';
+import { templateCatalog } from '@/lib/templates';
+import TemplateLibraryClient from '@/components/template/TemplateLibraryClient';
 
-const labels: Record<string,string> = {birthday:'Birthday',proposal:'Proposal',anniversary:'Anniversary',wedding:'Wedding',sorry:'Sorry','miss-you':'Miss You','thank-you':'Thank You',congratulations:'Congratulations',graduation:'Graduation',friendship:'Friendship',surprise:'Surprise',festival:'Festival'};
-export default async function Page(){const u=await getSessionUser().catch(()=>null);return <main className="premium-site"><nav className="premium-nav"><div className="premium-container premium-nav-inner"><Link href="/" className="brand-lockup"><span className="brand-mark">✦</span><span><b>Wishly</b><small>Studio</small></span></Link><div className="premium-nav-links"><Link href="/templates" className="active">Templates</Link><Link href="/features">Features</Link><Link href="/pricing">Pricing</Link><Link href="/demo">Demo</Link></div><Link className="premium-button premium-button-sm" href={u?'/builder/new':'/signup'}>{u?'Create website':'Start free'} →</Link></div></nav><section className="premium-container inner-hero"><p className="section-kicker">TEMPLATE LIBRARY</p><h1>Start with a style.<br/><span>Make it yours.</span></h1><p>Every template is designed to look beautiful on a phone first—and still feel premium on larger screens.</p></section><section className="premium-container template-library">{Object.entries(templatesByCategory).map(([category,items])=><div className="template-category" key={category}><div className="section-heading-row"><div><p className="section-kicker">{labels[category]||category}</p><h2>{items.length} ready-to-edit experience{items.length===1?'':'s'}</h2></div></div><div className="library-grid">{items.map(t=><article className="library-card" key={t.slug}><div className="library-preview" style={{['--accent' as string]:t.accent}}><div className="library-glow"></div><span className="library-emoji">{t.emoji}</span><small>{t.category}</small><strong>{t.name}</strong><p>{t.description}</p><span className="library-preview-pill">Live preview</span></div><div className="library-card-body"><div><span className="library-kicker">{t.slug==='master'?'FLAGSHIP':'READY TO EDIT'}</span><h3>{t.name}</h3><p>{t.description}</p></div><Link className="premium-button premium-button-sm" href={u?`/builder/new?template=${t.slug}`:`/signup?next=${encodeURIComponent(`/builder/new?template=${t.slug}`)}`}>Use template <span>→</span></Link></div></article>)}</div></div>)}</section></main>}
+export default async function Page() {
+  const u = await getSessionUser().catch(() => null);
+  return (
+    <main className="premium-site">
+      <nav className="premium-nav">
+        <div className="premium-container premium-nav-inner">
+          <Link href="/" className="brand-lockup"><span className="brand-mark">✦</span><span><b>Wishly</b><small>Studio</small></span></Link>
+          <div className="premium-nav-links"><Link href="/templates" className="active">Templates</Link><Link href="/features">Features</Link><Link href="/pricing">Pricing</Link><Link href="/demo">Demo</Link></div>
+          <Link className="premium-button premium-button-sm" href={u ? '/builder/new' : '/signup'}>{u ? 'Create website' : 'Start free'} →</Link>
+        </div>
+      </nav>
+      <section className="premium-container inner-hero templates-hero">
+        <p className="section-kicker">TEMPLATE LIBRARY</p>
+        <h1>Start with a style.<br /><span>Make it yours.</span></h1>
+        <p>Preview every experience live, muted and touch-free—then choose the one you want to edit.</p>
+      </section>
+      <TemplateLibraryClient templates={templateCatalog} isAuthenticated={!!u} />
+    </main>
+  );
+}

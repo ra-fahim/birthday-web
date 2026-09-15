@@ -216,12 +216,13 @@ export default function Builder() {
   const [templateId, setTemplateId] = useState('master');
   const [occasion, setOccasion] = useState('birthday');
   const [dirty, setDirty] = useState(false);
-  const [editorMode, setEditorMode] = useState(true);
+  const [editorMode, setEditorMode] = useState(false);
   const [editGroup, setEditGroup] = useState<EditGroupId>('content');
   const [device, setDevice] = useState<'desktop'|'tablet'|'mobile'>('desktop');
   const [selectedElement, setSelectedElement] = useState<CanvasSelection | null>(null);
   const [publicUrl, setPublicUrl] = useState('');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
 
   useEffect(() => {
     fetch('/api/websites/' + id).then(r => r.json()).then(j => {
@@ -263,8 +264,10 @@ export default function Builder() {
   const toggleEffect = (key: keyof BirthdayContent, checked: boolean) => update({ [key]: checked } as Partial<BirthdayContent>);
 
   const handleCanvasSelect = useCallback((selection: CanvasSelection) => {
+    if (!editorMode) return;
+    setMobileToolsOpen(false);
     setSelectedElement(selection);
-  }, []);
+  }, [editorMode]);
 
   useEffect(() => {
     const handler = (event: MessageEvent) => {
@@ -325,6 +328,8 @@ export default function Builder() {
     if (!visibleTabs.some(([value]) => value === tab)) setTab('overview');
     setSelectedElement(null);
     setMobileSidebarOpen(false);
+    setMobileToolsOpen(false);
+    setEditorMode(false);
   }, [templateId]);
 
   useEffect(() => {
@@ -336,6 +341,10 @@ export default function Builder() {
     const group = EDIT_GROUPS.find(([, , , tabs]) => tabs.includes(tab as TabId));
     if (group) setEditGroup(group[0]);
   }, [tab]);
+  useEffect(() => {
+    if (!editorMode) setSelectedElement(null);
+  }, [editorMode]);
+
   const previewContent = useMemo(() => ({ ...c, occasion, templateId }), [c, occasion, templateId]);
   const resetToMasterDefaults = () => {
     const keepName = c.name;
@@ -398,10 +407,10 @@ export default function Builder() {
 
         <nav className="builder-nav builder-category-nav">
           <div className="builder-nav-label">EDIT YOUR WEBSITE</div>
-          {visibleGroups.map(g => <button key={g.id} className={activeGroup?.id === g.id ? 'active' : ''} onClick={() => { setEditGroup(g.id); setTab(g.tabs[0] as TabId); setMobileSidebarOpen(false); }}><span>{g.icon}</span>{g.label}<b>{g.tabs.length}</b></button>)}
+          {visibleGroups.map(g => <button key={g.id} className={activeGroup?.id === g.id ? 'active' : ''} onClick={() => { setEditGroup(g.id); setTab(g.tabs[0] as TabId); setMobileSidebarOpen(false); setMobileToolsOpen(true); }}><span>{g.icon}</span>{g.label}<b>{g.tabs.length}</b></button>)}
         </nav>
         <div className="builder-subnav">
-          {groupTabs?.map(([value, icon, label]) => <button key={value} className={tab === value ? 'active' : ''} onClick={() => { setTab(value as TabId); setMobileSidebarOpen(false); }}><span>{icon}</span>{label}</button>)}
+          {groupTabs?.map(([value, icon, label]) => <button key={value} className={tab === value ? 'active' : ''} onClick={() => { setTab(value as TabId); setMobileSidebarOpen(false); setMobileToolsOpen(true); }}><span>{icon}</span>{label}</button>)}
         </div>
 
         <div className="builder-side-tip"><span>⌘</span><div><b>Easy mode</b><p>Edit here or directly on the page. When ready, create one live link for this website.</p></div></div>
@@ -410,21 +419,9 @@ export default function Builder() {
       <section className="builder-workspace">
         <div className="builder-editor-panel">
           <div className="builder-panel-head"><div><div className="builder-eyebrow">{activeGroup?.icon} {activeGroup?.label || 'Editor'}</div><h2>{activeTab?.[2]}</h2></div><span className="builder-live-pill">● LIVE</span></div>
-          <div className="builder-mobile-category-tabs">{visibleGroups.map(g => <button key={g.id} className={activeGroup?.id === g.id ? 'active' : ''} onClick={() => { setEditGroup(g.id); setTab(g.tabs[0] as TabId); }}><span>{g.icon}</span>{g.label}</button>)}</div>
+          <div className="builder-mobile-category-tabs">{visibleGroups.map(g => <button key={g.id} className={activeGroup?.id === g.id ? 'active' : ''} onClick={() => { setEditGroup(g.id); setTab(g.tabs[0] as TabId); setMobileToolsOpen(true); }}><span>{g.icon}</span>{g.label}</button>)}</div>
           <div className="builder-form-scroll">
             {tab === 'overview' && <TemplateSourceMap templateId={templateId} />}
-                      {selectedElement && (
-                        <UniversalElementEditor
-                          selected={selectedElement}
-                          content={c}
-                          templateId={templateId}
-                          websiteId={id}
-                          onChange={update}
-                          onTemplateConfigChange={(patch) => update({ templateConfig: { ...(c.templateConfig || {}), ...patch } })}
-                          onClose={() => setSelectedElement(null)}
-                        />
-                      )}
-
             {tab === 'overview' && templateId !== 'miss-you-1' && templateId !== 'master-proposal' && (templateId === 'wedding-proposal' ? <>
               <div className="builder-quickstart"><div className="builder-quick-card"><b>1. Personalize</b><span>Set the recipient and sender names.</span></div><div className="builder-quick-card"><b>2. Edit the proposal</b><span>Only the words used by this original HTML are editable.</span></div><div className="builder-quick-card"><b>3. Share</b><span>Save it and create one live link.</span></div></div>
               <Section eyebrow="IDENTITY" title="Who is this proposal for?" description="Only the values used by the Wedding Proposal template are shown.">
@@ -625,10 +622,36 @@ export default function Builder() {
         <section className="builder-preview-panel">
           <div className="builder-preview-head"><div><span>LIVE PREVIEW</span><strong>{c.name || 'Untitled celebration'}</strong></div><div className="builder-preview-actions">
   {(['desktop','tablet','mobile'] as const).map(d => <button key={d} className={`builder-device ${device===d?'active':''}`} onClick={()=>setDevice(d)}>{d[0].toUpperCase()+d.slice(1)}</button>)}
-  {templateId !== 'wedding-proposal' && templateId !== 'miss-you-1' && <button className={`builder-device ${editorMode?'active':''}`} onClick={()=>setEditorMode(v=>!v)}>✎ Edit on canvas</button>}
+  <button
+    type="button"
+    className={`builder-device builder-canvas-edit-toggle ${editorMode ? 'active' : ''}`}
+    aria-pressed={editorMode}
+    onClick={() => setEditorMode(v => !v)}
+  >
+    {editorMode ? '✎ Canvas edit ON' : '✎ Canvas edit OFF'}
+  </button>
 </div></div>
           {status === 'published' && publicUrl && <div className="builder-live-link"><div><span>YOUR LIVE LINK</span><strong>{publicUrl}</strong></div><div className="builder-live-link-actions"><button onClick={() => navigator.clipboard?.writeText(publicUrl)}>Copy link</button><a href={publicUrl} target="_blank" rel="noreferrer">Open ↗</a></div></div>}
           <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}>{templateId === 'master' ? <MasterTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div>
+          {selectedElement && editorMode && (
+            <section className="builder-context-editor" aria-label="Selected element editor">
+              <div className="builder-context-editor-head">
+                <div><span>SELECTED ELEMENT</span><strong>{selectedElement.label}</strong></div>
+                <button type="button" onClick={() => setSelectedElement(null)} aria-label="Close selected element editor">Done</button>
+              </div>
+              <div className="builder-context-editor-body">
+                <UniversalElementEditor
+                  selected={selectedElement}
+                  content={c}
+                  templateId={templateId}
+                  websiteId={id}
+                  onChange={update}
+                  onTemplateConfigChange={(patch) => update({ templateConfig: { ...(c.templateConfig || {}), ...patch } })}
+                  onClose={() => setSelectedElement(null)}
+                />
+              </div>
+            </section>
+          )}
         </section>
       </section>
     </div>
