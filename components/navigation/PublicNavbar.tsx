@@ -16,6 +16,7 @@ const links = [
   ['/pricing', 'Pricing'],
   ['/demo', 'Demo'],
   ['/about', 'About'],
+  ['/how-to-make-website', 'How to make a website'],
 ] as const;
 
 export default function PublicNavbar({ user }: { user: PublicNavbarUser }) {
@@ -92,6 +93,7 @@ export default function PublicNavbar({ user }: { user: PublicNavbarUser }) {
               {links.map(([href, label]) => <Link key={href} href={href} onClick={close}>{label}<span>↗</span></Link>)}
               <Link href="/faq" onClick={close}>FAQ<span>↗</span></Link>
               <Link href="/contact" onClick={close}>Contact<span>↗</span></Link>
+              <Link href="/how-to-make-website" onClick={close}>How to make a website<span>↗</span></Link>
             </div>
             <div className="mobile-nav-account">
               {user ? <>

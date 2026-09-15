@@ -12,6 +12,7 @@ import UniversalElementEditor from './UniversalElementEditor';
 import { TimelineEditor, MemoriesEditor, WishlistEditor, GuestbookToggle } from './ContentListEditors';
 import { templateCatalog } from '@/lib/templates';
 import { getTemplateInspection } from '@/lib/template-inspector';
+import StudioOnboarding from './StudioOnboarding';
 
 // Keep the complete occasion list stable even when an occasion has no templates yet.
 // New HTML templates can then be registered under any of these categories later.
@@ -178,23 +179,6 @@ function ObjectArrayEditor<T extends Record<string, any>>({ title, description, 
     <button className="builder-mini-btn mt-2" onClick={add}>+ Add {title}</button>
     {!items.length && <div className="builder-empty">Nothing added yet.</div>}
   </div>;
-}
-
-function TemplateSourceMap({ templateId }: { templateId: string }) {
-  const info = getTemplateInspection(templateId);
-  return <Section eyebrow="SOURCE-AWARE EDITOR" title="What this template actually contains" description="The Studio first maps the real template source, then only applies editing controls that belong to this template.">
-    <div className="builder-quickstart">
-      <div className="builder-quick-card"><b>Source checked</b><span>{info.sourceFiles.join(' · ')}</span></div>
-      <div className="builder-quick-card"><b>Editable areas</b><span>{info.editableAreas.join(' · ')}</span></div>
-    </div>
-    <div className="builder-grid-2 mt-4">
-      {info.media.map(slot => <div key={slot.key} className="builder-item builder-item-card" style={{display:'flex',flexDirection:'column',alignItems:'stretch',gap:6}}>
-        <div className="builder-item-card-head"><span className="builder-item-card-num">{slot.kind === 'audio' ? '♫' : slot.kind === 'video' ? '▶' : '▧'} {slot.label}</span><span className="builder-eyebrow">{slot.sourceType === 'code-generated' ? 'CODE' : 'MEDIA'}</span></div>
-        <small>{slot.behavior}</small>
-        {typeof slot.count === 'number' && <small>{slot.count ? `${slot.count} source items detected.` : 'User-defined item count.'}</small>}
-      </div>)}
-    </div>
-  </Section>;
 }
 
 function MusicSlotCard({ icon, title, description, value, onChange, websiteId }: { icon: string; title: string; description: string; value: string; onChange: (value: string) => void; websiteId: string }) {
@@ -441,7 +425,6 @@ export default function Builder() {
           <div className="builder-panel-head"><div><div className="builder-eyebrow">{activeGroup?.icon} {activeGroup?.label || 'Editor'}</div><h2>{activeTab?.[2]}</h2></div><span className="builder-live-pill">● LIVE</span></div>
           <div className="builder-mobile-category-tabs">{visibleGroups.map(g => <button key={g.id} className={activeGroup?.id === g.id ? 'active' : ''} onClick={() => { setEditGroup(g.id); setTab(g.tabs[0] as TabId); setMobileToolsOpen(true); }}><span>{g.icon}</span>{g.label}</button>)}</div>
           <div className="builder-form-scroll">
-            {tab === 'overview' && <TemplateSourceMap templateId={templateId} />}
             {tab === 'overview' && templateId !== 'miss-you-1' && templateId !== 'master-proposal' && (templateId === 'wedding-proposal' ? <>
               <div className="builder-quickstart"><div className="builder-quick-card"><b>1. Personalize</b><span>Set the recipient and sender names.</span></div><div className="builder-quick-card"><b>2. Edit the proposal</b><span>Only the words used by this original HTML are editable.</span></div><div className="builder-quick-card"><b>3. Share</b><span>Save it and create one live link.</span></div></div>
               <Section eyebrow="IDENTITY" title="Who is this proposal for?" description="Only the values used by the Wedding Proposal template are shown.">
@@ -693,5 +676,6 @@ export default function Builder() {
       </section>
     </div>
     {msg && <div className="builder-toast">{msg}</div>}
+    <StudioOnboarding />
   </main>;
 }
