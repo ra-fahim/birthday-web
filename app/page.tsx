@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getSessionUser } from '@/lib/auth';
+import PublicNavbar from '@/components/navigation/PublicNavbar';
 import TemplateShowcase from '@/components/home/TemplateShowcase';
 
 export const dynamic = 'force-dynamic';
@@ -12,7 +13,8 @@ const features=[['01','Visual editor','Tap any part of your page and edit it ins
 export default async function Home(){
  const u=await getSessionUser().catch(()=>null);
  return <main className="premium-site">
-  <nav className="premium-nav"><div className="premium-container premium-nav-inner"><Link href="/" className="brand-lockup"><span className="brand-mark">✦</span><span><b>Wishly</b><small>Studio</small></span></Link><div className="premium-nav-links"><Link href="/templates">Templates</Link><Link href="/features">Features</Link><Link href="/pricing">Pricing</Link><Link href="/demo">Demo</Link></div><div className="premium-nav-actions"><Link className="nav-text" href={u?'/dashboard':'/login'}>{u?'Dashboard':'Log in'}</Link><Link className="premium-button premium-button-sm" href={u?'/builder/new':'/signup'}>{u?'Create website':'Start free'} <span>→</span></Link></div></div></nav>
+  <PublicNavbar user={u} />
+
 
   <section className="hero premium-container">
    <div className="hero-copy">
