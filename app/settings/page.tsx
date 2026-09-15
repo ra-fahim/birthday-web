@@ -1,1 +1,5 @@
-export default function Page(){return <main className="mx-auto max-w-6xl p-8"><h1 className="text-3xl font-bold">Profile Settings</h1><p className="mt-3 text-zinc-400">Manage your profile information, display details, avatar, and account preferences here.</p></main>}
+import { redirect } from 'next/navigation';
+
+export default function Page() {
+  redirect('/profile');
+}
