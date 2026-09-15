@@ -349,7 +349,10 @@ export default function Builder() {
     if (group) setEditGroup(group[0]);
   }, [tab]);
   useEffect(() => {
-    if (!editorMode) setSelectedElement(null);
+    if (!editorMode) {
+      setSelectedElement(null);
+      setCanvasHistory({ canBack: false, canForward: false });
+    }
   }, [editorMode]);
 
   const previewContent = useMemo(() => ({ ...c, occasion, templateId }), [c, occasion, templateId]);

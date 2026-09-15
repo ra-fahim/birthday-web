@@ -13,7 +13,8 @@ function startClock(config) {
   const startMs = new Date(config.memorialDate).getTime();
   const digits = createClockDOM(config);
   timeElapse(startMs, digits);
-  setInterval(() => timeElapse(startMs, digits), AnimationConfig.TIME_UPDATE_INTERVAL);
+  if (window.__BB_CLOCK_INTERVAL) clearInterval(window.__BB_CLOCK_INTERVAL);
+  window.__BB_CLOCK_INTERVAL = setInterval(() => timeElapse(startMs, digits), AnimationConfig.TIME_UPDATE_INTERVAL);
 }
 
 // ===========================
@@ -60,3 +61,9 @@ async function startApp() {
 }
 
 document.addEventListener("DOMContentLoaded", startApp);
+
+window.addEventListener('message', function(e){
+  if (!e.data || e.data.type !== 'BB_MISSYOU_CONFIG' || !window.__BB_APPLY_RUNTIME_CONFIG) return;
+  window.__BB_APPLY_RUNTIME_CONFIG(e.data.config);
+  try { initContent(CONFIG); applyBackgroundMusic(CONFIG); } catch (_) {}
+});

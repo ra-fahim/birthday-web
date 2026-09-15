@@ -13,11 +13,34 @@ export const MASTER_BIRTHDAY_DEFAULTS = {
   "browserTitle": "Loading... 💫",
   "countdownTitle": "Something special is unlocking...⌛",
   "countdownMessage": "⏰ Something is coming soon...",
+  "countdownDaysLabel": "Days",
+  "countdownHoursLabel": "Hours",
+  "countdownMinutesLabel": "Mins",
+  "countdownSecondsLabel": "Secs",
+  "countdownStyle": "glass",
   "countdownAudioUrl": "https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3",
   "countdownAudioEnabled": true,
   "greetingHeading": "Happy Birthday Pagli❤️🎂💫",
   "greetingMessage": "Hey You Know What! You're the most adorable human i ever met! 💖",
   "enterButtonText": "Click to enter your world 💕",
+  "reasonsTitle": "Happy Birthday Just Friend.. 💖",
+  "reasonsNote": "",
+  "reasonsButton": "Click Here... 💕",
+  "photoTitle": "The Beautiful Moments",
+  "photoSubtitle": "Every moment spent with you has been magical. Let's cherish these precious memories.",
+  "photoNextButton": "Again Your Storylane 🎥",
+  "videoTitle": "A Special Video Message",
+  "videoCaption": "",
+  "videoNextButton": "See your letter 💌",
+  "letterTitle": "A Letter for You friend 💌",
+  "letterButton": "Again, Happy Birthday Othoy Bury",
+  "secretTitle": "A little secret for you ✨",
+  "secretMessage": "",
+  "secretButton": "See Your Friend",
+  "confetti": true,
+  "fireworks": true,
+  "hearts": true,
+  "balloons": true,
   "cake": {
     "cakeText": "happy",
     "birthdayText": "birthday",
@@ -184,7 +207,12 @@ export function getMasterBirthdayConfig(content:any): any {
   if (!incoming || typeof incoming !== 'object') return JSON.parse(JSON.stringify(MASTER_BIRTHDAY_DEFAULTS));
   return {
     ...JSON.parse(JSON.stringify(MASTER_BIRTHDAY_DEFAULTS)),
+    ...JSON.parse(JSON.stringify(MASTER_BIRTHDAY_DEFAULTS)),
     ...incoming,
+    reasons: Array.isArray(incoming.reasons) ? incoming.reasons : JSON.parse(JSON.stringify(MASTER_BIRTHDAY_DEFAULTS.reasons)),
+    gallery: Array.isArray(incoming.gallery) ? incoming.gallery : JSON.parse(JSON.stringify(MASTER_BIRTHDAY_DEFAULTS.gallery)),
+    videos: Array.isArray(incoming.videos) ? incoming.videos : JSON.parse(JSON.stringify(MASTER_BIRTHDAY_DEFAULTS.videos)),
+    soundtrack: Array.isArray(incoming.soundtrack) ? incoming.soundtrack : JSON.parse(JSON.stringify(MASTER_BIRTHDAY_DEFAULTS.soundtrack)),
     cake: {...JSON.parse(JSON.stringify(MASTER_BIRTHDAY_DEFAULTS.cake)), ...(incoming.cake || {})},
     letter: {...JSON.parse(JSON.stringify(MASTER_BIRTHDAY_DEFAULTS.letter)), ...(incoming.letter || {})},
     secret: {...JSON.parse(JSON.stringify(MASTER_BIRTHDAY_DEFAULTS.secret)), ...(incoming.secret || {})},
@@ -196,6 +224,6 @@ export function getMasterBirthdayContentSeed(): any {
   const d:any = JSON.parse(JSON.stringify(MASTER_BIRTHDAY_DEFAULTS));
   return {
     name: d.recipientName, birthday: `${d.birthdayDate}T${d.birthdayTime}`, greeting: d.greetingHeading, heroSubtitle: d.greetingMessage, buttonText: d.enterButtonText, countdownTitle: d.countdownTitle, countdownMessage: d.countdownMessage, countdownAudioUrl: d.countdownAudioUrl,
-    reasons: d.reasons.map((r:any)=>r.text), gallery: d.gallery.map((g:any)=>({url:g.url,caption:g.caption,title:g.title,date:g.date,alt:g.alt})), letter: [...d.letter.paragraphs], photoTitle:'The Beautiful Moments ', photoSubtitle:"Every moment spent with you has been magical. Let's cherish these precious memories Othoy...", photoNextButton:'Again Your Storylane 🎥', videoTitle:'A Special Video Message', videoNextButton:'See your letter 💌', letterTitle:d.letter.title, letterButton:d.letter.buttonText, secretTitle:d.secret.title || 'A little secret for you ✨', secret:d.secret.message || 'You found the secret! 🎁', secretButton:d.secret.buttonText, primaryColor:d.visual.mainThemeColor, font:'sans', templateId:'master-birthday', occasion:'birthday', templateConfig:{masterBirthday:d}
+    reasons: d.reasons.map((r:any)=>r.text), gallery: d.gallery.map((g:any)=>({url:g.url,caption:g.caption,title:g.title,date:g.date,alt:g.alt})), letter: [...d.letter.paragraphs], photoTitle:d.photoTitle, photoSubtitle:d.photoSubtitle, photoNextButton:d.photoNextButton, videoTitle:d.videoTitle, videoCaption:d.videoCaption, videoNextButton:d.videoNextButton, letterTitle:d.letter.title, letterButton:d.letter.buttonText, secretTitle:d.secret.title || d.secretTitle || 'A little secret for you ✨', secret:d.secret.message || d.secretMessage || 'You found the secret! 🎁', secretButton:d.secret.buttonText || d.secretButton, primaryColor:d.visual.mainThemeColor, font:'sans', templateId:'master-birthday', occasion:'birthday', templateConfig:{masterBirthday:d}
   };
 }

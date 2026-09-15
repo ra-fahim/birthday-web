@@ -532,7 +532,7 @@
         <div class="reasons-header"><h1>Happy Birthday Just Friend.. 💖</h1></div>
         <div class="reasons-container" id="reasonsContainer"></div>
         <div class="reason-counter" id="reasonCounter">Reason 1 of 4</div>
-        <button class="reasons-btn" id="reasonsBtn" onclick="handleReasonClick()">Click Here... 💕</button>
+        <button class="reasons-btn" id="reasonsBtn" data-bb-key="mb.reasonsButton" data-bb-label="Reasons button" onclick="handleReasonClick()">Click Here... 💕</button>
     </div>
 
     <div class="photo-screen" id="photoScreen">
@@ -1996,6 +1996,30 @@
     }
     return new Date(y,mo,day,hh,mm,0);
   }
+  function overrideDemoCountdown(){
+    try {
+      var params=new URLSearchParams(window.location.search);
+      if(params.get('demo')!=='1' && params.get('bbDemo')!=='1') return;
+      var started=Date.now(), duration=10000;
+      function demoTick(){
+        var left=Math.max(0,duration-(Date.now()-started));
+        var screen=document.getElementById('countdownScreen'), greet=document.getElementById('greetingScreen');
+        if(left>0){
+          if(screen){screen.classList.remove('hide');screen.style.display='flex';}
+          if(greet){greet.classList.remove('show');greet.style.display='none';}
+          var total=Math.ceil(left/1000), mins=Math.floor(total/60), secs=total%60;
+          setText('days','00'); setText('hours','00'); setText('mins',String(mins).padStart(2,'0')); setText('secs',String(secs).padStart(2,'0'));
+        } else {
+          if(screen){screen.classList.add('hide');screen.style.display='none';}
+          if(greet){greet.classList.add('show');greet.style.display='flex';}
+          if(window.__bbDemoCountdownTimer){clearInterval(window.__bbDemoCountdownTimer);window.__bbDemoCountdownTimer=null;}
+        }
+      }
+      demoTick();
+      window.__bbDemoCountdownTimer=setInterval(demoTick,250);
+    } catch(e){}
+  }
+
   function overrideCountdown(){
     var target=birthdayTarget(); if(!target) return;
     function tick(){
@@ -2041,6 +2065,11 @@
     document.title=d.browserTitle||document.title;
     setText('enterWorldBtn',d.enterButtonText||c.buttonText||'Click to enter your world 💕');
     setText('countdownMessage',d.countdownMessage||c.countdownMessage||'');
+    setText('days', '00'); setText('hours','00'); setText('mins','00'); setText('secs','00');
+    document.querySelector('.count-label:nth-of-type(1)') && (document.querySelector('.count-item:nth-child(1) .count-label').textContent=d.countdownDaysLabel||'Days');
+    document.querySelector('.count-item:nth-child(2) .count-label') && (document.querySelector('.count-item:nth-child(2) .count-label').textContent=d.countdownHoursLabel||'Hours');
+    document.querySelector('.count-item:nth-child(3) .count-label') && (document.querySelector('.count-item:nth-child(3) .count-label').textContent=d.countdownMinutesLabel||'Mins');
+    document.querySelector('.count-item:nth-child(4) .count-label') && (document.querySelector('.count-item:nth-child(4) .count-label').textContent=d.countdownSecondsLabel||'Secs');
     var ct=document.querySelector('.countdown-title'); if(ct) ct.textContent=d.countdownTitle||c.countdownTitle||ct.textContent;
     var gh=document.querySelector('#greetingScreen h1'); if(gh) gh.textContent=d.greetingHeading||c.greeting||gh.textContent;
     var gt=document.getElementById('greetingText'); if(gt) gt.textContent=d.greetingMessage||c.heroSubtitle||'';
@@ -2050,8 +2079,12 @@
     setText('micHint',cake.micHint||'🎤 Blow into your mic to blow out the candles, or tap them');
     setText('cutHint',cake.cutInstruction||'🔪 Press and drag anywhere on the cake — cut it your way');
     setText('cakeNextBtn',cake.nextButtonText||'Enter your storyline 💫');
-    setText('photoTitle',c.photoTitle||'The Beautiful Moments '); setText('photoSubtitle',c.photoSubtitle||'Every moment spent with you has been magical. Let\'s cherish these precious memories Othoy...'); setText('photoNextBtn',c.photoNextButton||'Again Your Storylane 🎥');
-    setText('videoTitle',c.videoTitle||'A Special Video Message'); setText('videoNextBtn',c.videoNextButton||'See your letter 💌');
+    setText('photoTitle',d.photoTitle||c.photoTitle||'The Beautiful Moments'); setText('photoSubtitle',d.photoSubtitle||c.photoSubtitle||'Every moment spent with you has been magical. Let\'s cherish these precious memories.'); setText('photoNextBtn',d.photoNextButton||c.photoNextButton||'Again Your Storylane 🎥');
+    setText('videoTitle',d.videoTitle||c.videoTitle||'A Special Video Message'); setText('videoNextBtn',d.videoNextButton||c.videoNextButton||'See your letter 💌');
+    var vc=document.getElementById('videoCaption'); if(vc) vc.textContent=d.videoCaption||c.videoCaption||'';
+    var rt=document.getElementById('reasonsTitle'); if(rt) rt.textContent=d.reasonsTitle||c.heroTitle||rt.textContent;
+    var rb=document.getElementById('reasonsBtn'); if(rb) rb.textContent=d.reasonsButton||c.reasonsButton||rb.textContent;
+    var rn=document.getElementById('reasonsNote'); if(rn) rn.textContent=d.reasonsNote||'';
     setText('letterTitle',letter.title||c.letterTitle||'A Letter for You friend 💌'); setText('letterReturnBtn',letter.buttonText||c.letterButton||'Again, Happy Birthday Othoy Bury');
     setText('secretButton',sec.buttonText||c.secretButton||'See Your Friend');
     var simg=document.querySelector('.secret-photo'); if(simg && sec.imageUrl){simg.src=safeUrl(sec.imageUrl)||simg.src; simg.onclick=function(){ openLightbox(simg.src); }; }
@@ -2069,7 +2102,7 @@
     var paras=Array.isArray(letter.paragraphs)?letter.paragraphs.slice():[]; if(letter.signature) paras.push('— '+letter.signature); else if(d.senderName) paras.push('— '+d.senderName);
     if(paras.length){ try{ window.__BB_LETTER_LINES=paras; }catch(e){} }
     try{ if(typeof letterTyped!=='undefined') letterTyped=false; }catch(e){}
-    applyTheme(); overrideCountdown(); setupDynamicAudio();
+    applyTheme(); overrideCountdown(); overrideDemoCountdown(); setupDynamicAudio();
   }
   function renderPhotos(){
     var items=Array.isArray(config().gallery)?config().gallery:[] , pc=document.querySelector('.photo-container'); if(!pc)return;
@@ -2108,7 +2141,7 @@
       ['#greetingScreen h1','mb.greetingHeading','Greeting heading','text'],['#greetingText','mb.greetingMessage','Greeting message','text'],['#enterWorldBtn','mb.enterButtonText','Enter button','text'],
       ['#cakeSvg text:nth-of-type(1)','mb.cake.cakeText','Cake text','text'],['#cakeSvg text:nth-of-type(2)','mb.cake.birthdayText','Birthday text','text'],['#cakeSvg text:nth-of-type(3)','mb.cake.recipientName','Cake recipient','text'],
       ['#wishPrompt .wish-prompt-text','mb.cake.wishTitle','Wish title','text'],['#wishPrompt .wish-prompt-sub','mb.cake.wishSubtitle','Wish subtitle','text'],['#micHint','mb.cake.micHint','Mic hint','text'],['#cakeStatus','mb.cake.cakeStatus','Cake status','text'],['#cutHint','mb.cake.cutInstruction','Cut instruction','text'],['#cakeNextBtn','mb.cake.nextButtonText','Cake next button','text'],
-      ['.reasons-header h1','mb.reasonsTitle','Reasons heading','text'],['#photoTitle','photoTitle','Photo title','text'],['#photoSubtitle','photoSubtitle','Photo subtitle','text'],['#photoNextBtn','photoNextButton','Photo next button','text'],['#videoTitle','videoTitle','Video title','text'],['#videoNextBtn','videoNextButton','Video next button','text'],
+      ['.reasons-header h1','mb.reasonsTitle','Reasons heading','text'],['#reasonsNote','mb.reasonsNote','Reasons note','text'],['#reasonsBtn','mb.reasonsButton','Reasons button','text'],['#photoTitle','photoTitle','Photo title','text'],['#photoSubtitle','photoSubtitle','Photo subtitle','text'],['#photoNextBtn','photoNextButton','Photo next button','text'],['#videoTitle','videoTitle','Video title','text'],['#videoNextBtn','videoNextButton','Video next button','text'],
       ['#letterTitle','mb.letter.title','Letter title','text'],['#letterReturnBtn','mb.letter.buttonText','Letter button','text'],['#secretButton','mb.secret.buttonText','Secret button','text'],['.secret-photo','mb.secret.imageUrl','Secret image','image']
     ];
     defs.forEach(function(d){document.querySelectorAll(d[0]).forEach(function(el){el.setAttribute('data-bb-key',d[1]);el.setAttribute('data-bb-label',d[2]);el.setAttribute('data-bb-type',d[3]);el.setAttribute('data-bb-editable','true');});});

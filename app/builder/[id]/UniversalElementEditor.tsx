@@ -53,6 +53,39 @@ export default function UniversalElementEditor({ selected, content, templateId, 
 
   const render = useMemo(() => {
     if (!selected) return null;
+    if (masterBirthday && key === 'mb.reasonsButton') {
+      return <TextField value={String(mb.reasonsButton || '')} onChange={v => updateMasterBirthday(['reasonsButton'], v)} />;
+    }
+    if (masterBirthday && key === 'mb.reasonsTitle') {
+      return <TextField value={String(mb.reasonsTitle || '')} multiline={false} onChange={v => updateMasterBirthday(['reasonsTitle'], v)} />;
+    }
+    if (masterBirthday && key === 'mb.reasonsNote') {
+      return <TextField value={String(mb.reasonsNote || '')} multiline onChange={v => updateMasterBirthday(['reasonsNote'], v)} />;
+    }
+    if (masterBirthday && key === 'reasonsButton') {
+      return <TextField value={String(mb.reasonsButton || content.reasonsButton || '')} onChange={v => updateMasterBirthday(['reasonsButton'], v)} />;
+    }
+    if (masterBirthday && key === 'reasonsTitle') {
+      return <TextField value={String(mb.reasonsTitle || '')} onChange={v => updateMasterBirthday(['reasonsTitle'], v)} />;
+    }
+    if (masterBirthday && key === 'photoTitle') {
+      return <TextField value={String(mb.photoTitle || '')} onChange={v => updateMasterBirthday(['photoTitle'], v)} />;
+    }
+    if (masterBirthday && key === 'photoSubtitle') {
+      return <TextField value={String(mb.photoSubtitle || '')} multiline onChange={v => updateMasterBirthday(['photoSubtitle'], v)} />;
+    }
+    if (masterBirthday && key === 'photoNextButton') {
+      return <TextField value={String(mb.photoNextButton || '')} onChange={v => updateMasterBirthday(['photoNextButton'], v)} />;
+    }
+    if (masterBirthday && key === 'videoTitle') {
+      return <TextField value={String(mb.videoTitle || '')} onChange={v => updateMasterBirthday(['videoTitle'], v)} />;
+    }
+    if (masterBirthday && key === 'videoCaption') {
+      return <TextField value={String(mb.videoCaption || '')} multiline onChange={v => updateMasterBirthday(['videoCaption'], v)} />;
+    }
+    if (masterBirthday && key === 'videoNextButton') {
+      return <TextField value={String(mb.videoNextButton || '')} onChange={v => updateMasterBirthday(['videoNextButton'], v)} />;
+    }
     if (masterBirthday && key === 'reasons' && typeof selected.index === 'number') {
       const items = Array.isArray(mb.reasons) ? [...mb.reasons] : []; const i=selected.index; const item=items[i]||{text:'',emoji:'✨'};
       const setItem=(patch:Record<string,any>)=>{const n=items.slice();n[i]={...item,...patch};onTemplateConfigChange({masterBirthday:{...mb,reasons:n}})};

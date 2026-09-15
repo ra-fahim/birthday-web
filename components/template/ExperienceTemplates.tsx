@@ -31,9 +31,9 @@ function MissYouTemplate({ content, editorMode = false, onElementSelect, onHisto
     const next = { ...getMissYouDefaults(), ...(content.templateConfig || {}) };
     setConfig(next);
   }, [content.templateConfig]);
-  const src = React.useMemo(() => `/templates/miss-you-1/index.html?config=${encodeURIComponent(JSON.stringify(config))}`, [config]);
+  const src = React.useMemo(() => '/templates/miss-you-1/index.html?bbStudio=1', []);
   const frameRef = React.useRef<HTMLIFrameElement>(null);
-  React.useEffect(() => { const f=frameRef.current; if(!f)return; const post=()=>f.contentWindow?.postMessage({type:'BB_EDITOR_MODE',enabled:!!editorMode},'*'); f.addEventListener('load',post); post(); return()=>f.removeEventListener('load',post); }, [editorMode, src]);
+  React.useEffect(() => { const f=frameRef.current; if(!f)return; const post=()=>{ f.contentWindow?.postMessage({type:'BB_EDITOR_MODE',enabled:!!editorMode},'*'); f.contentWindow?.postMessage({type:'BB_MISSYOU_CONFIG',config},'*'); }; f.addEventListener('load',post); post(); return()=>f.removeEventListener('load',post); }, [editorMode, src, config]);
   React.useEffect(() => { const h=(e:MessageEvent)=>{ if(e.source!==frameRef.current?.contentWindow || !e.data) return; if(e.data.type==='BB_ELEMENT_SELECTED') onElementSelect?.(e.data.selection); if(e.data.type==='BB_CANVAS_HISTORY_STATE') onHistoryState?.(e.data); }; window.addEventListener('message',h); return()=>window.removeEventListener('message',h); }, [onElementSelect, onHistoryState]);
   return <iframe ref={frameRef} title="Miss You 1" src={src} style={{ width: '100%', height: '100%', minHeight: 760, border: 0, display: 'block', background: '#ffe' }} />;
 }
@@ -74,16 +74,16 @@ function MasterProposalTemplate({ content, editorMode, onElementSelect, onHistor
     const next = { ...getMasterProposalDefaults(), ...(content.templateConfig || {}) };
     setConfig(next);
   }, [content.templateConfig]);
-  const src = React.useMemo(() => `/templates/master-proposal/index.html?config=${encodeURIComponent(JSON.stringify(config))}`, [config]);
+  const src = React.useMemo(() => '/templates/master-proposal/index.html?bbStudio=1', []);
   React.useEffect(() => {
     const frame = frameRef.current;
     if (!frame) return;
-    const post = () => frame.contentWindow?.postMessage({ type: 'BB_EDITOR_MODE', enabled: !!editorMode }, '*');
+    const post = () => { frame.contentWindow?.postMessage({ type: 'BB_EDITOR_MODE', enabled: !!editorMode }, '*'); frame.contentWindow?.postMessage({ type: 'BB_CONTENT', content }, '*'); };
     const onLoad = () => post();
     frame.addEventListener('load', onLoad);
     post();
     return () => frame.removeEventListener('load', onLoad);
-  }, [editorMode, src]);
+  }, [editorMode, src, content]);
   React.useEffect(() => {
     const handler = (event: MessageEvent) => {
       if (event.source !== frameRef.current?.contentWindow || !event.data) return;

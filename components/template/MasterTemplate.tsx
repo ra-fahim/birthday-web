@@ -36,16 +36,16 @@ function contentToData(content?: BirthdayContent) {
 export default function MasterTemplate({ data, content, demo, websiteSlug, recipientId, editorMode = false, onElementSelect, onHistoryState }: Props) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const resolved = useMemo(() => ({ ...contentToData(content), ...data }), [content, data]);
+  // Keep the iframe URL stable while editing so keystrokes and sidebar changes
+  // update the live preview through postMessage instead of restarting the
+  // template (which would replay its intro/animations on every change).
   const src = useMemo(() => {
     const p = new URLSearchParams();
-    for (const [k, v] of Object.entries(resolved)) {
-      if (v !== undefined && v !== null && v !== '') p.set(k, String(v));
-    }
     if (demo) p.set('demo', '1');
     if (recipientId) p.set('recipient', recipientId);
     const templatePath = editorMode ? '/master-template-editor.html' : '/master-template.html';
     return `${templatePath}${p.toString() ? `?${p.toString()}` : ''}`;
-  }, [resolved, demo, recipientId, editorMode]);
+  }, [demo, recipientId, editorMode]);
 
   useEffect(() => {
     const frame = frameRef.current;

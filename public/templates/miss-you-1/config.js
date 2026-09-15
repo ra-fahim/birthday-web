@@ -51,3 +51,22 @@ const CONFIG = {
   seedText: typeof __runtime.seedText === "string" && __runtime.seedText ? __runtime.seedText : "Miss You",
   musicUrl: typeof __runtime.musicUrl === "string" ? __runtime.musicUrl : ""
 };
+
+window.__BB_APPLY_RUNTIME_CONFIG = function(next) {
+  if (!next || typeof next !== 'object') return;
+  if (next.name1 !== undefined) CONFIG.couple.name1 = String(next.name1);
+  if (next.name2 !== undefined) CONFIG.couple.name2 = String(next.name2);
+  if (next.connector !== undefined) CONFIG.couple.connector = String(next.connector);
+  if (next.together !== undefined) CONFIG.couple.together = String(next.together);
+  if (next.memorialDate !== undefined) CONFIG.memorialDate = String(next.memorialDate);
+  if (Array.isArray(next.paragraph1)) CONFIG.letter.paragraph1 = next.paragraph1;
+  if (Array.isArray(next.paragraph2)) CONFIG.letter.paragraph2 = next.paragraph2;
+  if (Array.isArray(next.paragraph3)) CONFIG.letter.paragraph3 = next.paragraph3;
+  if (next.timePrefix !== undefined) CONFIG.time.prefix = String(next.timePrefix);
+  if (next.dayLabel !== undefined) CONFIG.time.day = String(next.dayLabel);
+  if (next.hourLabel !== undefined) CONFIG.time.hour = String(next.hourLabel);
+  if (next.minuteLabel !== undefined) CONFIG.time.minute = String(next.minuteLabel);
+  if (next.secondLabel !== undefined) CONFIG.time.second = String(next.secondLabel);
+  if (next.seedText !== undefined) CONFIG.seedText = String(next.seedText);
+  if (next.musicUrl !== undefined) CONFIG.musicUrl = String(next.musicUrl);
+};
