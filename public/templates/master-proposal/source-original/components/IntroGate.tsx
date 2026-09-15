@@ -98,7 +98,7 @@ export const IntroGate: React.FC<IntroGateProps> = ({ onComplete }) => {
             <div className="mb-8 inline-block p-4 rounded-full border border-love-accent/10 dark:border-love-dark-accent/10">
                <Heart className="w-8 h-8 text-love-accent/60 dark:text-love-dark-accent/60" strokeWidth={1} />
             </div>
-            <h2 className="font-serif text-3xl md:text-5xl text-love-text dark:text-love-dark-text font-light italic tracking-wide">
+            <h2 className="font-serif text-3xl md:text-5xl text-love-text dark:text-love-dark-text font-light italic tracking-wide" data-bb-key="introGate.firstLine" data-bb-label="Intro — first line">
               {FIRST_LINE}
             </h2>
           </motion.div>
@@ -113,10 +113,10 @@ export const IntroGate: React.FC<IntroGateProps> = ({ onComplete }) => {
             exit="exit"
             className="text-center"
           >
-            <p className="font-sans text-xs md:text-sm tracking-[0.3em] uppercase text-love-accent/80 dark:text-love-dark-accent/80 mb-6">
+            <p className="font-sans text-xs md:text-sm tracking-[0.3em] uppercase text-love-accent/80 dark:text-love-dark-accent/80 mb-6" data-bb-key="introGate.secondLineLabel" data-bb-label="Intro — second line label">
               {SECOND_LINE_LABEL}
             </p>
-            <h2 className="font-serif text-3xl md:text-5xl text-love-text dark:text-love-dark-text font-light italic tracking-wide">
+            <h2 className="font-serif text-3xl md:text-5xl text-love-text dark:text-love-dark-text font-light italic tracking-wide" data-bb-key="introGate.secondLine" data-bb-label="Intro — second line">
               {SECOND_LINE}
             </h2>
           </motion.div>
@@ -149,10 +149,10 @@ export const IntroGate: React.FC<IntroGateProps> = ({ onComplete }) => {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <h1 className="font-serif text-3xl md:text-5xl lg:text-6xl text-love-text dark:text-love-dark-text italic mb-4 leading-tight px-4">
+                  <h1 className="font-serif text-3xl md:text-5xl lg:text-6xl text-love-text dark:text-love-dark-text italic mb-4 leading-tight px-4" data-bb-key="introGate.prompts" data-bb-index={rejectionCount} data-bb-label={`Question ${rejectionCount + 1}`}>
                     {currentPrompt.title}
                   </h1>
-                  <p className="text-lg md:text-xl text-love-text/60 dark:text-love-dark-text/60 font-light">
+                  <p className="text-lg md:text-xl text-love-text/60 dark:text-love-dark-text/60 font-light" data-bb-key="introGate.prompts" data-bb-index={rejectionCount} data-bb-label={`Question ${rejectionCount + 1} subtitle`}>
                     {currentPrompt.subtitle}
                   </p>
                 </motion.div>
@@ -178,7 +178,7 @@ export const IntroGate: React.FC<IntroGateProps> = ({ onComplete }) => {
                 whileTap={{ scale: yesButtonScale * 0.95 }}
               >
                 <span className="absolute inset-0 w-full h-full bg-love-accent/5 dark:bg-love-dark-accent/5 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-700" />
-                <span className="relative font-sans text-sm tracking-[0.25em] uppercase text-love-text group-hover:text-love-accent dark:text-love-dark-text dark:group-hover:text-love-dark-accent transition-colors duration-500 whitespace-nowrap">
+                <span className="relative font-sans text-sm tracking-[0.25em] uppercase text-love-text group-hover:text-love-accent dark:text-love-dark-text dark:group-hover:text-love-dark-accent transition-colors duration-500 whitespace-nowrap" data-bb-key="introGate.yesButtonText" data-bb-label="Yes button text">
                   {YES_TEXT}
                 </span>
               </motion.button>
@@ -189,6 +189,8 @@ export const IntroGate: React.FC<IntroGateProps> = ({ onComplete }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 3, duration: 1 }}
+                data-bb-key={rejectionCount === 0 ? 'introGate.noButtonText' : 'introGate.noButtonTextRepeat'}
+                data-bb-label={rejectionCount === 0 ? 'No button text (first tap)' : 'No button text (after that)'}
               >
                 {rejectionCount === 0 ? NO_TEXT_FIRST : NO_TEXT_REPEAT}
               </motion.button>

@@ -64,14 +64,33 @@ export function getMissYouDefaults() {
   } as Record<string, unknown>;
 }
 
-function MasterProposalTemplate({ content }: { content: BirthdayContent }) {
+function MasterProposalTemplate({ content, editorMode, onElementSelect }: { content: BirthdayContent; editorMode?: boolean; onElementSelect?: (selection: { key: string; label: string; index?: number; value: string }) => void }) {
   const [config, setConfig] = React.useState(() => ({ ...getMasterProposalDefaults(), ...(content.templateConfig || {}) }));
+  const frameRef = React.useRef<HTMLIFrameElement>(null);
   React.useEffect(() => {
     const next = { ...getMasterProposalDefaults(), ...(content.templateConfig || {}) };
     setConfig(next);
   }, [content.templateConfig]);
   const src = React.useMemo(() => `/templates/master-proposal/index.html?config=${encodeURIComponent(JSON.stringify(config))}`, [config]);
-  return <iframe title="Master Proposal" src={src} style={{ width: '100%', height: '100vh', minHeight: 760, border: 0, display: 'block', background: '#FAF9F6' }} />;
+  React.useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return;
+    const post = () => frame.contentWindow?.postMessage({ type: 'BB_EDITOR_MODE', enabled: !!editorMode }, '*');
+    const onLoad = () => post();
+    frame.addEventListener('load', onLoad);
+    post();
+    return () => frame.removeEventListener('load', onLoad);
+  }, [editorMode, src]);
+  React.useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (event.data?.type === 'BB_ELEMENT_SELECTED' && event.source === frameRef.current?.contentWindow) {
+        onElementSelect?.(event.data.selection);
+      }
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [onElementSelect]);
+  return <iframe ref={frameRef} title="Master Proposal" src={src} style={{ width: '100%', height: '100vh', minHeight: 760, border: 0, display: 'block', background: '#FAF9F6' }} />;
 }
 
 export function getMasterProposalDefaults() {
@@ -190,10 +209,10 @@ export function getMasterProposalDefaults() {
   } as Record<string, unknown>;
 }
 
-export default function ExperienceTemplate({variant='romantic',content}:{variant?:string;content:BirthdayContent}){
+export default function ExperienceTemplate({variant='romantic',content,editorMode,onElementSelect}:{variant?:string;content:BirthdayContent;editorMode?:boolean;onElementSelect?:(selection:{key:string;label:string;index?:number;value:string})=>void}){
  if (variant === 'wedding-proposal') return <WeddingProposalTemplate content={content} />;
  if (variant === 'miss-you-1') return <MissYouTemplate content={content} />;
- if (variant === 'master-proposal') return <MasterProposalTemplate content={content} />;
+ if (variant === 'master-proposal') return <MasterProposalTemplate content={content} editorMode={editorMode} onElementSelect={onElementSelect} />;
  const p=presets[variant]||presets.romantic; const gallery=content.gallery||[];
  return <div style={{minHeight:'100%',background:p.surface,color:variant==='minimal'||variant==='elegant'?'#111827':'white',fontFamily:'ui-sans-serif,system-ui'}}>
   <section style={{padding:'72px 24px',textAlign:'center',background:`radial-gradient(circle at 20% 10%, ${p.accent}55, transparent 35%), ${p.surface}`}}>

@@ -193,17 +193,17 @@ ${config.fromLabel}
   return (
     <div className="w-full max-w-6xl mx-auto text-center px-4">
       <div className="mb-12">
-        <h2 className="font-serif text-3xl md:text-5xl mb-4 text-love-text dark:text-love-dark-text">
+        <h2 className="font-serif text-3xl md:text-5xl mb-4 text-love-text dark:text-love-dark-text" data-bb-key="datePlanner.heading" data-bb-label="Date planner heading">
           {HEADING}
         </h2>
-        <p className="text-love-accent dark:text-love-dark-accent/80 mb-2">
+        <p className="text-love-accent dark:text-love-dark-accent/80 mb-2" data-bb-key="datePlanner.subtitle" data-bb-label="Date planner subtitle">
           {SUBTITLE}
         </p>
       </div>
 
       {/* Grid Layout: 6 Regular options (3 columns x 2 rows on desktop) + 1 Special (Full width) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
-        {DATE_OPTIONS.map((option) => (
+        {DATE_OPTIONS.map((option, optIndex) => (
           <motion.button
             key={option.id}
             onClick={() => setSelected(option.id)}
@@ -240,7 +240,7 @@ ${config.fromLabel}
               {option.icon}
             </div>
             <div className="flex flex-col">
-              <span className={`font-serif text-lg leading-tight ${option.isSpecial ? 'font-bold text-amber-800 dark:text-amber-200' : 'text-love-text dark:text-love-dark-text'}`}>
+              <span className={`font-serif text-lg leading-tight ${option.isSpecial ? 'font-bold text-amber-800 dark:text-amber-200' : 'text-love-text dark:text-love-dark-text'}`} data-bb-key="datePlanner.options" data-bb-index={optIndex} data-bb-label={`Date option ${optIndex + 1} — card label`}>
                 {option.label}
               </span>
               <span className="text-xs uppercase tracking-wider text-love-accent/60 dark:text-love-dark-accent/60 mt-2">
@@ -334,7 +334,7 @@ ${config.fromLabel}
                     whileTap={{ scale: isSending ? 1 : 0.98 }}
                   >
                     {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                    {isSending ? 'Sending…' : SEND_LABEL}
+                    <span data-bb-key="datePlanner.sendButtonLabel" data-bb-label="Send-ticket button text">{isSending ? 'Sending…' : SEND_LABEL}</span>
                   </motion.button>
 
                   <p className="mt-4 text-[10px] text-love-text/40 dark:text-love-dark-text/40 uppercase">

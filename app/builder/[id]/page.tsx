@@ -209,6 +209,7 @@ export default function Builder() {
   const activeTab = visibleTabs.find(x => x[0] === tab) || visibleTabs[0];
   useEffect(() => {
     if (!visibleTabs.some(([value]) => value === tab)) setTab('overview');
+    setSelectedElement(null);
   }, [templateId]);
   const previewContent = useMemo(() => ({ ...c, occasion, templateId }), [c, occasion, templateId]);
   const resetToMasterDefaults = () => {
@@ -262,8 +263,37 @@ export default function Builder() {
                 <textarea rows={3} value={c.reasons[selectedElement.index] || ''} onChange={e=>{const reasons=[...c.reasons]; reasons[selectedElement.index!] = e.target.value; update({reasons});}} />
               ) : selectedElement.key === 'greeting' ? (
                 <input value={c.greeting} onChange={e=>update({greeting:e.target.value})} />
-              ) : (['heroSubtitle','heroTitle','secret','buttonText'].includes(selectedElement.key)) ? (
+              ) : (['heroSubtitle','heroTitle','secret','buttonText'].includes(selectedElement.key) && templateId !== 'master-proposal') ? (
                 <textarea rows={selectedElement.key==='heroSubtitle'||selectedElement.key==='secret'?3:2} value={String((c as any)[selectedElement.key]||'')} onChange={e=>update({[selectedElement.key]:e.target.value} as Partial<BirthdayContent>)} />
+              ) : templateId === 'master-proposal' ? (
+                selectedElement.key === 'heroTitle' || selectedElement.key === 'heroSubtitle' ? (
+                  <input value={String(masterProposalConfig[selectedElement.key] || '')} onChange={e => updateMasterProposal({ [selectedElement.key]: e.target.value })} />
+                ) : selectedElement.key === 'story' && typeof selectedElement.index === 'number' ? (() => {
+                  const story = (Array.isArray(masterProposalConfig.story) ? masterProposalConfig.story : []) as { title: string; body: string }[];
+                  const item = story[selectedElement.index!] || { title: '', body: '' };
+                  const setItem = (patch: Partial<{ title: string; body: string }>) => { const next = [...story]; next[selectedElement.index!] = { ...item, ...patch }; updateMasterProposal({ story: next }); };
+                  return <div className="builder-grid-2"><Field label="Chapter title"><input value={item.title} onChange={e => setItem({ title: e.target.value })} /></Field><Field label="Chapter text"><textarea rows={4} value={item.body} onChange={e => setItem({ body: e.target.value })} /></Field></div>;
+                })() : selectedElement.key.startsWith('introGate.') ? (() => {
+                  const field = selectedElement.key.split('.')[1];
+                  const gate = (masterProposalConfig.introGate || {}) as Record<string, any>;
+                  if (field === 'prompts' && typeof selectedElement.index === 'number') {
+                    const prompts = (Array.isArray(gate.prompts) ? gate.prompts : []) as { title: string; subtitle: string }[];
+                    const item = prompts[selectedElement.index] || { title: '', subtitle: '' };
+                    const setItem = (patch: Partial<{ title: string; subtitle: string }>) => { const next = [...prompts]; next[selectedElement.index!] = { ...item, ...patch }; updateMasterProposal({ introGate: { ...gate, prompts: next } }); };
+                    return <div className="builder-grid-2"><Field label="Question"><input value={item.title} onChange={e => setItem({ title: e.target.value })} /></Field><Field label="Subtitle"><input value={item.subtitle} onChange={e => setItem({ subtitle: e.target.value })} /></Field></div>;
+                  }
+                  return <input value={String(gate[field] || '')} onChange={e => updateMasterProposal({ introGate: { ...gate, [field]: e.target.value } })} />;
+                })() : selectedElement.key.startsWith('datePlanner.') ? (() => {
+                  const field = selectedElement.key.split('.')[1];
+                  const planner = (masterProposalConfig.datePlanner || {}) as Record<string, any>;
+                  if (field === 'options' && typeof selectedElement.index === 'number') {
+                    const options = (Array.isArray(planner.options) ? planner.options : []) as any[];
+                    const item = options[selectedElement.index] || {};
+                    const setItem = (patch: Record<string, unknown>) => { const next = [...options]; next[selectedElement.index!] = { ...item, ...patch }; updateMasterProposal({ datePlanner: { ...planner, options: next } }); };
+                    return <div className="builder-grid-2"><Field label="Card label"><input value={item.label || ''} onChange={e => setItem({ label: e.target.value })} /></Field><Field label="Ticket title"><input value={item.planTitle || ''} onChange={e => setItem({ planTitle: e.target.value })} /></Field></div>;
+                  }
+                  return <input value={String(planner[field] || '')} onChange={e => updateMasterProposal({ datePlanner: { ...planner, [field]: e.target.value } })} />;
+                })() : null
               ) : null}
             </section>}
             {templateId === 'miss-you-1' && tab === 'overview' && <>
@@ -552,7 +582,7 @@ export default function Builder() {
   {templateId !== 'wedding-proposal' && templateId !== 'miss-you-1' && <button className={`builder-device ${editorMode?'active':''}`} onClick={()=>setEditorMode(v=>!v)}>✎ Edit on canvas</button>}
 </div></div>
           {status === 'published' && publicUrl && <div className="builder-live-link"><div><span>YOUR LIVE LINK</span><strong>{publicUrl}</strong></div><div className="builder-live-link-actions"><button onClick={() => navigator.clipboard?.writeText(publicUrl)}>Copy link</button><a href={publicUrl} target="_blank" rel="noreferrer">Open ↗</a></div></div>}
-          <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}>{templateId === 'master' ? <MasterTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div>
+          <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}>{templateId === 'master' ? <MasterTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div>
         </section>
       </section>
     </div>

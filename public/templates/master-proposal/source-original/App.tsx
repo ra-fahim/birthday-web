@@ -6,6 +6,7 @@ import { IntroGate } from './components/IntroGate';
 import { InAppBrowserGuard } from './components/InAppBrowserGuard';
 import { STORY_DATA as DEFAULT_STORY_DATA } from './data';
 import { getSiteConfig } from './utils/siteConfig';
+import { initEditorBridge } from './utils/editorBridge';
 
 // Lazy load heavy components
 const FinalLetter = React.lazy(() => import('./components/FinalLetter').then(module => ({ default: module.FinalLetter })));
@@ -211,6 +212,8 @@ const App: React.FC = () => {
   const heroSubtitle = siteConfig.heroSubtitle?.trim() || 'Scroll slowly';
   const STORY_DATA = siteConfig.story?.length ? siteConfig.story : DEFAULT_STORY_DATA;
 
+  useEffect(() => { initEditorBridge(); }, []);
+
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
@@ -388,6 +391,7 @@ const App: React.FC = () => {
           animate={isIntroComplete ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           transition={{ duration: 1.5, delay: 0.8, ease: "easeOut" }}
           className="font-serif text-5xl md:text-7xl lg:text-8xl font-light italic mb-6 text-love-text dark:text-love-dark-text tracking-tight drop-shadow-sm"
+          data-bb-key="heroTitle" data-bb-label="Hero title"
         >
           {heroTitle}
         </motion.h1>
@@ -397,6 +401,7 @@ const App: React.FC = () => {
           animate={isIntroComplete ? { opacity: 1 } : { opacity: 0 }}
           transition={{ duration: 1.5, delay: 1.3 }}
           className="text-sm md:text-base uppercase tracking-[0.3em] text-love-accent/80 dark:text-love-dark-accent/80 mt-4 font-medium"
+          data-bb-key="heroSubtitle" data-bb-label="Hero subtitle"
         >
           {heroSubtitle}
         </motion.p>
@@ -433,6 +438,7 @@ const App: React.FC = () => {
               viewport={{ once: true, margin: "-10%" }}
               transition={{ duration: 1.1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
               className="font-serif text-3xl md:text-5xl lg:text-6xl leading-tight mb-8 text-love-text dark:text-love-dark-text"
+              data-bb-key="story" data-bb-index={index} data-bb-label={`Story chapter ${index + 1} title`}
             >
               {item.title}
             </motion.h2>
@@ -444,6 +450,7 @@ const App: React.FC = () => {
               viewport={{ once: true, margin: "-10%" }}
               transition={{ duration: 1.2, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
               className="text-lg md:text-xl leading-relaxed text-love-text/80 dark:text-love-dark-text/80 font-light max-w-xl mx-auto"
+              data-bb-key="story" data-bb-index={index} data-bb-label={`Story chapter ${index + 1} text`}
             >
               {item.body}
             </motion.p>
