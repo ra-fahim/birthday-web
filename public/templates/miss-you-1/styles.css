@@ -152,3 +152,70 @@ body {
 #clock .digit {
   font-size: 64px;
 }
+
+/* ===========================
+   Mobile Layout (phones)
+   =========================== */
+/* On desktop/tablet the letter + countdown live inside the scaled 1100x680
+   stage next to the tree, which is how the original design intends them.
+   On narrow phones that same stage would need to shrink to ~35% of its
+   size to fit the width, making that text unreadable — so on phones
+   js/ui.js physically moves #letter and #clock-box out of the scaled
+   stage into #mobile-content below it, and these rules give them normal,
+   always-legible sizing instead of fixed stage-pixel positioning. */
+
+#mobile-content {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  body {
+    display: block;
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: auto;
+    min-height: 100svh;
+    padding: 28px 0 48px;
+  }
+
+  #viewport {
+    margin: 0 auto;
+  }
+
+  #mobile-content {
+    display: block;
+    width: min(92vw, 440px);
+    margin: 22px auto 0;
+    z-index: 5;
+  }
+
+  #mobile-content #letter {
+    position: static;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    left: auto;
+    top: auto;
+    font-size: clamp(14px, 4.2vw, 17px);
+    line-height: 1.55;
+    overflow: visible;
+  }
+
+  #mobile-content #clock-box {
+    position: static;
+    left: auto;
+    top: auto;
+    margin-top: 26px;
+    font-size: clamp(15px, 4.4vw, 20px);
+  }
+
+  #mobile-content #clock {
+    margin-left: 0;
+    margin-top: 8px;
+    display: block;
+  }
+
+  #mobile-content #clock .digit {
+    font-size: clamp(26px, 9vw, 40px);
+  }
+}

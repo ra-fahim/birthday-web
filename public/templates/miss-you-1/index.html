@@ -29,10 +29,10 @@
   <!-- Main Container -->
   <div id="viewport">
     <div id="main">
-      <!-- Love Letter Content -->
+      <!-- Love Letter Content (moved into #mobile-content on narrow screens) -->
       <div id="letter" role="article"></div>
       
-      <!-- Time Counter -->
+      <!-- Time Counter (moved into #mobile-content on narrow screens) -->
       <div id="clock-box" role="timer">
         <div id="clock-text"></div>
         <div id="clock"></div>
@@ -48,6 +48,11 @@
       <canvas id="canvas" aria-label="Animated tree with hearts"></canvas>
     </div>
   </div>
+
+  <!-- On phones, the letter + countdown get moved in here (see js/ui.js
+       setupMobileLayout) so they read as a normal, always-legible block
+       below the tree art instead of tiny text scaled with the canvas. -->
+  <div id="mobile-content" aria-hidden="false"></div>
   
   <!-- Main Script -->
   <script src="js/geometry.js"></script>

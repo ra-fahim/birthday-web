@@ -135,8 +135,8 @@
         .photo-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; overflow-y:auto; background:linear-gradient(135deg,#ffd1dc 0%,#e6e6fa 25%,#ffefd5 50%,#e6e6fa 75%,#ffd1dc 100%); background-size:400% 400%; animation:gradientFlow 15s ease infinite; z-index:700; padding:80px 20px 40px; }
         .photo-screen.show { display:block; }
         @keyframes gradientFlow { 0%{ background-position:0% 50%; } 50%{ background-position:100% 50%; } 100%{ background-position:0% 50%; } }
-        .photo-header h1 { font-family:'Dancing Script',cursive; font-size:3rem; color:#b0306e; text-shadow:2px 2px 8px rgba(255,255,255,0.8); margin-bottom:1rem; text-align:center; }
-        .photo-header p { font-size:1.2rem; max-width:600px; margin:0 auto 2rem; line-height:1.6; color:#2c3e50; font-weight:600; text-shadow:1px 1px 4px rgba(255,255,255,0.8); text-align:center; }
+        .photo-header h1 { font-family:'Dancing Script',cursive; font-size:clamp(2rem,8vw,3rem); color:#b0306e; text-shadow:2px 2px 8px rgba(255,255,255,0.8); margin-bottom:1rem; text-align:center; }
+        .photo-header p { font-size:clamp(1rem,3.6vw,1.2rem); max-width:600px; margin:0 auto 2rem; line-height:1.6; color:#2c3e50; font-weight:600; text-shadow:1px 1px 4px rgba(255,255,255,0.8); text-align:center; padding:0 4vw; box-sizing:border-box; }
         .photo-container { max-width:1200px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:2rem; }
         .photo-card { background:rgba(255,255,255,0.9); border-radius:20px; padding:1.5rem; box-shadow:0 10px 20px rgba(0,0,0,0.1); transition:all 0.5s cubic-bezier(0.4,0,0.2,1); position:relative; overflow:hidden; cursor:pointer; }
         .photo-card:hover { transform:translateY(-10px) scale(1.02); box-shadow:0 15px 30px rgba(0,0,0,0.15); }
@@ -232,8 +232,9 @@
         .close-contact-btn { margin-top:25px; background:transparent; color:white; border:2px solid gold; padding:10px 25px; border-radius:30px; font-size:15px; font-weight:bold; cursor:pointer; width:100%; transition:0.3s; text-shadow:1px 1px 2px rgba(0,0,0,0.5); }
         .close-contact-btn:hover { background:gold; color:black; transform:scale(1.03); }
         @media (max-width:768px) { 
-            .reasons-header h1 { font-size:2.5rem; } 
-            .photo-header h1 { font-size:2.5rem; } 
+            /* Heading sizes are already fluid via clamp() above; this
+               breakpoint now only handles layout (single-column grids)
+               so photos/videos never get squeezed on narrow phones. */
             .photo-container { grid-template-columns:1fr; } 
             .video-grid { grid-template-columns:1fr; } 
         }

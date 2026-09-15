@@ -65,11 +65,25 @@ function scaleContent() {
   const main = document.getElementById("main");
 
   function resize() {
-    const scale = Math.min(
-      window.innerWidth / StageConfig.width,
-      window.innerHeight / StageConfig.height,
-      1
-    );
+    let scale;
+    if (isMobileLayout()) {
+      // On phones the letter + countdown no longer live inside this stage
+      // (see setupMobileLayout), so the tree/canvas art is just a
+      // decorative strip — cap it to a portion of the viewport height
+      // instead of trying to fit the whole 680px-tall stage on screen.
+      const maxHeight = window.innerHeight * 0.44;
+      scale = Math.min(
+        window.innerWidth / StageConfig.width,
+        maxHeight / StageConfig.height,
+        1
+      );
+    } else {
+      scale = Math.min(
+        window.innerWidth / StageConfig.width,
+        window.innerHeight / StageConfig.height,
+        1
+      );
+    }
     viewport.style.width = `${StageConfig.width * scale}px`;
     viewport.style.height = `${StageConfig.height * scale}px`;
     main.style.transform = `scale(${scale})`;
@@ -77,6 +91,35 @@ function scaleContent() {
 
   resize();
   window.addEventListener("resize", resize);
+}
+
+// ===========================
+// Mobile Layout Adaptation
+// ===========================
+// On narrow phones, scaling the whole 1100x680 stage down to fit the width
+// shrinks the letter + countdown text far below a readable size. Instead,
+// on phones we physically move #letter and #clock-box out of the scaled
+// stage into #mobile-content, a normal below-the-fold block with its own
+// always-legible, viewport-relative CSS (see styles.css). The tree/canvas
+// art stays inside the stage as a compact decorative scene up top.
+
+const MOBILE_BREAKPOINT = 700;
+
+function isMobileLayout() {
+  return window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches;
+}
+
+function setupMobileLayout() {
+  if (!isMobileLayout()) return;
+
+  const panel = document.getElementById("mobile-content");
+  const letter = document.getElementById("letter");
+  const clockBox = document.getElementById("clock-box");
+  if (!panel || !letter || !clockBox) return;
+
+  panel.appendChild(letter);
+  panel.appendChild(clockBox);
+  document.body.classList.add("mobile-layout");
 }
 
 // ===========================
@@ -154,6 +197,13 @@ const LETTER_FIT = {
 
 function fitLetter(letter) {
   if (!letter) return;
+
+  // On phones the letter sits in the normal document flow with its own
+  // clamp()-based CSS font size (see styles.css) and can never collide
+  // with anything below it, so the fixed-stage shrink-to-fit logic below
+  // — which is only meaningful for the absolutely-positioned desktop box
+  // — is skipped entirely here.
+  if (document.body.classList.contains("mobile-layout")) return;
 
   // Measure while laid out but invisible, then restore the original state.
   const prevDisplay = letter.style.display;

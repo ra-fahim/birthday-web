@@ -26,7 +26,7 @@ export const templateCatalog: TemplateDefinition[] = [
     slug: 'wedding-proposal',
     name: 'Wedding Proposal',
     description: 'The exact Wedding Proposal experience you supplied.',
-    category: 'proposal',
+    category: 'wedding',
     emoji: '💍',
     accent: '#ff2d55',
     kind: 'wedding-proposal',

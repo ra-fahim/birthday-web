@@ -29,6 +29,13 @@ const OCCASIONS = [
 
 const TEMPLATES = templateCatalog.map((t) => [t.slug, t.name, t.description] as const);
 
+// Only occasions that actually have an installed template show up in the
+// Occasion picker — an empty category is just noise for the person building
+// their site. OCCASIONS itself stays complete so labels/emoji still resolve
+// correctly for older sites already saved under a category that has since
+// lost its last template.
+const AVAILABLE_OCCASIONS = OCCASIONS.filter(([value]) => templateCatalog.some((t) => t.category === value));
+
 function templatesForOccasion(nextOccasion: string) {
   return templateCatalog.filter((t) => t.category === nextOccasion);
 }
@@ -182,15 +189,30 @@ export default function Builder() {
       if (j.status) setStatus(j.status);
       const storedOccasion = typeof j.content?.occasion === 'string' ? j.content.occasion : 'birthday';
       const storedTemplate = typeof j.templateId === 'string' ? j.templateId : 'master';
-      const occasionTemplates = templatesForOccasion(storedOccasion);
-      const storedTemplateIsValid = occasionTemplates.some((t) => t.slug === storedTemplate);
-      // Always keep the selected experience inside the selected occasion.
-      // Older projects that pointed at Master for another occasion are moved to that occasion's first installed template;
-      // if no template exists yet, the studio stays explicitly empty instead of showing the wrong template.
-      const resolvedTemplate = storedTemplateIsValid ? storedTemplate : (occasionTemplates[0]?.slug ?? '');
+      const storedTemplateEntry = templateCatalog.find((t) => t.slug === storedTemplate);
+      let resolvedTemplate: string;
+      let resolvedOccasion: string;
+      if (storedTemplateEntry) {
+        // The template itself still exists — trust its own category as the
+        // source of truth. This keeps older sites pointed at the same
+        // template even after a template gets moved to a different
+        // occasion (e.g. Wedding Proposal moving from Proposal to
+        // Wedding); the site's occasion just gets silently corrected to
+        // match instead of the template being swapped out from under them.
+        resolvedTemplate = storedTemplateEntry.slug;
+        resolvedOccasion = storedTemplateEntry.category;
+      } else {
+        // Template no longer installed at all — fall back to whatever the
+        // stored occasion's first installed template is; if none exists
+        // yet, the studio stays explicitly empty instead of showing the
+        // wrong template.
+        const occasionTemplates = templatesForOccasion(storedOccasion);
+        resolvedTemplate = occasionTemplates[0]?.slug ?? '';
+        resolvedOccasion = storedOccasion;
+      }
       setTemplateId(resolvedTemplate);
-      setOccasion(storedOccasion);
-      if (resolvedTemplate !== storedTemplate) setDirty(true);
+      setOccasion(resolvedOccasion);
+      if (resolvedTemplate !== storedTemplate || resolvedOccasion !== storedOccasion) setDirty(true);
       if (j.slug) setPublicUrl(`${window.location.origin}/site/${j.slug}`);
     });
   }, [id]);
@@ -285,7 +307,7 @@ export default function Builder() {
         </div>
 
         <div className="builder-selector-grid">
-          <div><span>Occasion</span><select value={occasion} onChange={e => { const nextOccasion = e.target.value; const nextTemplate = firstTemplateForOccasion(nextOccasion); setOccasion(nextOccasion); setTemplateId(nextTemplate); if (nextTemplate === 'miss-you-1' && !c.templateConfig) setC(prev => ({ ...prev, templateConfig: getMissYouDefaults() })); if (nextTemplate === 'master-proposal' && !c.templateConfig) setC(prev => ({ ...prev, templateConfig: getMasterProposalDefaults() })); setDirty(true); }}>{OCCASIONS.map(([value, emoji, label]) => <option value={value} key={value}>{emoji} {label}</option>)}</select></div>
+          <div><span>Occasion</span><select value={occasion} onChange={e => { const nextOccasion = e.target.value; const nextTemplate = firstTemplateForOccasion(nextOccasion); setOccasion(nextOccasion); setTemplateId(nextTemplate); if (nextTemplate === 'miss-you-1' && !c.templateConfig) setC(prev => ({ ...prev, templateConfig: getMissYouDefaults() })); if (nextTemplate === 'master-proposal' && !c.templateConfig) setC(prev => ({ ...prev, templateConfig: getMasterProposalDefaults() })); setDirty(true); }}>{AVAILABLE_OCCASIONS.map(([value, emoji, label]) => <option value={value} key={value}>{emoji} {label}</option>)}</select></div>
           <div><span>Experience</span><select value={templateId} disabled={!occasionTemplates.length} onChange={e => { setTemplateId(e.target.value); setDirty(true); }}>
             {!occasionTemplates.length && <option value="">No {currentOccasion[2]} template added yet</option>}
             {occasionTemplates.map((t) => <option value={t.slug} key={t.slug}>{t.name}</option>)}

@@ -181,8 +181,25 @@ class Seed {
 
   hover(x, y) {
     const dpr = window.devicePixelRatio || 1;
-    const pixel = this.tree.ctx.getImageData(x * dpr, y * dpr, 1, 1);
-    return pixel.data[3] === 255;
+    // A single exact pixel is a tiny, hard-to-hit target once the whole
+    // stage is scaled down on a phone screen, so touch taps get a small
+    // forgiving radius around the tap point instead of requiring a
+    // pixel-perfect hit.
+    const tolerance = isMobileLayout() ? 10 : 0;
+    if (tolerance === 0) {
+      const pixel = this.tree.ctx.getImageData(x * dpr, y * dpr, 1, 1);
+      return pixel.data[3] === 255;
+    }
+    for (let dx = -tolerance; dx <= tolerance; dx += tolerance) {
+      for (let dy = -tolerance; dy <= tolerance; dy += tolerance) {
+        const px = Math.round((x + dx) * dpr);
+        const py = Math.round((y + dy) * dpr);
+        if (px < 0 || py < 0) continue;
+        const pixel = this.tree.ctx.getImageData(px, py, 1, 1);
+        if (pixel.data[3] === 255) return true;
+      }
+    }
+    return false;
   }
 }
 

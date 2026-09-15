@@ -21,6 +21,7 @@ function startClock(config) {
 // ===========================
 
 async function startApp() {
+  setupMobileLayout();
   initContent(CONFIG);
   applyBackgroundMusic(CONFIG);
 
