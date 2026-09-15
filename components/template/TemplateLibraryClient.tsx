@@ -41,9 +41,46 @@ function DemoFrame({ template }: { template: TemplateDefinition }) {
   );
 }
 
-export default function TemplateLibraryClient({ templates, isAuthenticated }: { templates: TemplateDefinition[]; isAuthenticated: boolean }) {
+function DemoModal({ template, onClose }: { template: TemplateDefinition; onClose: () => void }) {
+  const src = demoSrc[template.slug] || template.originalHtml || '';
+  return (
+    <div className="demo-modal-backdrop" role="dialog" aria-modal="true" aria-label={`${template.name} demo`} onClick={onClose}>
+      <div className="demo-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="demo-modal-head">
+          <div><span className="section-kicker">LIVE DEMO</span><h2>{template.name}</h2></div>
+          <button className="demo-modal-close" type="button" onClick={onClose} aria-label="Close demo">×</button>
+        </div>
+        <div className="demo-modal-frame">
+          <iframe
+            title={`${template.name} demo`}
+            src={src}
+            allow="autoplay; fullscreen; picture-in-picture"
+            onLoad={(e) => {
+              e.currentTarget.contentWindow?.postMessage({ type: 'BB_DEMO_MODE', enabled: true, muted: true }, '*');
+            }}
+          />
+        </div>
+        <div className="demo-modal-footer">
+          <p>Live preview is muted and touch-free.</p>
+          <Link className="premium-button premium-button-sm" href={`/builder/new?template=${template.slug}`}>Use template →</Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function TemplateLibraryClient({
+  templates,
+  isAuthenticated,
+  demoMode = false,
+}: {
+  templates: TemplateDefinition[];
+  isAuthenticated: boolean;
+  demoMode?: boolean;
+}) {
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
+  const [selected, setSelected] = useState<TemplateDefinition | null>(null);
   const normalized = query.trim().toLowerCase();
   const categories = useMemo(() => ['all', ...Array.from(new Set(templates.map((t) => t.category)))], [templates]);
   const filtered = useMemo(() => templates.filter((t) => {
@@ -63,22 +100,12 @@ export default function TemplateLibraryClient({ templates, isAuthenticated }: { 
         <div className="template-search-panel">
           <div className="template-search-wrap">
             <span className="template-search-icon">⌕</span>
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search templates…"
-              aria-label="Search templates"
-            />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={demoMode ? 'Search demos…' : 'Search templates…'} aria-label={demoMode ? 'Search demos' : 'Search templates'} />
             {query && <button type="button" onClick={() => setQuery('')} aria-label="Clear search">×</button>}
           </div>
-          <div className="template-filter-row" role="tablist" aria-label="Template categories">
+          <div className="template-filter-row" role="tablist" aria-label={demoMode ? 'Demo categories' : 'Template categories'}>
             {categories.map((category) => (
-              <button
-                key={category}
-                type="button"
-                className={activeCategory === category ? 'template-filter active' : 'template-filter'}
-                onClick={() => setActiveCategory(category)}
-              >
+              <button key={category} type="button" className={activeCategory === category ? 'template-filter active' : 'template-filter'} onClick={() => setActiveCategory(category)}>
                 {category === 'all' ? 'All' : labels[category] || category}
               </button>
             ))}
@@ -87,46 +114,60 @@ export default function TemplateLibraryClient({ templates, isAuthenticated }: { 
       </div>
 
       <section className="premium-container inner-hero templates-hero template-library-hero">
-        <p className="section-kicker">TEMPLATE LIBRARY</p>
-        <h1>Start with a style.<br /><span>Make it yours.</span></h1>
-        <p>Preview every experience live, muted and touch-free—then choose the one you want to edit.</p>
+        <p className="section-kicker">{demoMode ? 'DEMO LIBRARY' : 'TEMPLATE LIBRARY'}</p>
+        <h1>{demoMode ? <>See it live.<br /><span>Choose your style.</span></> : <>Start with a style.<br /><span>Make it yours.</span></>}</h1>
+        <p>{demoMode ? 'Every card uses the same template presentation. Click any card to open that template’s live demo.' : 'Preview every experience live, muted and touch-free—then choose the one you want to edit.'}</p>
       </section>
 
       <div className="premium-container template-library-results">
-      {filtered.length === 0 ? (
-        <div className="template-empty-state">
-          <span>⌕</span>
-          <h2>No template found</h2>
-          <p>Try another name, style or occasion.</p>
-        </div>
-      ) : Object.entries(grouped).map(([category, items]) => (
-        <div className="template-category" key={category}>
-          <div className="section-heading-row">
-            <div>
-              <p className="section-kicker">{labels[category] || category}</p>
-              <h2>{items.length} ready-to-edit experience{items.length === 1 ? '' : 's'}</h2>
+        {filtered.length === 0 ? (
+          <div className="template-empty-state">
+            <span>⌕</span>
+            <h2>No {demoMode ? 'demo' : 'template'} found</h2>
+            <p>Try another name, style or occasion.</p>
+          </div>
+        ) : Object.entries(grouped).map(([category, items]) => (
+          <div className="template-category" key={category}>
+            <div className="section-heading-row">
+              <div>
+                <p className="section-kicker">{labels[category] || category}</p>
+                <h2>{items.length} ready-to-{demoMode ? 'preview' : 'edit'} experience{items.length === 1 ? '' : 's'}</h2>
+              </div>
+            </div>
+            <div className="library-grid">
+              {items.map((t) => demoMode ? (
+                <button key={t.slug} type="button" className="library-card library-card-live library-card-demo-click" onClick={() => setSelected(t)} aria-label={`Open live demo for ${t.name}`}>
+                  <DemoFrame template={t} />
+                  <div className="library-card-body">
+                    <div className="library-card-copy">
+                      <span className="library-kicker">{t.slug === 'master' ? 'FLAGSHIP' : 'READY TO PREVIEW'}</span>
+                      <h3>{t.name}</h3>
+                      <p>{t.description}</p>
+                    </div>
+                    <span className="library-demo-open-chip">Open demo ↗</span>
+                  </div>
+                </button>
+              ) : (
+                <article className="library-card library-card-live" key={t.slug}>
+                  <DemoFrame template={t} />
+                  <div className="library-card-body">
+                    <div className="library-card-copy">
+                      <span className="library-kicker">{t.slug === 'master' ? 'FLAGSHIP' : 'READY TO EDIT'}</span>
+                      <h3>{t.name}</h3>
+                      <p>{t.description}</p>
+                    </div>
+                    <Link className="premium-button premium-button-sm" href={isAuthenticated ? `/builder/new?template=${t.slug}` : `/signup?next=${encodeURIComponent(`/builder/new?template=${t.slug}`)}`}>
+                      Use template <span>→</span>
+                    </Link>
+                  </div>
+                </article>
+              ))}
             </div>
           </div>
-          <div className="library-grid">
-            {items.map((t) => (
-              <article className="library-card library-card-live" key={t.slug}>
-                <DemoFrame template={t} />
-                <div className="library-card-body">
-                  <div className="library-card-copy">
-                    <span className="library-kicker">{t.slug === 'master' ? 'FLAGSHIP' : 'READY TO EDIT'}</span>
-                    <h3>{t.name}</h3>
-                    <p>{t.description}</p>
-                  </div>
-                  <Link className="premium-button premium-button-sm" href={isAuthenticated ? `/builder/new?template=${t.slug}` : `/signup?next=${encodeURIComponent(`/builder/new?template=${t.slug}`)}`}>
-                    Use template <span>→</span>
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      ))}
+        ))}
       </div>
+
+      {selected && <DemoModal template={selected} onClose={() => setSelected(null)} />}
     </section>
   );
 }
