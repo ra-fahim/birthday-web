@@ -16,7 +16,7 @@ const LoveNotes = React.lazy(() => import('./components/LoveNotes').then(module 
 const ComfortCorner = React.lazy(() => import('./components/ComfortCorner').then(module => ({ default: module.ComfortCorner })));
 const BloomGarden = React.lazy(() => import('./components/BloomGarden').then(module => ({ default: module.BloomGarden })));
 import { MuseumGallery } from './components/MuseumGallery';
-const OurSoundtrack = React.lazy(() => import('./components/OurSoundtrack').then(module => ({ default: module.OurSoundtrack })));
+import { BackgroundMusic } from './components/BackgroundMusic';
 
 // Loading Component - Height matches dynamic viewport height to prevent layout shifts on mobile
 const SectionLoader = () => (
@@ -367,6 +367,9 @@ const App: React.FC = () => {
         )}
       </AnimatePresence>
 
+      {/* Background music — starts only after the intro gate is completed */}
+      <BackgroundMusic start={isIntroComplete} src={siteConfig.bgMusicUrl} />
+
       {/* Progress Bar */}
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 bg-love-accent dark:bg-love-dark-accent origin-left z-50 opacity-50"
@@ -464,13 +467,6 @@ const App: React.FC = () => {
           <MuseumGallery />
         </div>
       </section>
-
-      {/* Our Soundtrack */}
-      <Section className="min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10">
-        <React.Suspense fallback={<SectionLoader />}>
-          <OurSoundtrack isIntroComplete={isIntroComplete} />
-        </React.Suspense>
-      </Section>
 
       {/* Comfort Corner */}
       <Section className="min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10">

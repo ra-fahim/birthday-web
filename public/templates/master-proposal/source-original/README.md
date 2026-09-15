@@ -4,11 +4,11 @@ A personalized, interactive digital experience built with love for Sherry. This 
 
 ## ✨ Features
 
-### 🎵 Our Soundtrack (Mini Player)
-- **Persistent Music:** A mini-player that follows you as you scroll through the experience.
-- **Smart Queue:** Automatically plays the next song in our special playlist.
-- **"Now Playing" Notifications:** Beautiful toast notifications pop up when a new song starts, letting you know what's playing.
-- **Intro-Aware:** The player gracefully appears only after the intro sequence is complete.
+### 🎵 Background Music
+- **One Single Track:** The site owner uploads exactly one audio file in Wishly Studio (Music tab).
+- **Intro-Aware:** Playback starts only after the intro gate is completed, so browsers never block it.
+- **Quiet Control:** A small mute / unmute button sits in the bottom-left corner.
+- **Optional:** No file uploaded means no audio element at all.
 
 ### 📅 Date Planner
 - **Interactive Tickets:** Choose from a curated list of date ideas (e.g., "Capital Town", "Arcade & Ice Cream").

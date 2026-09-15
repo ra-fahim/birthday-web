@@ -22,6 +22,7 @@ function startClock(config) {
 
 async function startApp() {
   initContent(CONFIG);
+  applyBackgroundMusic(CONFIG);
 
   const staticCanvas = initCanvas("static-canvas");
   const groundCanvas = initCanvas("ground-canvas");

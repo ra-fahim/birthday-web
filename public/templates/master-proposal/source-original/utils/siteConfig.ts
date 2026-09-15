@@ -7,7 +7,6 @@
 
 export interface SiteStoryItem { number?: string; title: string; body: string }
 export interface SiteMuseumItem { id?: string; type: 'image' | 'video'; url: string; thumbnail?: string; title: string; date?: string; description: string }
-export interface SiteSong { id?: string; title: string; artist: string; albumArt: string; note: string; audioUrl: string }
 export interface SiteFinalLetter { title?: string; paragraphs?: string[]; signoff?: string }
 export interface SiteIntroPrompt { title: string; subtitle: string }
 export interface SiteIntroGate {
@@ -39,7 +38,8 @@ export interface SiteConfig {
   heroSubtitle?: string;
   story?: SiteStoryItem[];
   museum?: SiteMuseumItem[];
-  songs?: SiteSong[];
+  /** Single looping background track; starts after the intro gate. */
+  bgMusicUrl?: string;
   loveNotes?: string[];
   bucketList?: string[];
   comfortResponses?: Record<string, { label?: string; response?: string }>;

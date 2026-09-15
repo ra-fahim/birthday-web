@@ -112,6 +112,8 @@ function initContent(config) {
     addParagraph(lines);
   });
 
+  fitLetter(letter);
+
   const clockText = document.getElementById("clock-text");
   clockText.textContent = "";
   clockText.appendChild(createName(config.couple.name1));
@@ -134,4 +136,66 @@ function initCanvas(id) {
   canvas.style.height = h + "px";
   canvas.getContext("2d").scale(dpr, dpr);
   return canvas;
+}
+
+// ===========================
+// Letter Auto-Fit
+// ===========================
+// The letter block sits above the names + countdown. A long (or translated)
+// letter used to overflow and collide with them, so the font is scaled down
+// until the whole text fits inside the reserved area.
+
+const LETTER_FIT = {
+  maxFontSize: 16,
+  minFontSize: 9,
+  step: 0.5,
+  lineHeight: 1.45
+};
+
+function fitLetter(letter) {
+  if (!letter) return;
+
+  // Measure while laid out but invisible, then restore the original state.
+  const prevDisplay = letter.style.display;
+  const prevVisibility = letter.style.visibility;
+  letter.style.display = "block";
+  letter.style.visibility = "hidden";
+
+  const available = letter.clientHeight || 470;
+
+  let size = LETTER_FIT.maxFontSize;
+  letter.style.lineHeight = String(LETTER_FIT.lineHeight);
+  letter.style.fontSize = size + "px";
+
+  while (letter.scrollHeight > available && size > LETTER_FIT.minFontSize) {
+    size = Math.round((size - LETTER_FIT.step) * 10) / 10;
+    letter.style.fontSize = size + "px";
+  }
+
+  // Very long letters: tighten the line spacing a little as a last resort.
+  if (letter.scrollHeight > available) {
+    letter.style.lineHeight = "1.2";
+  }
+
+  letter.style.visibility = prevVisibility;
+  letter.style.display = prevDisplay || "none";
+}
+
+// ===========================
+// Background Music
+// ===========================
+// The platform lets the owner upload one track; when they do, it replaces the
+// bundled bgm.mp3. Playback still starts on the first click (seed tap).
+
+function applyBackgroundMusic(config) {
+  const bgm = document.getElementById("bgm");
+  if (!bgm) return;
+
+  const url = typeof config.musicUrl === "string" ? config.musicUrl.trim() : "";
+  if (url) {
+    bgm.textContent = "";
+    bgm.src = url;
+    bgm.load();
+  }
+  bgm.volume = 0.35;
 }

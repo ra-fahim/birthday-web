@@ -299,7 +299,7 @@ export default function Builder() {
           const countFor = (value: string) => templateId === 'master-proposal'
             ? (value === 'story' ? (Array.isArray(masterProposalConfig.story) ? masterProposalConfig.story.length : 0)
               : value === 'gallery' ? (Array.isArray(masterProposalConfig.museum) ? masterProposalConfig.museum.length : 0)
-              : value === 'music' ? (Array.isArray(masterProposalConfig.songs) ? masterProposalConfig.songs.length : 0) : 0)
+              : value === 'music' ? (String(masterProposalConfig.bgMusicUrl || '') ? 1 : 0) : 0)
             : (value === 'story' ? c.reasons.length : value === 'gallery' ? c.gallery.length : value === 'timeline' ? c.timeline.length : value === 'memories' ? c.memories.length : value === 'wishlist' ? c.wishlist.length : 0);
           const filled = trackedTabs.filter(([value]) => countFor(value) > 0).length;
           return trackedTabs.length > 0 ? <div className="builder-progress">
@@ -310,7 +310,7 @@ export default function Builder() {
 
         <nav className="builder-nav">
           <div className="builder-nav-label">EDIT EXPERIENCE</div>
-          {visibleTabs.map(([value, icon, label]) => <button key={value} className={tab === value ? 'active' : ''} onClick={() => setTab(value)}><span>{icon}</span>{label}{templateId !== 'master-proposal' && ['gallery','story','timeline','memories','wishlist'].includes(value) && <b>{value === 'story' ? c.reasons.length : value === 'gallery' ? c.gallery.length : value === 'timeline' ? c.timeline.length : value === 'memories' ? c.memories.length : c.wishlist.length}</b>}{templateId === 'master-proposal' && value === 'story' && <b>{Array.isArray(masterProposalConfig.story) ? masterProposalConfig.story.length : 0}</b>}{templateId === 'master-proposal' && value === 'gallery' && <b>{Array.isArray(masterProposalConfig.museum) ? masterProposalConfig.museum.length : 0}</b>}{templateId === 'master-proposal' && value === 'music' && <b>{Array.isArray(masterProposalConfig.songs) ? masterProposalConfig.songs.length : 0}</b>}</button>)}
+          {visibleTabs.map(([value, icon, label]) => <button key={value} className={tab === value ? 'active' : ''} onClick={() => setTab(value)}><span>{icon}</span>{label}{templateId !== 'master-proposal' && ['gallery','story','timeline','memories','wishlist'].includes(value) && <b>{value === 'story' ? c.reasons.length : value === 'gallery' ? c.gallery.length : value === 'timeline' ? c.timeline.length : value === 'memories' ? c.memories.length : c.wishlist.length}</b>}{templateId === 'master-proposal' && value === 'story' && <b>{Array.isArray(masterProposalConfig.story) ? masterProposalConfig.story.length : 0}</b>}{templateId === 'master-proposal' && value === 'gallery' && <b>{Array.isArray(masterProposalConfig.museum) ? masterProposalConfig.museum.length : 0}</b>}</button>)}
         </nav>
 
         <div className="builder-side-tip"><span>⌘</span><div><b>Easy mode</b><p>Edit here or directly on the page. When ready, create one live link for this website.</p></div></div>
@@ -444,21 +444,9 @@ export default function Builder() {
             </>}
 
             {templateId === 'master-proposal' && tab === 'music' && <>
-              <Section eyebrow="OUR SOUNDTRACK" title="Playlist" description="Choose an audio file straight from your device — or paste a YouTube link or Spotify track link (open.spotify.com/track/…) instead.">
-                <ObjectArrayEditor
-                  title="track"
-                  websiteId={id}
-                  items={(Array.isArray(masterProposalConfig.songs) ? masterProposalConfig.songs : []) as any[]}
-                  fields={[
-                    { key: 'title', label: 'Song title', placeholder: 'Song title' },
-                    { key: 'artist', label: 'Artist', placeholder: 'Artist' },
-                    { key: 'audioUrl', label: 'Audio', placeholder: 'Choose an audio file, or paste a YouTube/Spotify link', upload: { accept: 'audio/*', folder: 'music' } },
-                    { key: 'albumArt', label: 'Album art', placeholder: 'Choose an image (leave blank for YouTube — auto-filled)', upload: { accept: 'image/*', folder: 'gallery' } },
-                    { key: 'note', label: 'Why this song', placeholder: 'For the moment I realized you were the one.', multiline: true },
-                  ]}
-                  newItem={() => ({ id: String(Date.now()), title: '', artist: '', albumArt: '', note: '', audioUrl: '' })}
-                  onChange={items => updateMasterProposal({ songs: items })}
-                />
+              <Section eyebrow="SOUNDTRACK" title="Background music" description="This experience uses one single background track. It starts playing right after your visitor finishes the opening section — no playlist, no extra players.">
+                <SingleMediaUpload kind="audio" url={String(masterProposalConfig.bgMusicUrl || '')} onChange={bgMusicUrl => updateMasterProposal({ bgMusicUrl })} websiteId={id} />
+                <div className="builder-note mt-4">Leave it empty to keep the experience completely silent. Visitors get a small mute button in the corner.</div>
               </Section>
             </>}
 
