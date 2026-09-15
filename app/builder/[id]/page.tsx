@@ -204,7 +204,7 @@ export default function Builder() {
     : templateId === 'miss-you-1'
       ? TABS.filter(([value]) => value === 'overview' || value === 'story' || value === 'music')
       : templateId === 'master-proposal'
-        ? TABS.filter(([value]) => ['overview', 'story', 'gallery', 'music', 'letter'].includes(value))
+        ? TABS.filter(([value]) => ['overview', 'opening', 'story', 'gallery', 'music', 'letter'].includes(value))
         : TABS.filter(([value]) => value !== 'social' || templateId === 'master');
   const activeTab = visibleTabs.find(x => x[0] === tab) || visibleTabs[0];
   useEffect(() => {
@@ -422,7 +422,57 @@ export default function Builder() {
               <Section eyebrow="ORIGINAL HTML" title="Wedding Proposal" description="The preview below is the exact HTML you supplied. This editor only changes the values that HTML actually uses.">
                 <div className="builder-note">Visual design, GSAP animation, sound engine, heart interaction, moving No button, finale, fonts and effects are kept from the original file.</div>
               </Section>
-            </> : <>
+            </> : templateId === 'master-proposal' ? (() => {
+              const gate = (masterProposalConfig.introGate || {}) as Record<string, any>;
+              const updateGate = (patch: Record<string, unknown>) => updateMasterProposal({ introGate: { ...gate, ...patch } });
+              const planner = (masterProposalConfig.datePlanner || {}) as Record<string, any>;
+              const updatePlanner = (patch: Record<string, unknown>) => updateMasterProposal({ datePlanner: { ...planner, ...patch } });
+              return <>
+                <Section eyebrow="THE OPENING QUESTION" title="'Will you be my Valentine?' screen" description="Everything visitors see before the experience even starts — the two lead-in lines, the question itself, and both buttons.">
+                  <div className="builder-grid-2">
+                    <Field label="First line" hint="Shown first, alone on screen."><input value={String(gate.firstLine || '')} onChange={e => updateGate({ firstLine: e.target.value })} placeholder="I made this just for you." /></Field>
+                    <Field label="Second line label" hint="Small label above the second line."><input value={String(gate.secondLineLabel || '')} onChange={e => updateGate({ secondLineLabel: e.target.value })} placeholder="But first" /></Field>
+                    <Field label="Second line"><input value={String(gate.secondLine || '')} onChange={e => updateGate({ secondLine: e.target.value })} placeholder="Before anything else..." /></Field>
+                    <Field label="Yes button text"><input value={String(gate.yesButtonText || '')} onChange={e => updateGate({ yesButtonText: e.target.value })} placeholder="Yes, Forever" /></Field>
+                    <Field label="No button text (first tap)"><input value={String(gate.noButtonText || '')} onChange={e => updateGate({ noButtonText: e.target.value })} placeholder="No" /></Field>
+                    <Field label="No button text (after that)"><input value={String(gate.noButtonTextRepeat || '')} onChange={e => updateGate({ noButtonTextRepeat: e.target.value })} placeholder="Still No?" /></Field>
+                  </div>
+                  <div className="mt-4">
+                    <ObjectArrayEditor
+                      title="teasing prompt"
+                      description="Each time someone taps No, the question changes to the next one in this list. The first one is the real question."
+                      items={(Array.isArray(gate.prompts) ? gate.prompts : []) as { title: string; subtitle: string }[]}
+                      fields={[{ key: 'title', label: 'Question', placeholder: 'Will you be my Valentine?' }, { key: 'subtitle', label: 'Subtitle', placeholder: '...and for a lifetime?' }]}
+                      newItem={() => ({ title: '', subtitle: '' })}
+                      onChange={items => updateGate({ prompts: items })}
+                    />
+                  </div>
+                </Section>
+                <Section eyebrow="DATE PLANNER & TICKET" title="Date options and the ticket button" description="The grid of date ideas visitors pick from, and the button that sends the ticket to your inbox.">
+                  <div className="builder-grid-2">
+                    <Field label="Section heading"><input value={String(planner.heading || '')} onChange={e => updatePlanner({ heading: e.target.value })} placeholder="Let's Plan Our Date Together" /></Field>
+                    <Field label="Section subtitle"><input value={String(planner.subtitle || '')} onChange={e => updatePlanner({ subtitle: e.target.value })} placeholder="Pick what your heart desires." /></Field>
+                    <Field label="Send-ticket button text"><input value={String(planner.sendButtonLabel || '')} onChange={e => updatePlanner({ sendButtonLabel: e.target.value })} placeholder="Send Ticket" /></Field>
+                  </div>
+                  <div className="mt-4">
+                    <ObjectArrayEditor
+                      title="date option"
+                      description="Each card in the date-planner grid. Mark one 'yes' under Special to give it the highlighted full-width VIP style."
+                      items={((Array.isArray(planner.options) ? planner.options : []) as any[]).map(o => ({ ...o, isSpecial: o.isSpecial ? 'yes' : 'no' }))}
+                      fields={[
+                        { key: 'label', label: 'Card label', placeholder: 'Arcade & Ice Cream' },
+                        { key: 'planTitle', label: 'Ticket title', placeholder: 'Retro Arcade Duel' },
+                        { key: 'planDescription', label: 'Ticket description', placeholder: 'Describe the date plan…', multiline: true },
+                        { key: 'budget', label: 'Budget label', placeholder: '$, $$, or Free' },
+                        { key: 'isSpecial', label: 'Special (yes/no)', options: ['no', 'yes'] },
+                      ]}
+                      newItem={() => ({ id: String(Date.now()), label: '', planTitle: '', planDescription: '', budget: '$', isSpecial: 'no' })}
+                      onChange={items => updatePlanner({ options: items.map((it: any) => ({ ...it, isSpecial: it.isSpecial === 'yes' })) })}
+                    />
+                  </div>
+                </Section>
+              </>;
+            })() : <>
               <Section eyebrow="OPENING" title="Shape the first impression" description="Edit the visible hero copy and opening CTA. The animation sequence itself stays intact.">
                 <div className="builder-grid-2">
                   <Field label="Greeting"><input value={c.greeting} onChange={e => update({ greeting: e.target.value })} placeholder="Happy Birthday" /></Field>

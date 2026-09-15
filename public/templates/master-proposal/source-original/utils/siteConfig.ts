@@ -9,6 +9,30 @@ export interface SiteStoryItem { number?: string; title: string; body: string }
 export interface SiteMuseumItem { id?: string; type: 'image' | 'video'; url: string; thumbnail?: string; title: string; date?: string; description: string }
 export interface SiteSong { id?: string; title: string; artist: string; albumArt: string; note: string; audioUrl: string }
 export interface SiteFinalLetter { title?: string; paragraphs?: string[]; signoff?: string }
+export interface SiteIntroPrompt { title: string; subtitle: string }
+export interface SiteIntroGate {
+  firstLine?: string;
+  secondLineLabel?: string;
+  secondLine?: string;
+  prompts?: SiteIntroPrompt[];
+  yesButtonText?: string;
+  noButtonText?: string;
+  noButtonTextRepeat?: string;
+}
+export interface SiteDateOption {
+  id?: string;
+  label: string;
+  planTitle: string;
+  planDescription: string;
+  budget?: string;
+  isSpecial?: boolean;
+}
+export interface SiteDatePlanner {
+  heading?: string;
+  subtitle?: string;
+  sendButtonLabel?: string;
+  options?: SiteDateOption[];
+}
 
 export interface SiteConfig {
   heroTitle?: string;
@@ -20,6 +44,8 @@ export interface SiteConfig {
   bucketList?: string[];
   comfortResponses?: Record<string, { label?: string; response?: string }>;
   finalLetter?: SiteFinalLetter;
+  introGate?: SiteIntroGate;
+  datePlanner?: SiteDatePlanner;
   // Ticket / date-planner delivery settings (see ticketConfig.ts for the
   // narrower reader already used by DatePlanner).
   recipientEmail?: string;

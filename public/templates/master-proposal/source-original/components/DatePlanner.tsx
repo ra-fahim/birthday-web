@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Utensils, Map, BookOpen, Send, Ticket, Heart, Clock, Sparkles, Palette, Coffee, Building2, Feather, Gamepad2, Loader2 } from 'lucide-react';
 import { Toast } from './Toast';
 import { getTicketConfig } from '../utils/ticketConfig';
+import { getSiteConfig } from '../utils/siteConfig';
 
 interface DateOption {
   id: string;
@@ -14,8 +15,14 @@ interface DateOption {
   isSpecial?: boolean;
 }
 
+const FALLBACK_ICONS = [
+  <Feather className="w-6 h-6" />, <Coffee className="w-6 h-6" />, <Palette className="w-6 h-6" />,
+  <Gamepad2 className="w-6 h-6" />, <Ticket className="w-6 h-6" />, <BookOpen className="w-6 h-6" />,
+  <Building2 className="w-6 h-6" />,
+];
+
 // Student & Budget Friendly Options
-const DATE_OPTIONS: DateOption[] = [
+const DEFAULT_DATE_OPTIONS: DateOption[] = [
   {
     id: 'massage',
     label: 'Massage & Class',
@@ -77,6 +84,23 @@ const DATE_OPTIONS: DateOption[] = [
 ];
 
 export const DatePlanner: React.FC = () => {
+  const siteConfig = getSiteConfig();
+  const planner = siteConfig.datePlanner || {};
+  const HEADING = planner.heading?.trim() || "Let's Plan Our Date Together";
+  const SUBTITLE = planner.subtitle?.trim() || 'Pick what your heart desires.';
+  const SEND_LABEL = planner.sendButtonLabel?.trim() || 'Send Ticket';
+  const DATE_OPTIONS: DateOption[] = (planner.options && planner.options.length)
+    ? planner.options.map((opt, i) => ({
+        id: opt.id || `custom-${i}`,
+        label: opt.label,
+        planTitle: opt.planTitle,
+        planDescription: opt.planDescription,
+        budget: opt.budget || '$',
+        isSpecial: opt.isSpecial,
+        icon: FALLBACK_ICONS[i % FALLBACK_ICONS.length],
+      }))
+    : DEFAULT_DATE_OPTIONS;
+
   const [selected, setSelected] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string>('Afternoon (Before Work)');
   const [showToast, setShowToast] = useState(false);
@@ -170,10 +194,10 @@ ${config.fromLabel}
     <div className="w-full max-w-6xl mx-auto text-center px-4">
       <div className="mb-12">
         <h2 className="font-serif text-3xl md:text-5xl mb-4 text-love-text dark:text-love-dark-text">
-          Let's Plan Our Date Together
+          {HEADING}
         </h2>
         <p className="text-love-accent dark:text-love-dark-accent/80 mb-2">
-          Pick what your heart desires.
+          {SUBTITLE}
         </p>
       </div>
 
@@ -310,7 +334,7 @@ ${config.fromLabel}
                     whileTap={{ scale: isSending ? 1 : 0.98 }}
                   >
                     {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                    {isSending ? 'Sending…' : 'Send Ticket'}
+                    {isSending ? 'Sending…' : SEND_LABEL}
                   </motion.button>
 
                   <p className="mt-4 text-[10px] text-love-text/40 dark:text-love-dark-text/40 uppercase">

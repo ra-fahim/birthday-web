@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { Heart } from 'lucide-react';
+import { getSiteConfig } from '../utils/siteConfig';
 
 interface IntroGateProps {
   onComplete: () => void;
 }
 
-const SILLY_PROMPTS = [
+const DEFAULT_SILLY_PROMPTS = [
   { title: "Will you be my Valentine?", subtitle: "...and for a lifetime?" },
   { title: "Wait, did you click the wrong button?", subtitle: "I think your finger slipped!" },
   { title: "Are you sure? I have snacks!", subtitle: "All your favorites, unlimited supply." },
@@ -21,6 +22,16 @@ const SILLY_PROMPTS = [
 ];
 
 export const IntroGate: React.FC<IntroGateProps> = ({ onComplete }) => {
+  const siteConfig = getSiteConfig();
+  const gate = siteConfig.introGate || {};
+  const FIRST_LINE = gate.firstLine?.trim() || 'I made this just for you.';
+  const SECOND_LINE_LABEL = gate.secondLineLabel?.trim() || 'But first';
+  const SECOND_LINE = gate.secondLine?.trim() || 'Before anything else...';
+  const YES_TEXT = gate.yesButtonText?.trim() || 'Yes, Forever';
+  const NO_TEXT_FIRST = gate.noButtonText?.trim() || 'No';
+  const NO_TEXT_REPEAT = gate.noButtonTextRepeat?.trim() || 'Still No?';
+  const SILLY_PROMPTS = (gate.prompts && gate.prompts.length ? gate.prompts : DEFAULT_SILLY_PROMPTS);
+
   const [step, setStep] = useState(0);
   const [rejectionCount, setRejectionCount] = useState(0);
 
@@ -88,7 +99,7 @@ export const IntroGate: React.FC<IntroGateProps> = ({ onComplete }) => {
                <Heart className="w-8 h-8 text-love-accent/60 dark:text-love-dark-accent/60" strokeWidth={1} />
             </div>
             <h2 className="font-serif text-3xl md:text-5xl text-love-text dark:text-love-dark-text font-light italic tracking-wide">
-              I made this just for you.
+              {FIRST_LINE}
             </h2>
           </motion.div>
         )}
@@ -103,10 +114,10 @@ export const IntroGate: React.FC<IntroGateProps> = ({ onComplete }) => {
             className="text-center"
           >
             <p className="font-sans text-xs md:text-sm tracking-[0.3em] uppercase text-love-accent/80 dark:text-love-dark-accent/80 mb-6">
-              But first
+              {SECOND_LINE_LABEL}
             </p>
             <h2 className="font-serif text-3xl md:text-5xl text-love-text dark:text-love-dark-text font-light italic tracking-wide">
-              Before anything else...
+              {SECOND_LINE}
             </h2>
           </motion.div>
         )}
@@ -168,7 +179,7 @@ export const IntroGate: React.FC<IntroGateProps> = ({ onComplete }) => {
               >
                 <span className="absolute inset-0 w-full h-full bg-love-accent/5 dark:bg-love-dark-accent/5 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-700" />
                 <span className="relative font-sans text-sm tracking-[0.25em] uppercase text-love-text group-hover:text-love-accent dark:text-love-dark-text dark:group-hover:text-love-dark-accent transition-colors duration-500 whitespace-nowrap">
-                  Yes, Forever
+                  {YES_TEXT}
                 </span>
               </motion.button>
 
@@ -179,7 +190,7 @@ export const IntroGate: React.FC<IntroGateProps> = ({ onComplete }) => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 3, duration: 1 }}
               >
-                {rejectionCount === 0 ? "No" : "Still No?"}
+                {rejectionCount === 0 ? NO_TEXT_FIRST : NO_TEXT_REPEAT}
               </motion.button>
             </div>
           </motion.div>
