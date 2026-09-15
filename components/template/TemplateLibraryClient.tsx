@@ -58,32 +58,41 @@ export default function TemplateLibraryClient({ templates, isAuthenticated }: { 
   }, {}), [filtered]);
 
   return (
-    <section className="premium-container template-library">
-      <div className="template-search-panel">
-        <div className="template-search-wrap">
-          <span className="template-search-icon">⌕</span>
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search templates…"
-            aria-label="Search templates"
-          />
-          {query && <button type="button" onClick={() => setQuery('')} aria-label="Clear search">×</button>}
-        </div>
-        <div className="template-filter-row" role="tablist" aria-label="Template categories">
-          {categories.map((category) => (
-            <button
-              key={category}
-              type="button"
-              className={activeCategory === category ? 'template-filter active' : 'template-filter'}
-              onClick={() => setActiveCategory(category)}
-            >
-              {category === 'all' ? 'All' : labels[category] || category}
-            </button>
-          ))}
+    <section className="template-library">
+      <div className="premium-container template-library-controls">
+        <div className="template-search-panel">
+          <div className="template-search-wrap">
+            <span className="template-search-icon">⌕</span>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search templates…"
+              aria-label="Search templates"
+            />
+            {query && <button type="button" onClick={() => setQuery('')} aria-label="Clear search">×</button>}
+          </div>
+          <div className="template-filter-row" role="tablist" aria-label="Template categories">
+            {categories.map((category) => (
+              <button
+                key={category}
+                type="button"
+                className={activeCategory === category ? 'template-filter active' : 'template-filter'}
+                onClick={() => setActiveCategory(category)}
+              >
+                {category === 'all' ? 'All' : labels[category] || category}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
+      <section className="premium-container inner-hero templates-hero template-library-hero">
+        <p className="section-kicker">TEMPLATE LIBRARY</p>
+        <h1>Start with a style.<br /><span>Make it yours.</span></h1>
+        <p>Preview every experience live, muted and touch-free—then choose the one you want to edit.</p>
+      </section>
+
+      <div className="premium-container template-library-results">
       {filtered.length === 0 ? (
         <div className="template-empty-state">
           <span>⌕</span>
@@ -117,6 +126,7 @@ export default function TemplateLibraryClient({ templates, isAuthenticated }: { 
           </div>
         </div>
       ))}
+      </div>
     </section>
   );
 }

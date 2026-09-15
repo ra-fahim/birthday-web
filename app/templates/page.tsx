@@ -14,11 +14,6 @@ export default async function Page() {
           <Link className="premium-button premium-button-sm" href={u ? '/builder/new' : '/signup'}>{u ? 'Create website' : 'Start free'} →</Link>
         </div>
       </nav>
-      <section className="premium-container inner-hero templates-hero">
-        <p className="section-kicker">TEMPLATE LIBRARY</p>
-        <h1>Start with a style.<br /><span>Make it yours.</span></h1>
-        <p>Preview every experience live, muted and touch-free—then choose the one you want to edit.</p>
-      </section>
       <TemplateLibraryClient templates={templateCatalog} isAuthenticated={!!u} />
     </main>
   );
