@@ -180,7 +180,8 @@ export default function Builder() {
   const [occasion, setOccasion] = useState('birthday');
   const [dirty, setDirty] = useState(false);
   const [editorMode, setEditorMode] = useState(true);
-  const [device, setDevice] = useState<'desktop'|'tablet'|'mobile'>('desktop');
+  const [showTools, setShowTools] = useState(false);
+  const [device, setDevice] = useState<'desktop'|'tablet'|'mobile'>('mobile');
   const [selectedElement, setSelectedElement] = useState<CanvasSelection | null>(null);
   const [publicUrl, setPublicUrl] = useState('');
   const [past, setPast] = useState<BirthdayContent[]>([]);
@@ -328,14 +329,14 @@ export default function Builder() {
       <div className="builder-brand"><div className="builder-logo">W</div><div><strong>Wishly Studio</strong><span>Experience editor</span></div></div>
       <div className="builder-top-actions">
         <div className={`builder-status ${dirty ? 'is-dirty' : ''}`}><i />{dirty ? 'Unsaved changes' : status === 'published' ? 'Published' : 'All changes saved'}</div>
-        <button className="builder-icon-btn" onClick={undo} disabled={!past.length} title="Undo" aria-label="Undo"><Undo2 size={15}/></button><button className="builder-icon-btn" onClick={redo} disabled={!future.length} title="Redo" aria-label="Redo"><Redo2 size={15}/></button><button className="builder-ghost" onClick={() => router.push('/dashboard')}>Exit</button>
+        <button className="builder-icon-btn" onClick={undo} disabled={!past.length} title="Undo" aria-label="Undo"><Undo2 size={15}/></button><button className="builder-icon-btn" onClick={redo} disabled={!future.length} title="Redo" aria-label="Redo"><Redo2 size={15}/></button><button className={`builder-ghost builder-customize-btn ${showTools ? 'active' : ''}`} onClick={() => setShowTools(v => !v)} aria-expanded={showTools}>⚙ Customize</button><button className="builder-ghost" onClick={() => router.push('/dashboard')}>Exit</button>
         <button className="builder-save" onClick={() => save(false)}>Save draft</button>
         <button className="builder-publish" onClick={() => save(true)}>Create Live Link ↗</button>
       </div>
     </header>
 
-    <div className="builder-layout">
-      <aside className="builder-sidebar">
+    <div className={`builder-layout simple-builder ${showTools ? 'show-tools' : ''} ${selectedElement ? 'has-selection' : ''}`}>
+      <aside className={`builder-sidebar ${showTools ? 'is-visible' : ''}`}>
         <div className="builder-project-card">
           <div className="builder-project-icon">{currentOccasion[1]}</div>
           <div className="min-w-0"><div className="builder-eyebrow">CURRENT PROJECT</div><h1>{c.name || 'Untitled celebration'}</h1><p>{currentOccasion[2]} · {occasionTemplates.find(t => t.slug === templateId)?.name || 'No template added yet'}</p></div>
@@ -374,7 +375,7 @@ export default function Builder() {
       </aside>
 
       <section className="builder-workspace">
-        <div className="builder-editor-panel">
+        <div className={`builder-editor-panel ${showTools ? 'is-tools' : ''} ${selectedElement ? 'has-selection' : ''}`}>
           <div className="builder-panel-head"><div><div className="builder-eyebrow">CANVAS EDITOR</div><h2>{selectedElement ? selectedElement.label : 'Select anything to edit'}</h2></div><span className="builder-live-pill">● LIVE PREVIEW</span></div>
           <div className="builder-form-scroll">
                       {!selectedElement && <div className="builder-quickstart"><button className="builder-quick-card" type="button" onClick={()=>setSelectedElement({key:'musicUrl',label:'Background music',kind:'audio'})}><b>🎵 Music</b><span>Add or replace your soundtrack.</span></button><button className="builder-quick-card" type="button" onClick={()=>setSelectedElement({key:'gallery',label:'Add photo',index:c.gallery.length,kind:'image'})}><b>＋ Photo</b><span>Add a new memory.</span></button><button className="builder-quick-card" type="button" onClick={()=>setSelectedElement({key:'reasons',label:'Add reason',index:c.reasons.length,kind:'text'})}><b>＋ Reason</b><span>Add another story point.</span></button></div>}
@@ -666,9 +667,17 @@ export default function Builder() {
 
         <section className="builder-preview-panel">
           <div className="builder-preview-head"><div><span>LIVE PREVIEW</span><strong>{c.name || 'Untitled celebration'}</strong></div><div className="builder-preview-actions">
-  {(['desktop','tablet','mobile'] as const).map(d => <button key={d} className={`builder-device ${device===d?'active':''}`} onClick={()=>setDevice(d)}>{d[0].toUpperCase()+d.slice(1)}</button>)}
-  <button className={`builder-device ${editorMode?'active':''}`} onClick={()=>setEditorMode(v=>!v)}>✎ {editorMode ? 'Edit mode' : 'Preview mode'}</button>
+  <div className="builder-view-switch" aria-label="Preview size">
+    {(['mobile','tablet','desktop'] as const).map(d => <button key={d} className={`builder-device ${device===d?'active':''}`} onClick={()=>setDevice(d)}>{d==='mobile'?'📱':d==='tablet'?'▣':'▤'} {d[0].toUpperCase()+d.slice(1)}</button>)}
+  </div>
+  <button className={`builder-device builder-mode-toggle ${editorMode?'active':''}`} onClick={()=>setEditorMode(v=>!v)}>✎ {editorMode ? 'Editing' : 'Preview'}</button>
 </div></div>
+          {editorMode && <div className="builder-quick-actions">
+            <button type="button" onClick={() => setSelectedElement({key:'heroTitle',label:'Main text',kind:'text'})}>✏️ Edit text</button>
+            <button type="button" onClick={() => setSelectedElement({key:'gallery',label:'Add photo',index:c.gallery.length,kind:'image'})}>＋ Add photo</button>
+            <button type="button" onClick={() => setSelectedElement({key:'musicUrl',label:'Background music',kind:'audio'})}>🎵 Music</button>
+            {templateId === 'master' && <><button type="button" onClick={() => setSelectedElement({key:'countdownAudioUrl',label:'Countdown audio',kind:'audio'})}>⏳ Countdown</button><button type="button" onClick={() => setSelectedElement({key:'wishingAudioUrl',label:'Wishing audio',kind:'audio'})}>🎉 Wishing</button></>}
+          </div>}
           {status === 'published' && publicUrl && <div className="builder-live-link"><div><span>YOUR LIVE LINK</span><strong>{publicUrl}</strong></div><div className="builder-live-link-actions"><button onClick={() => navigator.clipboard?.writeText(publicUrl)}>Copy link</button><a href={publicUrl} target="_blank" rel="noreferrer">Open ↗</a></div></div>}
           <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}>{templateId === 'master' ? <MasterTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div>
         </section>

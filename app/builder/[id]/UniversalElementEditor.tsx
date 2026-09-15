@@ -138,7 +138,7 @@ export default function UniversalElementEditor({ selected, content, templateId, 
   }, [selected, content, templateId, websiteId, key, common, master, templateConfig]);
 
   return <section className="builder-selection-card universal-editor-card">
-    <div className="universal-editor-top"><div><span className="builder-eyebrow">QUICK EDIT</span><h3>{selected.label}</h3><p>Change it here and the preview updates instantly.</p></div><button className="builder-clear-selection" onClick={onClose} aria-label="Close editor">×</button></div>
+    <div className="universal-editor-top"><div><span className="builder-eyebrow">QUICK EDIT</span><h3>{selected.label}</h3><p>Make one change at a time. Your preview updates instantly.</p></div><button className="builder-clear-selection" onClick={onClose} aria-label="Close editor">×</button></div>
     <div className="universal-editor-body">{render}</div>
   </section>;
 }
