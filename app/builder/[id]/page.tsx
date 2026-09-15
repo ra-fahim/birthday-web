@@ -314,9 +314,12 @@ export default function Builder() {
   const editableMediaKeys = useMemo(() => new Set(
     templateInspection.media.filter(slot => slot.sourceType === 'file-or-url').map(slot => slot.key)
   ), [templateInspection]);
+  // Media visibility is template-aware: Master Birthday exposes its dynamic
+  // collections (gallery, videos, soundtrack) while other templates only show
+  // the media slots their source actually contains.
   const hasGalleryMedia = editableMediaKeys.has('gallery') || editableMediaKeys.has('museum');
-  const hasVideoMedia = editableMediaKeys.has('videoUrl') || editableMediaKeys.has('museum');
-  const hasMusicMedia = editableMediaKeys.has('musicUrl') || editableMediaKeys.has('bgMusicUrl') || editableMediaKeys.has('countdownAudioUrl') || editableMediaKeys.has('wishingAudioUrl');
+  const hasVideoMedia = editableMediaKeys.has('videos') || editableMediaKeys.has('videoUrl') || editableMediaKeys.has('museum');
+  const hasMusicMedia = editableMediaKeys.has('soundtrack') || editableMediaKeys.has('musicUrl') || editableMediaKeys.has('bgMusicUrl') || editableMediaKeys.has('countdownAudioUrl') || editableMediaKeys.has('wishingAudioUrl');
   const visibleTabs = TABS.filter(([value]) => {
     if (value === 'gallery') return hasGalleryMedia;
     if (value === 'video') return hasVideoMedia;

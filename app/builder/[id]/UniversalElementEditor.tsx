@@ -53,6 +53,26 @@ export default function UniversalElementEditor({ selected, content, templateId, 
 
   const render = useMemo(() => {
     if (!selected) return null;
+    if (masterBirthday && key.startsWith('mb.') && !['mb.reasonsButton','mb.reasonsTitle','mb.reasonsNote'].includes(key)) {
+      const path = key.slice(3).split('.');
+      let value: any = mb;
+      for (const part of path) value = value?.[part];
+      const isMultiline = ['message','greetingMessage','countdownMessage','cutInstruction','micHint'].some(x => key.endsWith(x));
+      const label = selected.label || key.replace(/^mb\./, '').split('.').join(' / ');
+      if (selected.kind === 'image') {
+        return <Field label={label}><input type="url" value={String(value || '')} onChange={e => updateMasterBirthday(path, e.target.value)} autoFocus placeholder="Image URL" /></Field>;
+      }
+      if (selected.kind === 'video') {
+        return <Field label={label}><input type="url" value={String(value || '')} onChange={e => updateMasterBirthday(path, e.target.value)} autoFocus placeholder="Video URL" /></Field>;
+      }
+      if (typeof value === 'boolean') {
+        return <Switch label={label} value={value} onChange={v => updateMasterBirthday(path, v)} />;
+      }
+      if (typeof value === 'number') {
+        return <Field label={label}><input type="number" value={Number.isFinite(value) ? value : 0} onChange={e => updateMasterBirthday(path, Number(e.target.value))} autoFocus /></Field>;
+      }
+      return <Field label={label}><>{isMultiline ? <textarea rows={5} value={String(value ?? '')} onChange={e => updateMasterBirthday(path, e.target.value)} autoFocus /> : <input value={String(value ?? '')} onChange={e => updateMasterBirthday(path, e.target.value)} autoFocus />}</></Field>;
+    }
     if (masterBirthday && key === 'mb.reasonsButton') {
       return <TextField value={String(mb.reasonsButton || '')} onChange={v => updateMasterBirthday(['reasonsButton'], v)} />;
     }
@@ -105,18 +125,13 @@ export default function UniversalElementEditor({ selected, content, templateId, 
     if (masterBirthday && key === 'videos' && typeof selected.index === 'number') {
       const items = Array.isArray(mb.videos) ? [...mb.videos] : []; const i=selected.index; const item=items[i]||{url:'',title:'',caption:'',poster:'',alt:''};
       const setItem=(patch:Record<string,any>)=>{const n=items.slice();n[i]={...item,...patch};onTemplateConfigChange({masterBirthday:{...mb,videos:n}})};
-      return <><div className="universal-editor-media-head"><div className="universal-editor-icon"><Video size={16}/></div><div><b>Video</b><span>Replace video, caption and poster</span></div></div><SingleMediaUpload kind="video" url={String(item.url||'')} websiteId={websiteId} onChange={url=>setItem({url})}/><Field label="Title"><input value={String(item.title||'')} onChange={e=>setItem({title:e.target.value})}/></Field><Field label="Caption"><textarea rows={3} value={String(item.caption||'')} onChange={e=>setItem({caption:e.target.value})}/></Field><Field label="Thumbnail / poster"><input value={String(item.poster||'')} onChange={e=>setItem({poster:e.target.value})}/></Field><Field label="Alt text"><input value={String(item.alt||'')} onChange={e=>setItem({alt:e.target.value})}/></Field><Danger onClick={()=>onTemplateConfigChange({masterBirthday:{...mb,videos:items.filter((_,k)=>k!==i)}})} /></>;
+      const addVideo=()=>onTemplateConfigChange({masterBirthday:{...mb,videos:[...items,{id:String(Date.now()),url:'',title:'New Video',caption:'',poster:'',alt:''}]}});
+      const duplicate=()=>onTemplateConfigChange({masterBirthday:{...mb,videos:[...items,{...item,id:String(Date.now()),title:String(item.title||'Video')+' copy'}]}});
+      return <><div className="universal-editor-media-head"><div className="universal-editor-icon"><Video size={16}/></div><div><b>Video</b><span>Replace video, caption and poster. Add another video anytime.</span></div></div><SingleMediaUpload kind="video" url={String(item.url||'')} websiteId={websiteId} onChange={url=>setItem({url})}/><Field label="Title"><input value={String(item.title||'')} onChange={e=>setItem({title:e.target.value})}/></Field><Field label="Caption"><textarea rows={3} value={String(item.caption||'')} onChange={e=>setItem({caption:e.target.value})}/></Field><Field label="Thumbnail / poster"><input value={String(item.poster||'')} onChange={e=>setItem({poster:e.target.value})}/></Field><Field label="Alt text"><input value={String(item.alt||'')} onChange={e=>setItem({alt:e.target.value})}/></Field><div className="universal-editor-grid"><button type="button" className="builder-mini-btn" onClick={duplicate}>Duplicate video</button><button type="button" className="builder-mini-btn" onClick={addVideo}>＋ Add video</button></div><Danger onClick={()=>onTemplateConfigChange({masterBirthday:{...mb,videos:items.filter((_,k)=>k!==i)}})} /></>;
     }
     if (masterBirthday && key === 'soundtrack' && typeof selected.index === 'number') {
       const items=Array.isArray(mb.soundtrack)?[...mb.soundtrack]:[]; const i=selected.index; const item=items[i]||{id:String(Date.now()),title:'Track',url:'',enabled:true}; const setItem=(patch:Record<string,any>)=>{const n=items.slice();n[i]={...item,...patch};onTemplateConfigChange({masterBirthday:{...mb,soundtrack:n}})};
       return <><div className="universal-editor-media-head"><div className="universal-editor-icon"><Music2 size={16}/></div><div><b>Soundtrack</b><span>Direct audio, YouTube or Spotify source</span></div></div><InlineMediaField value={String(item.url||'')} placeholder="MP3 / YouTube / Spotify URL" accept="audio/*" folder="music" websiteId={websiteId} onChange={url=>setItem({url})}/><Field label="Title"><input value={String(item.title||'')} onChange={e=>setItem({title:e.target.value})}/></Field><Switch label="Enabled" value={item.enabled!==false} onChange={v=>setItem({enabled:v})}/><Danger onClick={()=>onTemplateConfigChange({masterBirthday:{...mb,soundtrack:items.filter((_,k)=>k!==i)}})} /></>;
-    }
-    if (masterBirthday && key.startsWith('mb.')) {
-      const path=key.slice(3).split('.'); let value:any=mb; for(const part of path) value=value?.[part];
-      if (path[path.length-1]==='birthdayDate') return <Field label="Birthday date"><input type="date" value={String(value||'')} onChange={e=>updateMasterBirthday(path,e.target.value)} autoFocus /></Field>;
-      if (path[path.length-1]==='birthdayTime') return <Field label="Birthday time"><input type="time" value={String(value||'00:00')} onChange={e=>updateMasterBirthday(path,e.target.value)} autoFocus /></Field>;
-      if (['age'].includes(path[path.length-1])) return <Field label="Number"><input type="number" value={Number(value||1)} onChange={e=>updateMasterBirthday(path,Number(e.target.value))} autoFocus /></Field>;
-      return <TextField value={String(value??'')} multiline={path.some(p=>/message|caption|text|instruction|subtitle|signature/i.test(p))} onChange={v=>updateMasterBirthday(path,v)} />;
     }
     if (key === 'gallery' && typeof selected.index === 'number' && (selected.index >= (content.gallery?.length || 0))) {
       const add = () => onChange({ gallery: [...(content.gallery || []), { url: '', caption: '' }] });

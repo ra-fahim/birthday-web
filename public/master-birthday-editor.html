@@ -953,21 +953,32 @@
         let currentReasonIndex = 0;
         let isTransitioning = false;
         let historyStack = ['countdown'];
+        let historyIndex = 0;
+
+        function notifyCanvasHistory() {
+            try { window.parent.postMessage({ type:'BB_CANVAS_HISTORY_STATE', canBack: historyIndex > 0, canForward: historyIndex < historyStack.length - 1, screen: historyStack[historyIndex] }, '*'); } catch(e) {}
+        }
 
         function updateHistory(screen) {
+            if (!screen || historyStack[historyIndex] === screen) { notifyCanvasHistory(); return; }
+            historyStack = historyStack.slice(0, historyIndex + 1);
             historyStack.push(screen);
-            try {
-                history.pushState({ screen: screen }, '', '#' + screen);
-            } catch(e) {}
+            historyIndex = historyStack.length - 1;
+            try { history.pushState({ bbCanvasIndex: historyIndex, screen: screen }, '', '#' + screen); } catch(e) {}
+            notifyCanvasHistory();
+        }
+
+        function moveCanvasHistory(direction) {
+            if (direction === 'back' && historyIndex > 0) { historyIndex -= 1; showScreen(historyStack[historyIndex]); notifyCanvasHistory(); return; }
+            if (direction === 'forward' && historyIndex < historyStack.length - 1) { historyIndex += 1; showScreen(historyStack[historyIndex]); notifyCanvasHistory(); return; }
+            notifyCanvasHistory();
         }
 
         window.addEventListener('popstate', function(event) {
-            if (historyStack.length > 1) {
-                historyStack.pop();
-                showScreen(historyStack[historyStack.length-1]);
-            } else {
-                showScreen('countdown');
-            }
+            const nextIndex = event.state && typeof event.state.bbCanvasIndex === 'number' ? event.state.bbCanvasIndex : Math.max(0, historyIndex - 1);
+            historyIndex = Math.max(0, Math.min(historyStack.length - 1, nextIndex));
+            showScreen(historyStack[historyIndex] || 'countdown');
+            notifyCanvasHistory();
         });
 
         function showScreen(screen) {
@@ -1197,6 +1208,12 @@
         }
 
         function updateCountdown() {
+            // Demo mode is controlled exclusively by the 10-second demo loop below.
+            // Do not let the original real-date timer compete with it.
+            try {
+                const demoParam = new URLSearchParams(window.location.search).get('demo');
+                if (demoParam === '1' || demoParam === 'true' || new URLSearchParams(window.location.search).get('bbDemo') === '1') return;
+            } catch (e) {}
             const now = new Date();
 
             const isBirthdayToday = isBirthday(now);
@@ -1694,8 +1711,17 @@
         }
 
         window.pickUpKnife = function() {
+            // The knife remains a real template interaction, even when Studio
+            // edit mode is enabled. Before all candles are blown, make the
+            // tap feel responsive and explain what is required instead of
+            // silently doing nothing. Once ready, the original pick-up flow
+            // is preserved unchanged.
             if (!canDragCut()) {
                 const zone = document.getElementById('cakeEmoji');
+                const statusDiv = document.getElementById('cakeStatus');
+                if (statusDiv && !cakeCut && candlesBlown < totalCandles) {
+                    statusDiv.textContent = `🕯️ Blow out all ${totalCandles} candles first`;
+                }
                 if (zone && !cakeCut && candlesBlown < totalCandles) {
                     gsap.to(zone, { x:-8, duration:0.06, yoyo:true, repeat:5, onComplete:()=>{ gsap.set(zone,{x:0}); } });
                 }
@@ -2021,6 +2047,10 @@
   }
 
   function overrideCountdown(){
+    try {
+      var demoParam = new URLSearchParams(window.location.search);
+      if (demoParam.get('demo') === '1' || demoParam.get('demo') === 'true' || demoParam.get('bbDemo') === '1') return;
+    } catch(e) {}
     var target=birthdayTarget(); if(!target) return;
     function tick(){
       var now=new Date(), diff=target.getTime()-now.getTime();
@@ -2135,33 +2165,76 @@
     var count=document.getElementById('countdownAudio'); if(count){count.muted=!caEnabled; count.volume=caEnabled?1:0; if(caEnabled&&ca){count.src=safeUrl(ca)||count.src; count.style.display='none';}}
   }
   function selectPayload(sel){return {key:sel.key,label:sel.label,index:typeof sel.index==='number'?sel.index:undefined,value:sel.value,kind:sel.kind};}
+  function postSelectionFromElement(el){
+    if(!el) return;
+    var key=el.getAttribute('data-bb-key')||'', idx=el.hasAttribute('data-bb-index')?Number(el.getAttribute('data-bb-index')):undefined,
+        kind=el.getAttribute('data-bb-type')||'text', label=el.getAttribute('data-bb-label')||key, value='';
+    if(kind==='image') value=el.getAttribute('data-src')||el.getAttribute('src')||el.querySelector('img')?.src||'';
+    else if(kind==='video') value=(config().videos&&config().videos[idx]||{}).url||el.getAttribute('data-src')||'';
+    else if(kind==='audio') value=el.getAttribute('data-src')||el.getAttribute('src')||'';
+    else value=el.textContent||'';
+    window.parent.postMessage({type:'BB_ELEMENT_SELECTED',selection:selectPayload({key:key,label:label,index:idx,value:value,kind:kind})},'*');
+  }
   function markEditable(){
     var defs=[
       ['.countdown-title','mb.countdownTitle','Countdown title','text'],['#countdownMessage','mb.countdownMessage','Countdown message','text'],
       ['#greetingScreen h1','mb.greetingHeading','Greeting heading','text'],['#greetingText','mb.greetingMessage','Greeting message','text'],['#enterWorldBtn','mb.enterButtonText','Enter button','text'],
       ['#cakeSvg text:nth-of-type(1)','mb.cake.cakeText','Cake text','text'],['#cakeSvg text:nth-of-type(2)','mb.cake.birthdayText','Birthday text','text'],['#cakeSvg text:nth-of-type(3)','mb.cake.recipientName','Cake recipient','text'],
       ['#wishPrompt .wish-prompt-text','mb.cake.wishTitle','Wish title','text'],['#wishPrompt .wish-prompt-sub','mb.cake.wishSubtitle','Wish subtitle','text'],['#micHint','mb.cake.micHint','Mic hint','text'],['#cakeStatus','mb.cake.cakeStatus','Cake status','text'],['#cutHint','mb.cake.cutInstruction','Cut instruction','text'],['#cakeNextBtn','mb.cake.nextButtonText','Cake next button','text'],
-      ['.reasons-header h1','mb.reasonsTitle','Reasons heading','text'],['#reasonsNote','mb.reasonsNote','Reasons note','text'],['#reasonsBtn','mb.reasonsButton','Reasons button','text'],['#photoTitle','photoTitle','Photo title','text'],['#photoSubtitle','photoSubtitle','Photo subtitle','text'],['#photoNextBtn','photoNextButton','Photo next button','text'],['#videoTitle','videoTitle','Video title','text'],['#videoNextBtn','videoNextButton','Video next button','text'],
-      ['#letterTitle','mb.letter.title','Letter title','text'],['#letterReturnBtn','mb.letter.buttonText','Letter button','text'],['#secretButton','mb.secret.buttonText','Secret button','text'],['.secret-photo','mb.secret.imageUrl','Secret image','image']
+      ['.reasons-header h1','mb.reasonsTitle','Reasons heading','text'],['#reasonsNote','mb.reasonsNote','Reasons note','text'],['#reasonsBtn','mb.reasonsButton','Reasons button','text'],
+      ['#photoTitle','mb.photoTitle','Photo title','text'],['#photoSubtitle','mb.photoSubtitle','Photo subtitle','text'],['#photoNextBtn','mb.photoNextButton','Photo next button','text'],
+      ['#videoTitle','mb.videoTitle','Video title','text'],['#videoNextBtn','mb.videoNextButton','Video next button','text'],
+      ['#letterTitle','mb.letter.title','Letter title','text'],['#letterReturnBtn','mb.letter.buttonText','Letter button','text'],
+      ['#secretButton','mb.secret.buttonText','Secret button','text'],['.secret-photo','mb.secret.imageUrl','Secret image','image'],
     ];
-    defs.forEach(function(d){document.querySelectorAll(d[0]).forEach(function(el){el.setAttribute('data-bb-key',d[1]);el.setAttribute('data-bb-label',d[2]);el.setAttribute('data-bb-type',d[3]);el.setAttribute('data-bb-editable','true');});});
+    defs.forEach(function(d){document.querySelectorAll(d[0]).forEach(function(el){el.setAttribute('data-bb-key',d[1]);el.setAttribute('data-bb-label',d[2]);el.setAttribute('data-bb-type',d[3]==='action'?'text':d[3]);el.setAttribute('data-bb-editable','true');});});
     document.querySelectorAll('#candles .candle').forEach(function(el){el.setAttribute('data-bb-key','mb.cake.age');el.setAttribute('data-bb-label','Age / candles');el.setAttribute('data-bb-type','text');el.setAttribute('data-bb-editable','true');});
     document.querySelectorAll('#reasonsContainer .reason-card').forEach(function(el,i){el.setAttribute('data-bb-key','reasons');el.setAttribute('data-bb-index',String(i));el.setAttribute('data-bb-label','Reason '+(i+1));el.setAttribute('data-bb-type','text');el.setAttribute('data-bb-editable','true');});
     document.querySelectorAll('#letterContent p').forEach(function(el,i){el.setAttribute('data-bb-key','mb.letter.paragraphs');el.setAttribute('data-bb-index',String(i));el.setAttribute('data-bb-label','Letter line '+(i+1));el.setAttribute('data-bb-type','text');el.setAttribute('data-bb-editable','true');});
+    document.querySelectorAll('.photo-card').forEach(function(el,i){el.setAttribute('data-bb-key','gallery');el.setAttribute('data-bb-index',String(i));el.setAttribute('data-bb-label','Photo / Memory '+(i+1));el.setAttribute('data-bb-type','image');el.setAttribute('data-bb-editable','true');});
+    document.querySelectorAll('.video-card').forEach(function(el,i){el.setAttribute('data-bb-key','videos');el.setAttribute('data-bb-index',String(i));el.setAttribute('data-bb-label','Video '+(i+1));el.setAttribute('data-bb-type','video');el.setAttribute('data-bb-editable','true');});
+    document.querySelectorAll('#secretButton,.photo-next-btn,.video-next-btn,.letter-return-btn,.cake-next-btn,.enter-btn,.reasons-btn').forEach(function(el){el.setAttribute('data-bb-editable','true');});
   }
   function addEditorIcons(){
     var old=document.getElementById('bb-editor-layer'); if(old)old.remove();
     var layer=document.createElement('div'); layer.id='bb-editor-layer'; layer.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:10060;'; document.body.appendChild(layer);
-    function refresh(){layer.innerHTML=''; if(!window.__BB_EDITOR_MODE)return; document.querySelectorAll('[data-bb-editable="true"]').forEach(function(el){var r=el.getBoundingClientRect();if(r.width<2||r.height<2)return;var b=document.createElement('button');b.type='button';b.textContent='✎';b.className='bb-editor-icon';b.style.cssText='position:fixed;left:'+Math.max(4,Math.min(window.innerWidth-30,r.right-28))+'px;top:'+Math.max(4,r.top+4)+'px;width:24px;height:24px;border:0;border-radius:50%;background:#fff;color:#b0306e;box-shadow:0 5px 16px rgba(0,0,0,.22);display:grid;place-items:center;font:700 12px system-ui;pointer-events:auto;cursor:pointer;';b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var key=el.getAttribute('data-bb-key')||'',idx=el.hasAttribute('data-bb-index')?Number(el.getAttribute('data-bb-index')):undefined,value=el.getAttribute('data-src')||el.getAttribute('src')||el.textContent||'';window.parent.postMessage({type:'BB_ELEMENT_SELECTED',selection:{key:key,label:el.getAttribute('data-bb-label')||key,index:idx,value:value,kind:el.getAttribute('data-bb-type')||'text'}},'*');});layer.appendChild(b);});}
-    window.__BB_REFRESH_ICONS=refresh; refresh(); if(window.__BB_ICON_SCROLL)window.removeEventListener('scroll',window.__BB_ICON_SCROLL); if(window.__BB_ICON_RESIZE)window.removeEventListener('resize',window.__BB_ICON_RESIZE); window.__BB_ICON_SCROLL=refresh; window.__BB_ICON_RESIZE=refresh; window.addEventListener('scroll',window.__BB_ICON_SCROLL,{passive:true}); window.addEventListener('resize',window.__BB_ICON_RESIZE); }
+    function refresh(){
+      layer.innerHTML=''; if(!window.__BB_EDITOR_MODE)return;
+      document.querySelectorAll('[data-bb-editable="true"]').forEach(function(el){
+        var r=el.getBoundingClientRect();if(r.width<2||r.height<2)return;
+        var b=document.createElement('button');b.type='button';b.textContent='✎';b.className='bb-editor-icon';
+        b.setAttribute('aria-label','Edit '+(el.getAttribute('data-bb-label')||'item'));
+        b.style.cssText='position:fixed;left:'+Math.max(4,Math.min(window.innerWidth-30,r.right-28))+'px;top:'+Math.max(4,r.top+4)+'px;width:24px;height:24px;border:0;border-radius:50%;background:#fff;color:#b0306e;box-shadow:0 5px 16px rgba(0,0,0,.22);display:grid;place-items:center;font:700 12px system-ui;pointer-events:auto;cursor:pointer;';
+        b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();postSelectionFromElement(el);});layer.appendChild(b);
+      });
+    }
+    window.__BB_REFRESH_ICONS=refresh; refresh();
+    if(window.__BB_ICON_SCROLL)window.removeEventListener('scroll',window.__BB_ICON_SCROLL);
+    if(window.__BB_ICON_RESIZE)window.removeEventListener('resize',window.__BB_ICON_RESIZE);
+    window.__BB_ICON_SCROLL=refresh; window.__BB_ICON_RESIZE=refresh;
+    window.addEventListener('scroll',window.__BB_ICON_SCROLL,{passive:true}); window.addEventListener('resize',window.__BB_ICON_RESIZE);
+  }
   function enableEditorBridge(){
     markEditable();
     if(window.__BB_REFRESH_ICONS) window.__BB_REFRESH_ICONS();
-    document.querySelectorAll('[data-bb-key]').forEach(function(el){ if(el.__bbBound)return; el.__bbBound=true; el.addEventListener('dblclick',function(e){ if(!window.__BB_EDITOR_MODE)return; e.preventDefault();e.stopPropagation(); var key=el.getAttribute('data-bb-key')||'', idx=el.hasAttribute('data-bb-index')?Number(el.getAttribute('data-bb-index')):undefined, kind=el.getAttribute('data-bb-type')||'text', label=el.getAttribute('data-bb-label')||key; var value=''; if(kind==='image') value=el.getAttribute('data-src')||el.querySelector('img')?.src||''; else if(kind==='video') value=(config().videos&&config().videos[idx]||{}).url||''; window.parent.postMessage({type:'BB_ELEMENT_SELECTED',selection:selectPayload({key:key,label:label,index:idx,value:value,kind:kind})},'*'); }); });
-    ['enterWorldBtn','cakeNextBtn','photoNextBtn','videoNextBtn','letterReturnBtn','secretButton'].forEach(function(id){var el=document.getElementById(id);if(el&&!el.hasAttribute('data-bb-key')){el.setAttribute('data-bb-key',id.replace(/Btn$/,''));el.setAttribute('data-bb-label',id);}});
+    document.querySelectorAll('[data-bb-key]').forEach(function(el){
+      if(el.__bbBound)return; el.__bbBound=true;
+      // In edit mode, a normal tap/click on an editable node selects it instead of
+      // triggering the template's action. Outside edit mode the original click behavior is untouched.
+      el.addEventListener('click',function(e){
+        if(!window.__BB_EDITOR_MODE)return;
+        e.preventDefault();e.stopImmediatePropagation();postSelectionFromElement(el);
+      },true);
+      el.addEventListener('dblclick',function(e){
+        if(!window.__BB_EDITOR_MODE)return;
+        e.preventDefault();e.stopImmediatePropagation();postSelectionFromElement(el);
+      },true);
+    });
   }
+
   function installMode(){
-    window.addEventListener('message',function(e){var d=e.data||{};if(d.type==='BB_CONTENT'){contentState=d.content||{};mb=(contentState.templateConfig&&contentState.templateConfig.masterBirthday)||{};applyBasics();renderPhotos();renderReasons();renderVideos();renderLetter();setTimeout(function(){enableEditorBridge();if(window.__BB_REFRESH_ICONS)window.__BB_REFRESH_ICONS();},80);}else if(d.type==='BB_EDITOR_MODE'){window.__BB_EDITOR_MODE=!!d.enabled;document.body.classList.toggle('bb-editor-mode',window.__BB_EDITOR_MODE);if(window.__BB_REFRESH_ICONS)window.__BB_REFRESH_ICONS();}else if(d.type==='BB_DEMO_MODE'){window.__BB_DEMO_MODE=!!d.enabled;}});
+    window.addEventListener('message',function(e){var d=e.data||{};if(d.type==='BB_CONTENT'){contentState=d.content||{};mb=(contentState.templateConfig&&contentState.templateConfig.masterBirthday)||{};applyBasics();renderPhotos();renderReasons();renderVideos();renderLetter();setTimeout(function(){enableEditorBridge();if(window.__BB_REFRESH_ICONS)window.__BB_REFRESH_ICONS();},80);notifyCanvasHistory();}else if(d.type==='BB_EDITOR_MODE'){window.__BB_EDITOR_MODE=!!d.enabled;document.body.classList.toggle('bb-editor-mode',window.__BB_EDITOR_MODE);if(window.__BB_REFRESH_ICONS)window.__BB_REFRESH_ICONS();notifyCanvasHistory();}else if(d.type==='BB_DEMO_MODE'){window.__BB_DEMO_MODE=!!d.enabled;}});
+    window.addEventListener('message',function(e){var d=e.data||{};if(d.type==='BB_CANVAS_HISTORY')moveCanvasHistory(d.direction);});
     // When editor mode is active, annotate the real editable nodes with a subtle icon without affecting layout.
     var style=document.createElement('style');style.textContent='body.bb-editor-mode [data-bb-key]{outline:1px dashed rgba(255,105,180,.55);outline-offset:3px;cursor:pointer}.bb-editor-icon{position:absolute;z-index:10050;display:none;place-items:center;width:26px;height:26px;border-radius:50%;background:#fff;color:#b0306e;box-shadow:0 5px 18px rgba(0,0,0,.2);font:700 13px system-ui;pointer-events:none}.bb-editor-mode .bb-editor-icon{display:grid}';document.head.appendChild(style);
     window.addEventListener('message',function(e){if(e.data?.type==='BB_EDITOR_MODE'){document.body.classList.toggle('bb-editor-mode',!!e.data.enabled);window.__BB_EDITOR_MODE=!!e.data.enabled;if(window.__BB_REFRESH_ICONS)window.__BB_REFRESH_ICONS();}});

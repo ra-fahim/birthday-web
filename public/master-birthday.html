@@ -1197,6 +1197,10 @@
         }
 
         function updateCountdown() {
+            try {
+                const demoParam = new URLSearchParams(window.location.search);
+                if (demoParam.get('demo') === '1' || demoParam.get('demo') === 'true' || demoParam.get('bbDemo') === '1') return;
+            } catch (e) {}
             const now = new Date();
 
             const isBirthdayToday = isBirthday(now);
@@ -2021,6 +2025,10 @@
   }
 
   function overrideCountdown(){
+    try {
+      var demoParam = new URLSearchParams(window.location.search);
+      if (demoParam.get('demo') === '1' || demoParam.get('demo') === 'true' || demoParam.get('bbDemo') === '1') return;
+    } catch(e) {}
     var target=birthdayTarget(); if(!target) return;
     function tick(){
       var now=new Date(), diff=target.getTime()-now.getTime();
