@@ -563,14 +563,8 @@
 
     <script>
         // EmailJS initialization
-        // Guarded: if the emailjs CDN script fails to load (ad blockers,
-        // in-app browsers, flaky mobile networks, CDN hiccups) this used
-        // to throw immediately and silently kill every function defined
-        // further down this script.
         (function() { 
-            try {
-                if (typeof emailjs !== 'undefined') emailjs.init("MV90CKf_ZoIgGoU9w");
-            } catch (e) {}
+            emailjs.init("MV90CKf_ZoIgGoU9w"); 
         })();
 
         // Contact form handler
@@ -583,7 +577,7 @@
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
             submitBtn.disabled = true;
             
-            (typeof emailjs !== 'undefined' ? emailjs.sendForm('rafahimn', 'rafahimn', this) : Promise.reject(new Error('emailjs unavailable')))
+            emailjs.sendForm('rafahimn', 'rafahimn', this)
                 .then(function() { 
                     statusDiv.innerHTML = '✅ Message sent successfully!'; 
                     statusDiv.style.color = '#00ff00'; 
@@ -1222,7 +1216,7 @@
                     
                     if (!confettiShown) {
                         confettiShown = true;
-                        safeConfetti({ particleCount: 100, spread: 70 });
+                        confetti({ particleCount: 100, spread: 70 });
                     }
                     
                     if (charIndex === 0) {
@@ -1474,7 +1468,7 @@
             renderCake(); 
             playBlowPuff();
             vibrate(25);
-            safeConfetti({ particleCount:5, spread:30, colors:['#aaaaaa'] });
+            confetti({ particleCount:5, spread:30, colors:['#aaaaaa'] });
             centers.forEach(c => spawnSmokeAt(c.x, c.y));
         };
 
@@ -1488,7 +1482,7 @@
                 renderCake(); 
                 playBlowPuff();
                 vibrate(30);
-                safeConfetti({ particleCount:8 * count, spread:40, colors:['#aaaaaa'] }); 
+                confetti({ particleCount:8 * count, spread:40, colors:['#aaaaaa'] }); 
                 centers.forEach(c => spawnSmokeAt(c.x, c.y));
             }
         }
@@ -1596,11 +1590,11 @@
 
             renderCake();
             serveSliceOntoPlate();
-            safeConfetti({ particleCount:150, spread:80 });
+            confetti({ particleCount:150, spread:80 });
             // Warm crumb-colored particles alongside the usual confetti, so it reads as cake, not just a party popper
-            safeConfetti({ particleCount:40, spread:50, colors:['#e0b98c','#c99a68','#f3d9b1'], scalar:0.6 });
-            setTimeout(() => safeConfetti({ particleCount:100, spread:60, colors:['gold','hotpink'] }), 200);
-            setTimeout(() => safeConfetti({ particleCount:100, spread:60, colors:['cyan','purple'] }), 400);
+            confetti({ particleCount:40, spread:50, colors:['#e0b98c','#c99a68','#f3d9b1'], scalar:0.6 });
+            setTimeout(() => confetti({ particleCount:100, spread:60, colors:['gold','hotpink'] }), 200);
+            setTimeout(() => confetti({ particleCount:100, spread:60, colors:['cyan','purple'] }), 400);
         };
 
         // If the cake was already cut earlier (e.g. page reload), show the slice sitting on the
@@ -2041,7 +2035,7 @@
             document.getElementById('contactPage').classList.remove('show'); 
         };
 
-        function safeConfetti(options) { 
+        function confetti(options) { 
             if (window.BB_SETTINGS && window.BB_SETTINGS.confetti === false) return;
             if (typeof window.confetti === 'function') { window.confetti(options); }
         }

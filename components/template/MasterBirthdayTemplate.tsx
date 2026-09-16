@@ -1,32 +1,62 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { BirthdayContent } from '@/lib/types';
+import { masterBirthdayDefaults, mergeMasterBirthdayConfig } from '@/lib/master-birthday';
 
+type Selection = { key: string; label: string; index?: number; value?: string; kind?: string };
 type Props = {
-  content: BirthdayContent; demo?: boolean; websiteSlug?: string; recipientId?: string; editorMode?: boolean;
-  onElementSelect?: (selection:{key:string;label:string;index?:number;value?:string;kind?:string}) => void;
-  onHistoryState?: (state:{canBack?:boolean;canForward?:boolean;screen?:string}) => void;
+  content?: BirthdayContent;
+  demo?: boolean;
+  websiteSlug?: string;
+  recipientId?: string;
+  editorMode?: boolean;
+  onElementSelect?: (selection: Selection) => void;
+  onHistoryState?: (state: { canBack?: boolean; canForward?: boolean; screen?: string }) => void;
 };
 
-export default function MasterBirthdayTemplate({content,demo,websiteSlug,recipientId,editorMode=false,onElementSelect,onHistoryState}:Props){
-  const ref=useRef<HTMLIFrameElement>(null);
-  const src = editorMode ? '/master-birthday-editor.html' : '/master-birthday.html';
-  useEffect(()=>{
-    const f=ref.current; if(!f)return;
-    const send=()=>{ try {
-      f.contentWindow?.postMessage({type:'BB_CONTENT',content,websiteSlug:websiteSlug||'',recipientId:recipientId||''},'*');
-      f.contentWindow?.postMessage({type:'BB_EDITOR_MODE',enabled:editorMode},'*');
-      if(demo) f.contentWindow?.postMessage({type:'BB_DEMO_MODE',enabled:true},'*');
-    } catch {} };
-    f.addEventListener('load',send); send(); return()=>f.removeEventListener('load',send);
-  },[content,websiteSlug,recipientId,editorMode,demo]);
-  useEffect(()=>{
-    const h=(e:MessageEvent)=>{ if(e.source!==ref.current?.contentWindow||!e.data)return;
-      if(e.data.type==='BB_ELEMENT_SELECTED') onElementSelect?.(e.data.selection);
-      if(e.data.type==='BB_CANVAS_HISTORY_STATE') onHistoryState?.(e.data);
+export default function MasterBirthdayTemplate({ content, demo = false, websiteSlug, recipientId, editorMode = false, onElementSelect, onHistoryState }: Props) {
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const config = useMemo(() => mergeMasterBirthdayConfig(content?.templateConfig && typeof content.templateConfig === 'object' ? (content.templateConfig as any).masterBirthday : undefined), [content?.templateConfig]);
+  const resolvedContent = useMemo(() => ({ ...content, name: config.recipientName || content?.name || masterBirthdayDefaults.recipientName, birthday: `${config.birthdayDate}T${config.birthdayTime}` }), [content, config]);
+  const src = useMemo(() => {
+    const params = new URLSearchParams();
+    if (demo) { params.set('demo', '1'); params.set('bbDemo', '1'); }
+    if (recipientId) params.set('recipient', recipientId);
+    return `/templates/master-birthday/runtime.html${params.toString() ? `?${params.toString()}` : ''}`;
+  }, [demo, recipientId]);
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return;
+    const send = () => {
+      frame.contentWindow?.postMessage({ type: 'BB_CONTENT', content: resolvedContent, websiteSlug: websiteSlug || '', recipientId: recipientId || '' }, '*');
+      frame.contentWindow?.postMessage({ type: 'BB_EDITOR_MODE', enabled: !!editorMode }, '*');
+      if (demo) frame.contentWindow?.postMessage({ type: 'BB_DEMO_MODE', enabled: true, muted: false }, '*');
     };
-    window.addEventListener('message',h); return()=>window.removeEventListener('message',h);
-  },[onElementSelect,onHistoryState]);
-  return <iframe ref={ref} title="Master Birthday" src={`${src}?mb=1${demo?'&demo=1':''}`} className="h-full w-full min-h-0 border-0" allow="autoplay;microphone;camera;fullscreen" sandbox="allow-forms allow-modals allow-popups allow-same-origin allow-scripts"/>;
+    frame.addEventListener('load', send);
+    send();
+    return () => frame.removeEventListener('load', send);
+  }, [resolvedContent, websiteSlug, recipientId, editorMode, demo]);
+
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      const frame = frameRef.current;
+      if (!frame || event.source !== frame.contentWindow || !event.data) return;
+      if (event.data.type === 'BB_ELEMENT_SELECTED') onElementSelect?.(event.data.selection);
+      if (event.data.type === 'BB_CANVAS_HISTORY_STATE') onHistoryState?.(event.data);
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [onElementSelect, onHistoryState]);
+
+  return <iframe
+    ref={frameRef}
+    title="Master Birthday"
+    src={src}
+    className="h-full min-h-0 w-full border-0"
+    allow="autoplay; microphone; fullscreen; picture-in-picture"
+    sandbox="allow-forms allow-modals allow-popups allow-same-origin allow-scripts"
+    style={{ width: '100%', height: '100%', minHeight: 0, display: 'block', border: 0 }}
+  />;
 }

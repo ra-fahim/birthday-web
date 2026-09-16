@@ -5,9 +5,9 @@ import { Menu, X } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { defaultContent, BirthdayContent } from '@/lib/types';
 import { MasterTemplate } from '@/components/template/MasterTemplate';
-import MasterBirthdayEditor from '../MasterBirthdayEditor';
 import MasterBirthdayTemplate from '@/components/template/MasterBirthdayTemplate';
-import { getMasterBirthdayConfig } from '@/lib/master-birthday';
+import MasterBirthdayEditor from './MasterBirthdayEditor';
+import { masterBirthdayDefaults, mergeMasterBirthdayConfig } from '@/lib/master-birthday';
 import ExperienceTemplate, { getMissYouDefaults, getMasterProposalDefaults } from '@/components/template/ExperienceTemplates';
 import { SingleMediaUpload, GalleryUpload, InlineMediaField } from './MediaUploader';
 import FeatureControls from './FeatureControls';
@@ -275,6 +275,27 @@ export default function Builder() {
       if (!value) return;
       const index = typeof raw.index === 'number' ? raw.index : undefined;
       const label = typeof raw.label === 'string' && raw.label.trim() ? raw.label : raw.key;
+      if (templateId === 'master-birthday' && raw.key.startsWith('mb.')) {
+        const current = mergeMasterBirthdayConfig((c.templateConfig as any)?.masterBirthday);
+        const next: any = JSON.parse(JSON.stringify(current));
+        const path = raw.key.slice(3).split('.');
+        let cursor = next;
+        for (let i=0;i<path.length-1;i++) cursor = cursor[path[i]] ?? (cursor[path[i]] = {});
+        const leaf = path[path.length-1];
+        if (Array.isArray(cursor) && typeof index === 'number') {
+          const i = index;
+          if (i >= 0 && i < cursor.length) {
+            if (typeof cursor[i] === 'object' && cursor[i] !== null) {
+              if (typeof raw.value === 'string') { if ('text' in cursor[i]) cursor[i].text = value; else if ('title' in cursor[i]) cursor[i].title = value; else if ('caption' in cursor[i]) cursor[i].caption = value; }
+            } else cursor[i] = value;
+          }
+        } else {
+          cursor[leaf] = value;
+        }
+        update({ templateConfig: { ...(c.templateConfig || {}), masterBirthday: next } });
+        setSelectedElement({ key: raw.key, label, index, value });
+        return;
+      }
       if (raw.key === 'reasons' && typeof index === 'number') {
         const reasons = [...c.reasons];
         if (index >= 0 && index < reasons.length) {
@@ -296,8 +317,20 @@ export default function Builder() {
   async function save(publish = false) {
     if (!templateId) { setMsg(`Add a ${currentOccasion[2]} template before publishing.`); return; }
     setMsg(publish ? 'Publishing…' : 'Saving…');
-    const next = { ...c, occasion, templateId };
-    const r = await fetch('/api/websites/' + id, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ content: next, templateId, status: publish ? 'published' : 'draft' }) });
+    let next: BirthdayContent & { templateConfig?: Record<string, unknown> } = { ...c, occasion, templateId };
+    if (templateId === 'master-birthday') {
+      const mb = mergeMasterBirthdayConfig((c.templateConfig as any)?.masterBirthday);
+      next = {
+        ...next,
+        name: mb.recipientName || next.name,
+        birthday: `${mb.birthdayDate}T${mb.birthdayTime}`,
+        seoTitle: mb.ogTitle || next.seoTitle,
+        seoDescription: mb.ogDescription || next.seoDescription,
+        shareImage: mb.ogImage || next.shareImage,
+        templateConfig: { ...(c.templateConfig || {}), masterBirthday: mb },
+      };
+    }
+    const r = await fetch('/api/websites/' + id, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ content: next, templateId, status: publish ? 'published' : 'draft', title: next.name || c.name, seo: { title: next.seoTitle, description: next.seoDescription, shareImage: next.shareImage }, ...(templateId === 'master-birthday' && String((next.templateConfig as any)?.masterBirthday?.customSlug || '').trim() ? { slug: String((next.templateConfig as any).masterBirthday.customSlug).trim() } : {}) }) });
     const j = await r.json();
     setMsg(r.ok ? (publish ? 'Published successfully ✨' : 'Draft saved ✓') : (j.error || 'Something went wrong'));
     if (r.ok) { setStatus(publish ? 'published' : 'draft'); setDirty(false); if (j.slug) setPublicUrl(`${window.location.origin}/site/${j.slug}`); }
@@ -310,24 +343,24 @@ export default function Builder() {
   const updateMissYou = (patch: Record<string, unknown>) => update({ templateConfig: { ...missYouConfig, ...patch } });
   const masterProposalConfig = useMemo(() => ({ ...getMasterProposalDefaults(), ...(c.templateConfig || {}) }), [c.templateConfig]);
   const updateMasterProposal = (patch: Record<string, unknown>) => update({ templateConfig: { ...masterProposalConfig, ...patch } });
+  const masterBirthdayConfig = useMemo(() => mergeMasterBirthdayConfig((c.templateConfig as any)?.masterBirthday), [c.templateConfig]);
+  const updateMasterBirthday = useCallback((next: typeof masterBirthdayDefaults) => update({ templateConfig: { ...(c.templateConfig || {}), masterBirthday: next } }), [c.templateConfig]);
   const templateInspection = useMemo(() => getTemplateInspection(templateId), [templateId]);
   const editableMediaKeys = useMemo(() => new Set(
     templateInspection.media.filter(slot => slot.sourceType === 'file-or-url').map(slot => slot.key)
   ), [templateInspection]);
-  // Media visibility is template-aware: Master Birthday exposes its dynamic
-  // collections (gallery, videos, soundtrack) while other templates only show
-  // the media slots their source actually contains.
+  // Media visibility is template-aware: each template only exposes the media
+  // slots its source actually contains.
   const hasGalleryMedia = editableMediaKeys.has('gallery') || editableMediaKeys.has('museum');
   const hasVideoMedia = editableMediaKeys.has('videos') || editableMediaKeys.has('videoUrl') || editableMediaKeys.has('museum');
   const hasMusicMedia = editableMediaKeys.has('soundtrack') || editableMediaKeys.has('musicUrl') || editableMediaKeys.has('bgMusicUrl') || editableMediaKeys.has('countdownAudioUrl') || editableMediaKeys.has('wishingAudioUrl');
   const visibleTabs = TABS.filter(([value]) => {
     if (value === 'gallery') return hasGalleryMedia;
     if (value === 'video') return hasVideoMedia;
-    if (value === 'music') return hasMusicMedia || ['wedding-proposal','master-birthday'].includes(templateId);
+    if (value === 'music') return hasMusicMedia;
     if (templateId === 'wedding-proposal') return ['overview', 'opening', 'music'].includes(value as string);
     if (templateId === 'miss-you-1') return ['overview', 'story', 'music'].includes(value as string);
     if (templateId === 'master-proposal') return ['overview', 'opening', 'story', 'gallery', 'music', 'letter'].includes(value as string);
-    if (templateId === 'master-birthday') return ['overview','opening','story','gallery','music','video','letter','theme','effects'].includes(value as string);
     return value !== 'social' || templateId === 'master';
   });
   const activeTab = visibleTabs.find(x => x[0] === tab) || visibleTabs[0];
@@ -392,7 +425,7 @@ export default function Builder() {
         </div>
 
         <div className="builder-selector-grid">
-          <div><span>Occasion</span><select value={occasion} onChange={e => { const nextOccasion = e.target.value; const nextTemplate = firstTemplateForOccasion(nextOccasion); setOccasion(nextOccasion); setTemplateId(nextTemplate); if (nextTemplate === 'miss-you-1' && !c.templateConfig) setC(prev => ({ ...prev, templateConfig: getMissYouDefaults() })); if (nextTemplate === 'master-proposal' && !c.templateConfig) setC(prev => ({ ...prev, templateConfig: getMasterProposalDefaults() })); setDirty(true); }}>{AVAILABLE_OCCASIONS.map(([value, emoji, label]) => <option value={value} key={value}>{emoji} {label}</option>)}</select></div>
+          <div><span>Occasion</span><select value={occasion} onChange={e => { const nextOccasion = e.target.value; const nextTemplate = firstTemplateForOccasion(nextOccasion); setOccasion(nextOccasion); setTemplateId(nextTemplate); if (nextTemplate === 'miss-you-1' && !c.templateConfig) setC(prev => ({ ...prev, templateConfig: getMissYouDefaults() })); if (nextTemplate === 'master-proposal' && !c.templateConfig) setC(prev => ({ ...prev, templateConfig: getMasterProposalDefaults() })); if (nextTemplate === 'master-birthday' && !(c.templateConfig as any)?.masterBirthday) setC(prev => ({ ...prev, name: masterBirthdayDefaults.recipientName, birthday: `${masterBirthdayDefaults.birthdayDate}T${masterBirthdayDefaults.birthdayTime}`, templateConfig: { ...(prev.templateConfig || {}), masterBirthday: mergeMasterBirthdayConfig(undefined) } })); setDirty(true); }}>{AVAILABLE_OCCASIONS.map(([value, emoji, label]) => <option value={value} key={value}>{emoji} {label}</option>)}</select></div>
           <div><span>Experience</span><select value={templateId} disabled={!occasionTemplates.length} onChange={e => { setTemplateId(e.target.value); setDirty(true); }}>
             {!occasionTemplates.length && <option value="">No {currentOccasion[2]} template added yet</option>}
             {occasionTemplates.map((t) => <option value={t.slug} key={t.slug}>{t.name}</option>)}
@@ -435,8 +468,7 @@ export default function Builder() {
           <div className="builder-panel-head"><div><div className="builder-eyebrow">{activeGroup?.icon} {activeGroup?.label || 'Editor'}</div><h2>{activeTab?.[2]}</h2></div><span className="builder-live-pill">● LIVE</span></div>
           <div className="builder-mobile-category-tabs">{visibleGroups.map(g => <button key={g.id} className={activeGroup?.id === g.id ? 'active' : ''} onClick={() => { setEditGroup(g.id); setTab(g.tabs[0] as TabId); setMobileToolsOpen(true); }}><span>{g.icon}</span>{g.label}</button>)}</div>
           <div className="builder-form-scroll">
-            {templateId === 'master-birthday' && <MasterBirthdayEditor tab={tab as string} config={getMasterBirthdayConfig(c)} websiteId={id} onChange={(masterBirthday) => update({ templateConfig: { ...(c.templateConfig || {}), masterBirthday } })} />}
-
+            {templateId === 'master-birthday' ? <MasterBirthdayEditor config={masterBirthdayConfig} onChange={updateMasterBirthday} websiteId={id} tab={tab} /> : <>
             {tab === 'overview' && templateId !== 'miss-you-1' && templateId !== 'master-proposal' && (templateId === 'wedding-proposal' ? <>
               <div className="builder-quickstart"><div className="builder-quick-card"><b>1. Personalize</b><span>Set the recipient and sender names.</span></div><div className="builder-quick-card"><b>2. Edit the proposal</b><span>Only the words used by this original HTML are editable.</span></div><div className="builder-quick-card"><b>3. Share</b><span>Save it and create one live link.</span></div></div>
               <Section eyebrow="IDENTITY" title="Who is this proposal for?" description="Only the values used by the Wedding Proposal template are shown.">
@@ -579,7 +611,7 @@ export default function Builder() {
               <Section eyebrow="PRIVATE LINKS" title="Recipient-specific personalization" description="Create multiple private versions of the same experience from Growth → Personalized links."><div className="builder-protected"><span>🔗</span><div><b>Same design, different recipient</b><p>Each recipient can receive a unique link and a private personal note without changing the master layout.</p></div></div></Section>
             </>)}
 
-            {tab === 'story' && templateId !== 'miss-you-1' && templateId !== 'master-birthday' && <Section eyebrow="THE HEART OF THE STORY" title="Reasons" description="These are the cards visitors reveal one by one. Unlike the old version, every reason is now editable here and updates the live preview immediately.">
+            {tab === 'story' && templateId !== 'miss-you-1' && <Section eyebrow="THE HEART OF THE STORY" title="Reasons" description="These are the cards visitors reveal one by one. Unlike the old version, every reason is now editable here and updates the live preview immediately.">
               <ArrayEditor title="Your reasons" description="Add as many reasons as you want. The master template will automatically update its counter and sequence." items={c.reasons} placeholder="e.g. Your laugh always makes my day…" multiline onChange={items => updateArray('reasons', items)} />
             </Section>}
 
@@ -631,6 +663,7 @@ export default function Builder() {
               <Section eyebrow="CUSTOM" title="Custom CSS" description="Optional advanced styling for your published site. Use this only if you know CSS."><textarea className="builder-code" rows={12} value={c.customCss} onChange={e => update({ customCss: e.target.value })} placeholder="/* Your CSS */" /></Section>
               <Section eyebrow="LANGUAGE & TOOLS" title="Advanced features" description="These controls are wired through the existing feature layer."><FeatureControls content={c} onChange={next => { setC(next); setDirty(true); }} websiteId={id} siteSlug={slug} siteStatus={status} /></Section>
             </>}
+            </>}
           </div>
         </div>
 
@@ -664,7 +697,7 @@ export default function Builder() {
             </div>
           </div>
           {status === 'published' && publicUrl && <div className="builder-live-link"><div><span>YOUR LIVE LINK</span><strong>{publicUrl}</strong></div><div className="builder-live-link-actions"><button onClick={() => navigator.clipboard?.writeText(publicUrl)}>Copy link</button><a href={publicUrl} target="_blank" rel="noreferrer">Open ↗</a></div></div>}
-          <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}><div className="builder-canvas-stage">{templateId === 'master-birthday' ? <MasterBirthdayTemplate content={previewContent} demo={false} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId === 'master' ? <MasterTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div></div>
+          <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}><div className="builder-canvas-stage">{templateId === 'master-birthday' ? <MasterBirthdayTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId === 'master' ? <MasterTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div></div>
           {selectedElement && editorMode && (
             <section className="builder-context-editor" aria-label="Selected element editor">
               <div className="builder-context-editor-head">

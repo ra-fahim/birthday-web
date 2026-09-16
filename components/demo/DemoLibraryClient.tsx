@@ -6,7 +6,7 @@ import type { TemplateDefinition } from '@/lib/templates';
 
 const labels: Record<string, string> = { birthday:'Birthday', wedding:'Wedding', proposal:'Proposal', 'miss-you':'Miss You' };
 const demoSrc: Record<string,string> = {
-  'master-birthday':'/master-birthday.html?demo=1&bbDemo=1',
+  'master-birthday': '/templates/master-birthday/runtime.html?demo=1&bbDemo=1',
   master:'/master-template.html?demo=1&bbDemo=1',
   'wedding-proposal':'/templates/wedding-proposal-original.html?bbDemo=1',
   'master-proposal':'/templates/master-proposal/index.html?bbDemo=1',
@@ -63,7 +63,7 @@ export default function DemoLibraryClient({ templates }: { templates: TemplateDe
     <section className="premium-container demo-template-results">
       <div className="demo-results-head"><div><p className="section-kicker">EXPLORE THE COLLECTION</p><h2>{filtered.length} template{filtered.length===1?'':'s'} to preview</h2></div><p>Click any card to open its live demo without loading every demo at once.</p></div>
       {filtered.length===0 ? <div className="template-empty-state"><span>⌕</span><h2>No demo found</h2><p>Try another search or category.</p></div> : <div className="demo-template-grid">
-        {filtered.map((template)=><button key={template.slug} type="button" className="demo-template-card" onClick={()=>setSelected(template)}><CardPreview template={template}/><div className="demo-template-card-body"><div><span className="library-kicker">{template.slug==='master'?'FLAGSHIP':labels[template.category]||template.category}</span><h3>{template.name}</h3><p>{template.description}</p></div><span className="demo-template-card-arrow">↗</span></div></button>)}
+        {filtered.map((template)=><button key={template.slug} type="button" className="demo-template-card" onClick={()=>setSelected(template)}><CardPreview template={template}/><div className="demo-template-card-body"><div><span className="library-kicker">{(template.slug==='master' || template.slug==='master-birthday')?'FLAGSHIP':labels[template.category]||template.category}</span><h3>{template.name}</h3><p>{template.description}</p></div><span className="demo-template-card-arrow">↗</span></div></button>)}
       </div>}
     </section>
     {selected && <DemoModal template={selected} onClose={()=>setSelected(null)} />}

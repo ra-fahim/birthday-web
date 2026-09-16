@@ -31,7 +31,8 @@ export async function PUT(req:Request,{params}:{params:{id:string}}){
   const u=await getSessionUser();if(!u)return NextResponse.json({error:'Unauthorized'},{status:401});
   const old=await db.website.findFirst({where:{id:params.id,userId:u.id}});if(!old)return NextResponse.json({error:'Not found'},{status:404});
   const b=await req.json();
-  const s=await db.website.update({where:{id:old.id},data:{content:b.content??old.content,templateId:b.templateId??old.templateId,status:b.status==='published'?'published':'draft',title:b.title??old.title,seo:b.seo,referralCode:b.content?.referralCode||null}});
+  const nextSlug = typeof b.slug === 'string' && /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(b.slug.trim()) ? b.slug.trim() : old.slug;
+  const s=await db.website.update({where:{id:old.id},data:{content:b.content??old.content,templateId:b.templateId??old.templateId,status:b.status==='published'?'published':'draft',title:b.title??old.title,slug:nextSlug,seo:b.seo,referralCode:b.content?.referralCode||null}});
   return NextResponse.json(s);
 }
 

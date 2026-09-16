@@ -2,8 +2,8 @@ import { redirect } from 'next/navigation';
 import { getSessionUser, isApprovalRequired } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { defaultContent } from '@/lib/types';
-import { templateBySlug } from '@/lib/templates';
-import { getMasterBirthdayContentSeed } from '@/lib/master-birthday';
+import { mergeMasterBirthdayConfig } from '@/lib/master-birthday';
+import { templateBySlug, templateCatalog } from '@/lib/templates';
 
 export default async function New({ searchParams }: { searchParams?: { template?: string; occasion?: string } }) {
   const u = await getSessionUser();
@@ -11,11 +11,11 @@ export default async function New({ searchParams }: { searchParams?: { template?
   if (u.role !== 'admin' && !u.approved && await isApprovalRequired()) redirect('/dashboard?pending=1');
 
   const requestedTemplate = String(searchParams?.template || 'master');
-  const template = templateBySlug[requestedTemplate] || templateBySlug.master;
+  const template = templateBySlug[requestedTemplate] || templateCatalog[0];
   const occasion = searchParams?.occasion && templateBySlug[requestedTemplate]?.category === searchParams.occasion
     ? searchParams.occasion
     : template.category;
-  const seed = template.slug === 'master-birthday' ? getMasterBirthdayContentSeed() : { ...defaultContent, occasion, templateId: template.slug };
+  const seed = { ...defaultContent, occasion, templateId: template.slug, ...(template.slug === 'master-birthday' ? { name: 'Anarkoli', birthday: `${mergeMasterBirthdayConfig(undefined).birthdayDate}T${mergeMasterBirthdayConfig(undefined).birthdayTime}`, templateConfig: { masterBirthday: mergeMasterBirthdayConfig(undefined) } } : {}) };
   const label = `${template.name} — ${occasion[0].toUpperCase()}${occasion.slice(1)} `;
   const s = await db.website.create({ data: { userId: u.id, slug: `celebration-${Date.now()}`, title: label.trim(), templateId: template.slug, content: seed } });
   redirect(`/builder/${s.id}`);

@@ -499,5 +499,4 @@ body.bb-editor-mode .bb-inline-edit{display:grid!important}
 @media(max-width:900px){.studio-onboarding{padding:25px}.howto-intro,.howto-checklist{grid-template-columns:1fr}.howto-tip-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.studio-onboarding-backdrop{padding:8px}.studio-onboarding{padding:20px;border-radius:20px}.studio-onboarding-icon{margin-top:22px}.studio-onboarding-actions{align-items:stretch}.studio-onboarding-actions,.studio-onboarding-nav{width:100%}.studio-onboarding-actions{flex-direction:column-reverse}.studio-onboarding-nav{justify-content:flex-end}.studio-onboarding-skip{width:100%}.howto-step-grid{grid-template-columns:1fr}.howto-tip-grid{grid-template-columns:1fr}.howto-actions .premium-button{width:100%;text-align:center}.howto-hero{padding-top:38px}}
 
-/* Master Birthday dynamic media helpers */
 .bb-video-embed{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:15px;background:#000}.video-caption{font-size:14px;line-height:1.5}.builder-section{scroll-margin-top:20px}

@@ -15,12 +15,12 @@ export const templateCatalog: TemplateDefinition[] = [
   {
     slug: 'master-birthday',
     name: 'Master Birthday',
-    description: 'The supplied original Birthday HTML/CSS/JS experience, preserved as a template-native editor experience.',
+    description: 'The original cinematic Birthday experience, preserved as supplied and made fully editable.',
     category: 'birthday',
     emoji: '🎂',
     accent: '#ff69b4',
     kind: 'master-birthday',
-    originalHtml: '/master-birthday.html',
+    originalHtml: '/templates/master-birthday/original.html',
   },
   {
     slug: 'wedding-proposal',

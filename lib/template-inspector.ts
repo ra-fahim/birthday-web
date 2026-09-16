@@ -21,16 +21,19 @@ export type TemplateInspection = {
 export const templateInspections: Record<string, TemplateInspection> = {
   'master-birthday': {
     slug: 'master-birthday',
-    sourceFiles: ['/master-birthday.html', '/master-birthday-editor.html', '/docs/master-birthday-original.html'],
-    summary: 'The supplied original Birthday HTML/CSS/JS source, kept intact and wrapped with template-specific data hydration for Studio and live publishing.',
+    sourceFiles: ['/templates/master-birthday/original.html', '/templates/master-birthday/runtime.html'],
+    summary: 'Original supplied Birthday HTML/CSS/JS experience with countdown, cinematic cake interaction, reasons, dynamic memories, videos, letter, secret ending, audio and effects.',
     media: [
-      { key: 'gallery', label: 'Photo / Memory collection', kind: 'image', behavior: 'Multiple original photos plus user-added memories. Upload or public image URL.', sourceType: 'file-or-url', count: 6 },
-      { key: 'videos', label: 'Video collection', kind: 'video', behavior: 'Multiple original videos plus user-added videos. Direct video, YouTube or upload.', sourceType: 'file-or-url', count: 4 },
-      { key: 'countdownAudioUrl', label: 'Countdown audio', kind: 'audio', behavior: 'Original countdown sound slot.', sourceType: 'file-or-url' },
-      { key: 'soundtrack', label: 'Our Soundtrack', kind: 'audio', behavior: 'Multiple tracks; direct audio, YouTube/playlist or Spotify links are supported by the data layer.', sourceType: 'file-or-url', count: 1 },
-      { key: 'background-video', label: 'Built-in background video', kind: 'video', behavior: 'Original template background video. Can be overridden by the safe visual customization control.', sourceType: 'code-generated' },
+      { key: 'memories', label: 'Photo / Memory gallery', kind: 'image', behavior: 'Dynamic memories rendered in the original gallery and Lightbox.', sourceType: 'file-or-url', count: 0 },
+      { key: 'videos', label: 'Videos', kind: 'video', behavior: 'Dynamic video collection with direct video and YouTube sources.', sourceType: 'file-or-url', count: 0 },
+      { key: 'soundtrack', label: 'Soundtrack', kind: 'audio', behavior: 'Dynamic soundtrack collection; direct audio, YouTube or Spotify sources.', sourceType: 'file-or-url', count: 1 },
+      { key: 'countdown.audioUrl', label: 'Countdown audio', kind: 'audio', behavior: 'Plays during the countdown when enabled.', sourceType: 'file-or-url' },
+      { key: 'backgroundVideo', label: 'Background video', kind: 'video', behavior: 'Original full-screen background video; safely replaceable.', sourceType: 'file-or-url' },
+      { key: 'secret.image', label: 'Secret image', kind: 'image', behavior: 'Final secret section image.', sourceType: 'file-or-url' },
     ],
-    editableAreas: ['basic identity', 'countdown', 'greeting', 'cake interaction', 'reasons', 'photo memories', 'lightbox', 'video collection', 'soundtrack', 'letter', 'secret section', 'visual customization', 'effects']
+    editableAreas: [
+      'basic information', 'countdown', 'greeting', 'cake interaction copy and candle count', 'reasons', 'memories', 'Lightbox', 'videos', 'soundtrack', 'letter', 'secret ending', 'theme', 'effects'
+    ],
   },
   master: {
     slug: 'master',

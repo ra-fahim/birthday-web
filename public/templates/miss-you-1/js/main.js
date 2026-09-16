@@ -46,45 +46,18 @@ async function startApp() {
   seed.draw();
 
   await waitForUserClick(seed, dynamicCanvas);
+  await animateSeedShrink(seed);
+  await animateSeedMove(seed, footer);
+  await animateTreeGrow(tree);
+  await animateFlowerBloom(tree);
+  tree.resetFallingBlooms();
 
-  // Reveal the letter + countdown exactly once, however we get here.
-  let revealed = false;
-  function revealOnce() {
-    if (revealed) return;
-    revealed = true;
-    showLoveLetter();
-    startHeartJumpAnimation(tree);
-    startClock(CONFIG);
-  }
+  footer.draw();
+  await animateTreeMove(staticCanvas);
 
-  // Safety net: the love letter and countdown used to be gated entirely
-  // behind this decorative tree-growth/bloom animation finishing. On
-  // slower hardware (most phones, versus the desktop this was designed
-  // and tested on) or if any single animation step stalls or throws,
-  // that chain could take far longer than expected — or never finish —
-  // leaving the visitor staring at a tree with a blank page below it
-  // and no way to ever see the actual message. Give it a few seconds;
-  // if it hasn't finished by then, reveal the letter and countdown
-  // anyway. The tree animation is purely decorative and can keep
-  // catching up in the background either way.
-  const revealTimeout = setTimeout(revealOnce, 6000);
-
-  try {
-    await animateSeedShrink(seed);
-    await animateSeedMove(seed, footer);
-    await animateTreeGrow(tree);
-    await animateFlowerBloom(tree);
-    tree.resetFallingBlooms();
-
-    footer.draw();
-    await animateTreeMove(staticCanvas);
-  } catch (e) {
-    // Ignore — the safety net above (or the call below) still reveals
-    // the letter even if a decorative animation step failed.
-  }
-
-  clearTimeout(revealTimeout);
-  revealOnce();
+  showLoveLetter();
+  startHeartJumpAnimation(tree);
+  startClock(CONFIG);
 }
 
 document.addEventListener("DOMContentLoaded", startApp);

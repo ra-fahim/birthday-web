@@ -10,7 +10,7 @@ const labels: Record<string, string> = {
 };
 
 const demoSrc: Record<string, string> = {
-  'master-birthday': '/master-birthday.html?demo=1&bbDemo=1',
+  'master-birthday': '/templates/master-birthday/runtime.html?demo=1&bbDemo=1',
   master: '/master-template.html?demo=1&bbDemo=1',
   'wedding-proposal': '/templates/wedding-proposal-original.html?bbDemo=1',
   'master-proposal': '/templates/master-proposal/index.html?bbDemo=1',
@@ -141,7 +141,7 @@ export default function TemplateLibraryClient({
                   <DemoFrame template={t} />
                   <div className="library-card-body">
                     <div className="library-card-copy">
-                      <span className="library-kicker">{t.slug === 'master' ? 'FLAGSHIP' : 'READY TO PREVIEW'}</span>
+                      <span className="library-kicker">{(t.slug === 'master' || t.slug === 'master-birthday') ? 'FLAGSHIP' : 'READY TO PREVIEW'}</span>
                       <h3>{t.name}</h3>
                       <p>{t.description}</p>
                     </div>
@@ -153,7 +153,7 @@ export default function TemplateLibraryClient({
                   <DemoFrame template={t} />
                   <div className="library-card-body">
                     <div className="library-card-copy">
-                      <span className="library-kicker">{t.slug === 'master' ? 'FLAGSHIP' : 'READY TO EDIT'}</span>
+                      <span className="library-kicker">{(t.slug === 'master' || t.slug === 'master-birthday') ? 'FLAGSHIP' : 'READY TO EDIT'}</span>
                       <h3>{t.name}</h3>
                       <p>{t.description}</p>
                     </div>
