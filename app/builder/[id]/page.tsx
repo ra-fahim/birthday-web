@@ -211,10 +211,20 @@ export default function Builder() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
   const [canvasHistory, setCanvasHistory] = useState({ canBack: false, canForward: false });
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     fetch('/api/websites/' + id).then(r => r.json()).then(j => {
-      if (j.content) setC({ ...defaultContent, ...j.content });
+      if (j.content) {
+        const nextContent = { ...defaultContent, ...j.content };
+        if (typeof j.templateId === 'string' && j.templateId === 'master-birthday') {
+          const mb = mergeMasterBirthdayConfig((j.content.templateConfig as any)?.masterBirthday);
+          nextContent.name = mb.recipientName;
+          nextContent.birthday = `${mb.birthdayDate}T${mb.birthdayTime}`;
+          nextContent.templateConfig = { ...(j.content.templateConfig || {}), masterBirthday: mb };
+        }
+        setC(nextContent);
+      }
       if (j.slug) setSlug(j.slug);
       if (j.status) setStatus(j.status);
       const storedOccasion = typeof j.content?.occasion === 'string' ? j.content.occasion : 'birthday';
@@ -244,7 +254,8 @@ export default function Builder() {
       setOccasion(resolvedOccasion);
       if (resolvedTemplate !== storedTemplate || resolvedOccasion !== storedOccasion) setDirty(true);
       if (j.slug) setPublicUrl(`${window.location.origin}/site/${j.slug}`);
-    });
+      setLoaded(true);
+    }).catch(() => setLoaded(true));
   }, [id]);
 
   const update = (patch: Partial<BirthdayContent>) => { setC(prev => ({ ...prev, ...patch })); setDirty(true); };
@@ -391,7 +402,7 @@ export default function Builder() {
     }
   }, [editorMode]);
 
-  const previewContent = useMemo(() => ({ ...c, occasion, templateId }), [c, occasion, templateId]);
+  const previewContent = useMemo(() => !loaded ? null : (templateId === 'master-birthday' ? ({ ...c, occasion, templateId, name: masterBirthdayConfig.recipientName, birthday: `${masterBirthdayConfig.birthdayDate}T${masterBirthdayConfig.birthdayTime}`, templateConfig: { ...(c.templateConfig || {}), masterBirthday: masterBirthdayConfig } }) : ({ ...c, occasion, templateId })), [c, occasion, templateId, masterBirthdayConfig, loaded]);
   const resetToMasterDefaults = () => {
     const keepName = c.name;
     setC({ ...defaultContent, name: keepName || defaultContent.name, templateId: 'master', occasion: 'birthday' });
@@ -697,7 +708,7 @@ export default function Builder() {
             </div>
           </div>
           {status === 'published' && publicUrl && <div className="builder-live-link"><div><span>YOUR LIVE LINK</span><strong>{publicUrl}</strong></div><div className="builder-live-link-actions"><button onClick={() => navigator.clipboard?.writeText(publicUrl)}>Copy link</button><a href={publicUrl} target="_blank" rel="noreferrer">Open ↗</a></div></div>}
-          <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}><div className="builder-canvas-stage">{templateId === 'master-birthday' ? <MasterBirthdayTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId === 'master' ? <MasterTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div></div>
+          <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}><div className="builder-canvas-stage">{!loaded ? <div className="builder-template-empty"><div>…</div><h3>Loading website</h3><p>Preparing the selected template…</p></div> : templateId === 'master-birthday' ? <MasterBirthdayTemplate content={previewContent || undefined} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId === 'master' ? <MasterTemplate content={previewContent || undefined} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent || undefined} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div></div>
           {selectedElement && editorMode && (
             <section className="builder-context-editor" aria-label="Selected element editor">
               <div className="builder-context-editor-head">

@@ -64,6 +64,10 @@
 
         /* Hidden YouTube player (audio only) */
         #ytPlayerWrap { position:fixed; top:-9999px; left:-9999px; width:1px; height:1px; pointer-events:none; opacity:0; }
+        .bb-audio-toggle { position:fixed; right:18px; bottom:18px; z-index:10050; border:1px solid rgba(255,255,255,.7); border-radius:999px; padding:10px 14px; background:rgba(40,20,60,.72); color:#fff; font:600 13px 'Quicksand',sans-serif; box-shadow:0 10px 24px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.18); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); cursor:pointer; display:flex; align-items:center; gap:7px; }
+        .bb-audio-toggle.off { opacity:.78; background:rgba(30,30,40,.58); }
+        .bb-audio-toggle:active { transform:scale(.97); }
+        @media (max-width:600px){ .bb-audio-toggle{ right:10px; bottom:10px; padding:9px 12px; font-size:12px; } }
 
         .countdown-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; background:linear-gradient(135deg, rgba(255,209,220,0.4), rgba(230,230,250,0.4)); backdrop-filter:blur(8px); z-index:1000; transition:1s; text-align:center; padding:20px; }
         .countdown-screen.hide { opacity:0; visibility:hidden; pointer-events:none; }
@@ -331,6 +335,8 @@
             <path fill="#ff69b4" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
         </svg>
     </div>
+
+    <button id="bbAudioToggle" class="bb-audio-toggle" type="button" aria-pressed="true" aria-label="Turn music off" title="Turn music off">🔊 <span>Music ON</span></button>
 
     <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
         <span class="close" onclick="closeLightbox(event)">&times;</span>
@@ -1088,16 +1094,16 @@
         // Audio: no visible button. First user interaction unlocks audio context,
         // and every subsequent autoplay attempt (birthday track) succeeds on top of that.
         function handleGlobalClick() {
-            if (!audioAllowed) {
-                audioAllowed = true;
-            }
+            if (!audioAllowed) audioAllowed = true;
+
+            // In demo mode, soundtrack music is deliberately locked until the
+            // 10-second demo countdown finishes. This prevents wishing/track
+            // audio from leaking into the countdown screen.
+            if (window.__BB_FORCE_DEMO) return;
 
             const now = new Date();
             const isBirthdayToday = isBirthday(now);
-
-            if (isBirthdayToday && !birthdayAudioPlayed) {
-                playBirthdayAudio();
-            }
+            if (isBirthdayToday && !birthdayAudioPlayed) playBirthdayAudio();
         }
 
         document.body.addEventListener('click', handleGlobalClick);
@@ -1978,6 +1984,8 @@
   let demoTimer = null;
   let currentTrackIndex = 0;
   let bgAudio = null;
+  let musicEnabled = true;
+
   let spotifyFrame = null;
   let youtubeFrame = null;
   const originalCreateFloatingElement = window.createFloatingElement;
@@ -2281,6 +2289,30 @@
     const btn=q('#secretScreen .soulmate-btn'); if(btn){btn.innerHTML=`<i class="fab fa-instagram"></i> ${esc(state.secret.buttonText||'See Your Friend')}`;btn.onclick=()=>{const url=state.secret.socialUrl||'';if(url)window.open(url,'_blank','noopener,noreferrer');};}
   }
 
+  function syncAudioToggle(){
+    const btn=q('#bbAudioToggle'); if(!btn)return;
+    btn.classList.toggle('off', !musicEnabled);
+    btn.setAttribute('aria-pressed', musicEnabled ? 'true' : 'false');
+    btn.setAttribute('aria-label', musicEnabled ? 'Turn music off' : 'Turn music on');
+    btn.title = musicEnabled ? 'Turn music off' : 'Turn music on';
+    const span=btn.querySelector('span'); if(span) span.textContent=musicEnabled?'Music ON':'Music OFF';
+    btn.firstChild && (btn.firstChild.textContent = musicEnabled ? '🔊 ' : '🔇 ');
+  }
+  function setMusicEnabled(enabled){
+    musicEnabled=!!enabled;
+    if(!musicEnabled) { try{window.pauseBirthdayAudio?.();}catch(_){} }
+    syncAudioToggle();
+    if(musicEnabled && !window.__BB_FORCE_DEMO) { try{window.playBirthdayAudio?.();}catch(_){} }
+  }
+  document.addEventListener('click',e=>{
+    const btn=e.target?.closest?.('#bbAudioToggle');
+    if(!btn)return;
+    e.stopPropagation();
+    audioAllowed=true;
+    setMusicEnabled(!musicEnabled);
+  }, true);
+  syncAudioToggle();
+
   function applyTrackEngine(){
     const tracks=Array.isArray(state.soundtrack.items)?state.soundtrack.items:[];
     currentTrackIndex=Math.min(currentTrackIndex,Math.max(0,tracks.length-1));
@@ -2303,6 +2335,8 @@
     }
   }
   window.playBirthdayAudio=function(){
+    if(!musicEnabled) return;
+    if(window.__BB_FORCE_DEMO && !window.__BB_DEMO_UNLOCKED) return;
     const track=(state.soundtrack.items||[])[currentTrackIndex]; if(!track)return;
     const type=sourceType(track.url,track.sourceType);
     try{
@@ -2329,6 +2363,7 @@
     if(incoming.name && !cfg.recipientName) state.recipientName=String(incoming.name);
     if(incoming.birthday && !cfg.birthdayDate){const d=new Date(incoming.birthday);if(!Number.isNaN(d.getTime())){state.birthdayDate=d.toISOString().slice(0,10);state.birthdayTime=d.toTimeString().slice(0,5);}}
     applyBasics();applyTheme();applyEffects();applyCountdown();applyGreeting();applyCake();applyReasons();applyMemories();applyVideos();applyLetter();applySecret();applyTrackEngine();
+    syncAudioToggle();
     if(demoStarted) startDemoCountdown();
   }
 
@@ -2337,6 +2372,8 @@
     if(demoTimer)clearInterval(demoTimer);
     demoTimer=null;
     window.__BB_FORCE_DEMO = true;
+    window.__BB_DEMO_UNLOCKED = false;
+    try{window.pauseBirthdayAudio?.();}catch(_){}
     // Every Demo open starts from a fresh 10-second countdown, regardless of
     // any previous screen state or content message delivered by the Studio.
     q('#countdownScreen')?.classList.remove('hide');
@@ -2356,16 +2393,17 @@
       setText('#hours',String(h).padStart(2,'0'));
       setText('#mins',String(m).padStart(2,'0'));
       setText('#secs',String(s).padStart(2,'0'));
-      if(total<=10&&total>0&&state.countdown.audioEnabled){try{q('#countdownAudio')?.play?.().catch(()=>{});}catch(_){}}
+      if(total<=10&&total>0&&state.countdown.audioEnabled&&state.countdown.audioEnabled){try{q('#countdownAudio')?.play?.().catch(()=>{});}catch(_){}}
       if(left<=0){
         clearInterval(demoTimer); demoTimer=null;
         q('#countdownScreen')?.classList.add('hide');
         q('#greetingScreen')?.classList.remove('show');
         // Demo should continue into the real cake interaction automatically.
         q('#cakeScreen')?.classList.add('show');
+        window.__BB_DEMO_UNLOCKED = true;
         try{window.loadCakeState?.();}catch(_){}
         try{window.showWishMoment?.();}catch(_){}
-        try{window.playBirthdayAudio?.();}catch(_){}
+        try{ if (musicEnabled) window.playBirthdayAudio?.(); }catch(_){}
       }
     };
     tick();
@@ -2376,7 +2414,8 @@
     const data=event.data||{};
     if(data.type==='BB_CONTENT'){receivedContent=true;applyAll(data.content||{});return;}
     if(data.type==='BB_DEMO_MODE'){demoStarted=!!data.enabled; if(data.enabled)startDemoCountdown();return;}
-    if(data.type==='BB_DEMO_PLAY_AUDIO'){try{window.playBirthdayAudio?.();}catch(_){}}
+    if(data.type==='BB_DEMO_PLAY_AUDIO'){ if(window.__BB_DEMO_UNLOCKED && musicEnabled){try{window.playBirthdayAudio?.();}catch(_){}} }
+    if(data.type==='BB_SET_AUDIO_ENABLED'){ setMusicEnabled(data.enabled !== false); }
     if(data.type==='BB_EDITOR_MODE'){document.documentElement.dataset.bbEditor=data.enabled?'1':'0';return;}
     if(data.type==='BB_CANVAS_HISTORY'){return;}
   });

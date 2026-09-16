@@ -32,8 +32,7 @@ function DemoModal({ template, onClose }: { template: TemplateDefinition; onClos
         src={src}
         allow="autoplay; fullscreen; picture-in-picture"
         onLoad={(e) => {
-          e.currentTarget.contentWindow?.postMessage({ type: 'BB_DEMO_PLAY_AUDIO' }, '*');
-          setTimeout(() => e.currentTarget.contentWindow?.postMessage({ type: 'BB_DEMO_PLAY_AUDIO' }, '*'), 350);
+          // Master Birthday demo controls its own audio after the 10-second countdown.
         }}
       /></div>
       <div className="demo-modal-footer"><p>Live demo — sound starts when the demo opens.</p><Link className="premium-button premium-button-sm" href={`/builder/new?template=${template.slug}`}>Use template →</Link></div>
