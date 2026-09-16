@@ -2420,12 +2420,14 @@
     const rect=target.getBoundingClientRect(); btn.style.left=Math.min(window.innerWidth-44,Math.max(8,rect.right-34))+'px';btn.style.top=Math.max(8,rect.top-42)+'px';btn.style.display='block';btn.onclick=(e)=>{e.preventDefault();e.stopPropagation();window.parent?.postMessage?.({type:'BB_ELEMENT_SELECTED',selection},'*');};
   }
   document.addEventListener('pointerover',e=>{const sel=editorSelectionForTarget(e.target);if(sel)showEditorButton(e.target.closest?.('h1,h2,h3,h4,p,button,img,video,.photo-card,.video-card,.bb-video-caption'),sel);});
+  // In Canvas Edit mode, a normal single click must keep the template's
+  // original interaction alive. Editing is intentionally explicit: use the
+  // visible ✏ button or double-click/double-tap. This prevents buttons such
+  // as Enter, Next, Lightbox, and the cake controls from becoming dead.
   document.addEventListener('click',e=>{
     const sel=editorSelectionForTarget(e.target); if(!sel)return;
-    e.preventDefault(); e.stopPropagation();
     const target=e.target.closest?.('h1,h2,h3,h4,p,button,img,video,.photo-card,.video-card,.bb-video-caption')||e.target;
     showEditorButton(target,sel);
-    window.parent?.postMessage?.({type:'BB_ELEMENT_SELECTED',selection:sel},'*');
   },true);
   document.addEventListener('dblclick',e=>{const sel=editorSelectionForTarget(e.target);if(!sel)return;e.preventDefault();e.stopPropagation();window.parent?.postMessage?.({type:'BB_ELEMENT_SELECTED',selection:sel},'*');},true);
 
