@@ -669,6 +669,8 @@
         };
 
         const urlParams = new URLSearchParams(window.location.search);
+        const BB_FORCE_DEMO = urlParams.get('demo') === '1' || urlParams.get('bbDemo') === '1';
+        if (BB_FORCE_DEMO) window.__BB_FORCE_DEMO = true;
         if (urlParams.get('name')) {
             CONFIG.name = decodeURIComponent(urlParams.get('name'));
         }
@@ -1197,6 +1199,10 @@
         }
 
         function updateCountdown() {
+            // Demo mode owns the countdown completely. The normal annual
+            // birthday clock must never overwrite the demo's 10-second timer.
+            if (window.__BB_FORCE_DEMO) return;
+
             const now = new Date();
 
             const isBirthdayToday = isBirthday(now);
@@ -2330,6 +2336,7 @@
     if(!demoStarted)return;
     if(demoTimer)clearInterval(demoTimer);
     demoTimer=null;
+    window.__BB_FORCE_DEMO = true;
     // Every Demo open starts from a fresh 10-second countdown, regardless of
     // any previous screen state or content message delivered by the Studio.
     q('#countdownScreen')?.classList.remove('hide');
@@ -2353,8 +2360,11 @@
       if(left<=0){
         clearInterval(demoTimer); demoTimer=null;
         q('#countdownScreen')?.classList.add('hide');
-        q('#greetingScreen')?.classList.add('show');
-        if(typeof window.typeGreeting==='function')window.typeGreeting?.();
+        q('#greetingScreen')?.classList.remove('show');
+        // Demo should continue into the real cake interaction automatically.
+        q('#cakeScreen')?.classList.add('show');
+        try{window.loadCakeState?.();}catch(_){}
+        try{window.showWishMoment?.();}catch(_){}
         try{window.playBirthdayAudio?.();}catch(_){}
       }
     };
