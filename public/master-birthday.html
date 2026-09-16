@@ -655,8 +655,17 @@
 
     <script>
         // EmailJS initialization
+        // Guarded: if the emailjs CDN script fails to load (ad blockers,
+        // in-app browsers like WhatsApp/Instagram, flaky mobile networks,
+        // CDN hiccups) this used to throw immediately and silently kill
+        // every function defined further down this script — candles,
+        // the knife, cake cutting, and the countdown would all stop
+        // working with no visible error. Never let this block the rest
+        // of the page from running.
         (function() {
-            emailjs.init("MV90CKf_ZoIgGoU9w");
+            try {
+                if (typeof emailjs !== 'undefined') emailjs.init("MV90CKf_ZoIgGoU9w");
+            } catch (e) {}
         })();
 
         const CONFIG = {
@@ -1219,7 +1228,7 @@
 
                     if (!confettiShown) {
                         confettiShown = true;
-                        confetti({ particleCount: 100, spread: 70 });
+                        safeConfetti({ particleCount: 100, spread: 70 });
                     }
 
                     if (charIndex === 0) {
@@ -1429,7 +1438,7 @@
             renderCake();
             playBlowPuff();
             vibrate(25);
-            confetti({ particleCount:5, spread:30, colors:['#aaaaaa'] });
+            safeConfetti({ particleCount:5, spread:30, colors:['#aaaaaa'] });
             centers.forEach(c => spawnSmokeAt(c.x, c.y));
         };
 
@@ -1443,7 +1452,7 @@
                 renderCake();
                 playBlowPuff();
                 vibrate(30);
-                confetti({ particleCount:8 * count, spread:40, colors:['#aaaaaa'] });
+                safeConfetti({ particleCount:8 * count, spread:40, colors:['#aaaaaa'] });
                 centers.forEach(c => spawnSmokeAt(c.x, c.y));
             }
         }
@@ -1544,10 +1553,10 @@
 
             renderCake();
             serveSliceOntoPlate();
-            confetti({ particleCount:150, spread:80 });
-            confetti({ particleCount:40, spread:50, colors:['#e0b98c','#c99a68','#f3d9b1'], scalar:0.6 });
-            setTimeout(() => confetti({ particleCount:100, spread:60, colors:['gold','hotpink'] }), 200);
-            setTimeout(() => confetti({ particleCount:100, spread:60, colors:['cyan','purple'] }), 400);
+            safeConfetti({ particleCount:150, spread:80 });
+            safeConfetti({ particleCount:40, spread:50, colors:['#e0b98c','#c99a68','#f3d9b1'], scalar:0.6 });
+            setTimeout(() => safeConfetti({ particleCount:100, spread:60, colors:['gold','hotpink'] }), 200);
+            setTimeout(() => safeConfetti({ particleCount:100, spread:60, colors:['cyan','purple'] }), 400);
         };
 
         function placeSliceOnPlateStatic() {
@@ -1949,7 +1958,7 @@
             window.open('https://www.instagram.com/rafahimn', '_blank');
         };
 
-        function confetti(options) {
+        function safeConfetti(options) {
             if (typeof window.confetti === 'function') {
                 window.confetti(options);
             }
@@ -1986,19 +1995,34 @@
     var d=config(), date=String(d.birthdayDate||''); var time=String(d.birthdayTime||'00:00');
     if(!date) return null;
     var parts=date.split('-').map(Number), tp=time.split(':').map(Number);
-    var y=parts[0], mo=(parts[1]||1)-1, day=parts[2]||1, hh=tp[0]||0, mm=tp[1]||0;
-    if(d.timezone){
-      try {
-        // Convert a wall-clock time in the requested IANA timezone into an absolute Date.
-        var probe=new Date(Date.UTC(y,mo,day,hh,mm,0));
-        var fmt=new Intl.DateTimeFormat('en-US',{timeZone:d.timezone,timeZoneName:'short',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
-        var parts2=fmt.formatToParts(probe), vals={}; parts2.forEach(function(p){ vals[p.type]=p.value; });
-        var asIfUTC=Date.UTC(Number(vals.year),Number(vals.month)-1,Number(vals.day),Number(vals.hour),Number(vals.minute),Number(vals.second));
-        var offset=asIfUTC-probe.getTime();
-        return new Date(probe.getTime()-offset);
-      } catch(e){}
+    var mo=(parts[1]||1)-1, day=parts[2]||1, hh=tp[0]||0, mm=tp[1]||0;
+    function buildForYear(y){
+      if(d.timezone){
+        try {
+          // Convert a wall-clock time in the requested IANA timezone into an absolute Date.
+          var probe=new Date(Date.UTC(y,mo,day,hh,mm,0));
+          var fmt=new Intl.DateTimeFormat('en-US',{timeZone:d.timezone,timeZoneName:'short',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+          var parts2=fmt.formatToParts(probe), vals={}; parts2.forEach(function(p){ vals[p.type]=p.value; });
+          var asIfUTC=Date.UTC(Number(vals.year),Number(vals.month)-1,Number(vals.day),Number(vals.hour),Number(vals.minute),Number(vals.second));
+          var offset=asIfUTC-probe.getTime();
+          return new Date(probe.getTime()-offset);
+        } catch(e){}
+      }
+      return new Date(y,mo,day,hh,mm,0);
     }
-    return new Date(y,mo,day,hh,mm,0);
+    // Birthdays repeat every year. If this year's date has already fully
+    // passed, count down to next year's occurrence instead of freezing
+    // permanently on the greeting screen (this used to conflict with the
+    // legacy countdown logic below, which already rolled to next year —
+    // the two disagreeing is why the countdown could fail to show at all).
+    // Only roll forward when it's genuinely a different calendar day than
+    // today — never on the actual birthday itself, even later in the day
+    // after the target hour, or this would wrongly push "today" a whole
+    // year out instead of showing the greeting screen right now.
+    var now=new Date(), target=buildForYear(now.getFullYear());
+    var isToday = (now.getMonth()===mo && now.getDate()===day);
+    if(target && !isToday && now.getTime()>target.getTime()) target=buildForYear(now.getFullYear()+1);
+    return target;
   }
   function overrideDemoCountdown(){
     try {
@@ -2009,13 +2033,13 @@
         var left=Math.max(0,duration-(Date.now()-started));
         var screen=document.getElementById('countdownScreen'), greet=document.getElementById('greetingScreen');
         if(left>0){
-          if(screen){screen.classList.remove('hide');screen.style.display='flex';}
-          if(greet){greet.classList.remove('show');greet.style.display='none';}
+          if(screen){screen.classList.remove('hide');}
+          if(greet){greet.classList.remove('show');}
           var total=Math.ceil(left/1000), mins=Math.floor(total/60), secs=total%60;
           setText('days','00'); setText('hours','00'); setText('mins',String(mins).padStart(2,'0')); setText('secs',String(secs).padStart(2,'0'));
         } else {
-          if(screen){screen.classList.add('hide');screen.style.display='none';}
-          if(greet){greet.classList.add('show');greet.style.display='flex';}
+          if(screen){screen.classList.add('hide');}
+          if(greet){greet.classList.add('show');}
           if(window.__bbDemoCountdownTimer){clearInterval(window.__bbDemoCountdownTimer);window.__bbDemoCountdownTimer=null;}
         }
       }
@@ -2031,19 +2055,30 @@
     } catch(e) {}
     var target=birthdayTarget(); if(!target) return;
     function tick(){
+      // Once the countdown has reached zero, reveal the greeting screen a
+      // single time and then stop touching the DOM every second. Previously
+      // this ran forever with no guard, which meant every second for the
+      // rest of the day it would forcibly pop the greeting screen back on
+      // top of whatever screen the visitor had since navigated to (cake,
+      // candles, knife, photos, letter...), randomly swallowing taps —
+      // this was the main reason interactions like blowing candles or
+      // cutting the cake could seem to "randomly" stop working.
       var now=new Date(), diff=target.getTime()-now.getTime();
       var screen=document.getElementById('countdownScreen'), greet=document.getElementById('greetingScreen');
       if(diff>0){
-        if(screen){screen.classList.remove('hide');screen.style.display='flex';}
-        if(greet){greet.classList.remove('show');greet.style.display='none';}
+        if(screen){screen.classList.remove('hide');}
+        if(greet){greet.classList.remove('show');}
         var days=Math.floor(diff/86400000); diff%=86400000; var hours=Math.floor(diff/3600000); diff%=3600000; var mins=Math.floor(diff/60000); diff%=60000; var secs=Math.floor(diff/1000);
         setText('days',String(days).padStart(2,'0')); setText('hours',String(hours).padStart(2,'0')); setText('mins',String(mins).padStart(2,'0')); setText('secs',String(secs).padStart(2,'0'));
+        return false;
       } else {
-        if(screen){screen.classList.add('hide');screen.style.display='none';}
-        if(greet){greet.classList.add('show');greet.style.display='flex';}
+        if(screen){screen.classList.add('hide');}
+        if(greet){greet.classList.add('show');}
+        return true;
       }
     }
-    if(countdownTimer) clearInterval(countdownTimer); tick(); countdownTimer=setInterval(tick,1000);
+    if(countdownTimer){ clearInterval(countdownTimer); countdownTimer=null; }
+    if(!tick()) countdownTimer=setInterval(function(){ if(tick()){ clearInterval(countdownTimer); countdownTimer=null; } },1000);
   }
   function applyTheme(){
     var v=config().visual||{}, root=document.documentElement, styleId='bb-master-theme-style', st=document.getElementById(styleId);
