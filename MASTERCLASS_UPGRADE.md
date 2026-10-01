@@ -1,6 +1,6 @@
-# Wishly Studio — Masterclass Upgrade
+# Wishly — Masterclass Upgrade
 
-This upgrade turns the existing Birthday Builder v2 into a visual-first studio.
+This upgrade turns the existing Birthday Builder v2 into a visual-first canvas editor.
 
 ## What changed
 

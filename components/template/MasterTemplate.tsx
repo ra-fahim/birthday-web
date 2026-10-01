@@ -35,15 +35,24 @@ function contentToData(content?: BirthdayContent) {
 
 export default function MasterTemplate({ data, content, demo, websiteSlug, recipientId, editorMode = false, onElementSelect, onHistoryState }: Props) {
   const frameRef = useRef<HTMLIFrameElement>(null);
-  const resolved = useMemo(() => ({ ...contentToData(content), ...data }), [content, data]);
+  const resolved = useMemo(() => {
+    const masterBirthday = content?.templateConfig && typeof content.templateConfig === 'object'
+      ? (content.templateConfig as any).masterBirthday
+      : undefined;
+    const layered = masterBirthday && typeof masterBirthday === 'object'
+      ? { ...content, ...masterBirthday, name: masterBirthday.recipientName || content?.name, birthday: masterBirthday.birthdayDate && masterBirthday.birthdayTime ? `${masterBirthday.birthdayDate}T${masterBirthday.birthdayTime}` : content?.birthday }
+      : content;
+    return { ...contentToData(layered), ...data };
+  }, [content, data]);
   // Keep the iframe URL stable while editing so keystrokes and sidebar changes
   // update the live preview through postMessage instead of restarting the
   // template (which would replay its intro/animations on every change).
   const src = useMemo(() => {
     const p = new URLSearchParams();
-    if (demo || editorMode) { p.set('demo', '1'); p.set('bbDemo', '1'); }
+    if (demo) { p.set('demo', '1'); p.set('bbDemo', '1'); }
     if (recipientId) p.set('recipient', recipientId);
-    const templatePath = editorMode ? '/master-template-editor.html' : '/master-template.html';
+    const templatePath = '/master-template.html';
+    if (editorMode) { p.set('edit', '1'); p.set('bbEdit', '1'); }
     return `${templatePath}${p.toString() ? `?${p.toString()}` : ''}`;
   }, [demo, recipientId, editorMode]);
 
@@ -51,14 +60,17 @@ export default function MasterTemplate({ data, content, demo, websiteSlug, recip
     const frame = frameRef.current;
     if (!frame) return;
     const send = () => {
-      frame.contentWindow?.postMessage({ type: 'BB_CONTENT', content, websiteSlug: websiteSlug || '', recipientId: recipientId || '' }, '*');
+      frame.contentWindow?.postMessage({ type: 'BB_CONTENT', content: resolved, websiteSlug: websiteSlug || '', recipientId: recipientId || '' }, '*');
       frame.contentWindow?.postMessage({ type: 'BB_EDITOR_MODE', enabled: !!editorMode }, '*');
-      if (demo || editorMode) frame.contentWindow?.postMessage({ type: 'BB_DEMO_MODE', enabled: true, muted: true }, '*');
+      if (demo) {
+        frame.contentWindow?.postMessage({ type: 'BB_DEMO_MODE', enabled: true, muted: true }, '*');
+        frame.contentWindow?.postMessage({ type: 'BB_DEMO_AUDIO_ENABLED', enabled: false }, '*');
+      }
     };
     frame.addEventListener('load', send);
     send();
     return () => frame.removeEventListener('load', send);
-  }, [content, websiteSlug, recipientId, editorMode]);
+  }, [resolved, content, websiteSlug, recipientId, editorMode]);
 
   useEffect(() => {
     const handler = (event: MessageEvent) => {

@@ -17,7 +17,7 @@ export type TemplateInspection = {
 
 // These maps are based on the actual source files currently installed in
 // public/templates. They intentionally describe each template separately;
-// the studio must never assume every template has the same media structure.
+// the editor must never assume every template has the same media structure.
 export const templateInspections: Record<string, TemplateInspection> = {
   'master': {
     slug: 'master',

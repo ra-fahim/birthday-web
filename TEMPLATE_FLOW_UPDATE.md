@@ -20,8 +20,8 @@ Each installed category gets its own page at `/templates/<category>` and shows o
 ## Editor safety
 
 - `/builder/new` without a valid `template` now redirects to `/create` instead of silently creating the first catalog template.
-- The old first-run Studio onboarding layer was removed.
-- User-facing editor copy now says `Editor` instead of `Studio`.
+- The old first-run canvas editor onboarding layer was removed.
+- User-facing editor copy now says `Editor` instead of `canvas editor`.
 
 ## Kept intact
 

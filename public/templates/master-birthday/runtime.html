@@ -2386,7 +2386,7 @@
     try{q('#countdownAudio') && (q('#countdownAudio').muted = true);}catch(_){}
     syncAudioToggle();
     // Every Demo open starts from a fresh 10-second countdown, regardless of
-    // any previous screen state or content message delivered by the Studio.
+    // any previous screen state or content message delivered by the editor.
     q('#countdownScreen')?.classList.remove('hide');
     q('#greetingScreen')?.classList.remove('show');
     q('#cakeScreen')?.classList.remove('show');
@@ -2496,7 +2496,7 @@
   },true);
   document.addEventListener('dblclick',e=>{const sel=editorSelectionForTarget(e.target);if(!sel)return;e.preventDefault();e.stopPropagation();window.parent?.postMessage?.({type:'BB_ELEMENT_SELECTED',selection:sel},'*');},true);
 
-  // Ensure navigation state is visible to the Studio without changing the source flow.
+  // Ensure navigation state is visible to the editor without changing the source flow.
   const pushHistory=window.updateHistory;
   window.updateHistory=function(screen){ try{pushHistory?.(screen);}finally{ window.parent?.postMessage?.({type:'BB_CANVAS_HISTORY_STATE',canBack:(historyStack?.length||0)>1,canForward:false,screen},'*'); }};
   window.addEventListener('hashchange',()=>window.parent?.postMessage?.({type:'BB_CANVAS_HISTORY_STATE',canBack:(historyStack?.length||0)>1,canForward:false,screen:location.hash.replace('#','')},'*'));

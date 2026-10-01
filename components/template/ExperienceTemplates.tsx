@@ -31,7 +31,7 @@ function MissYouTemplate({ content, editorMode = false, onElementSelect, onHisto
     const next = { ...getMissYouDefaults(), ...(content.templateConfig || {}) };
     setConfig(next);
   }, [content.templateConfig]);
-  const src = React.useMemo(() => '/templates/miss-you-1/index.html?bbStudio=1', []);
+  const src = React.useMemo(() => '/templates/miss-you-1/index.html?bbEdit=1', []);
   const frameRef = React.useRef<HTMLIFrameElement>(null);
   React.useEffect(() => { const f=frameRef.current; if(!f)return; const post=()=>{ f.contentWindow?.postMessage({type:'BB_EDITOR_MODE',enabled:!!editorMode},'*'); f.contentWindow?.postMessage({type:'BB_MISSYOU_CONFIG',config},'*'); }; f.addEventListener('load',post); post(); return()=>f.removeEventListener('load',post); }, [editorMode, src, config]);
   React.useEffect(() => { const h=(e:MessageEvent)=>{ if(e.source!==frameRef.current?.contentWindow || !e.data) return; if(e.data.type==='BB_ELEMENT_SELECTED') onElementSelect?.(e.data.selection); if(e.data.type==='BB_CANVAS_HISTORY_STATE') onHistoryState?.(e.data); }; window.addEventListener('message',h); return()=>window.removeEventListener('message',h); }, [onElementSelect, onHistoryState]);
@@ -74,7 +74,7 @@ function MasterProposalTemplate({ content, editorMode, onElementSelect, onHistor
     const next = { ...getMasterProposalDefaults(), ...(content.templateConfig || {}) };
     setConfig(next);
   }, [content.templateConfig]);
-  const src = React.useMemo(() => '/templates/master-proposal/index.html?bbStudio=1', []);
+  const src = React.useMemo(() => '/templates/master-proposal/index.html?bbEdit=1', []);
   React.useEffect(() => {
     const frame = frameRef.current;
     if (!frame) return;

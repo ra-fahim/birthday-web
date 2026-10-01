@@ -8,7 +8,7 @@ export default function DeleteConfirmModal({ label='Delete', title='Delete this 
   useEffect(()=>{ if(!open) return; const prev=document.body.style.overflow; document.body.style.overflow='hidden'; const key=(e:KeyboardEvent)=>{if(e.key==='Escape'&&!busy)setOpen(false)}; document.addEventListener('keydown',key); return()=>{document.removeEventListener('keydown',key);document.body.style.overflow=prev}; },[open,busy]);
   async function confirm(){ setBusy(true); setError(''); try{ await onConfirm(); setOpen(false); }catch(e:any){setError(e?.message||'Something went wrong.')}finally{setBusy(false)} }
   return <>
-    <button type="button" className="studio-danger-btn" onClick={()=>{setError('');setOpen(true)}}><Trash2 size={14}/> {label}</button>
+    <button type="button" className="workspace-danger-btn" onClick={()=>{setError('');setOpen(true)}}><Trash2 size={14}/> {label}</button>
     {open && typeof document!=='undefined' && createPortal(<div className="confirm-backdrop" role="presentation" onMouseDown={e=>{if(!busy&&e.target===e.currentTarget)setOpen(false)}}>
       <div className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-title" aria-describedby="delete-description" onMouseDown={e=>e.stopPropagation()}>
         <button className="confirm-close" type="button" aria-label="Close" disabled={busy} onClick={()=>setOpen(false)}><X size={17}/></button>

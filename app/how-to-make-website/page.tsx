@@ -43,7 +43,7 @@ export default async function HowToMakeWebsite() {
       <div className="howto-step-grid">{steps.map(([n,title,desc]) => <article className="howto-step" key={n}><span>{n}</span><div><h3>{title}</h3><p>{desc}</p></div></article>)}</div>
     </section>
 
-    <section className="feature-section howto-dark-section"><div className="premium-container"><div className="section-heading center"><p className="section-kicker">STUDIO BASICS</p><h2>Know these four things<br/><span>and you’re ready.</span></h2></div><div className="howto-tip-grid">{tips.map(([title,desc])=><article className="howto-tip" key={title}><span>✦</span><h3>{title}</h3><p>{desc}</p></article>)}</div></div></section>
+    <section className="feature-section howto-dark-section"><div className="premium-container"><div className="section-heading center"><p className="section-kicker">BUILDER BASICS</p><h2>Know these four things<br/><span>and you’re ready.</span></h2></div><div className="howto-tip-grid">{tips.map(([title,desc])=><article className="howto-tip" key={title}><span>✦</span><h3>{title}</h3><p>{desc}</p></article>)}</div></div></section>
 
     <section className="premium-container howto-section"><div className="howto-checklist"><div><p className="section-kicker">BEFORE YOU PUBLISH</p><h2>Quick final check.</h2><p>Open Preview and make sure your content, media and countdown are correct. Save your draft, then publish when you are happy.</p></div><div className="howto-checklist-card">{['Recipient / names look correct','Photos and videos are the right ones','Music slots are correct','Countdown date and time are correct','Buttons and links open the right destination','Draft is saved before publishing'].map(item=><div key={item}><i>✓</i><span>{item}</span></div>)}</div></div></section>
 

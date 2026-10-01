@@ -27,7 +27,7 @@ export default async function Home(){
    <div className="hero-art">
     <div className="hero-orbit orbit-a"></div><div className="hero-orbit orbit-b"></div>
     <div className="hero-card hero-card-back"><small>FOR SOMEONE SPECIAL</small><strong>Keep the memories close.</strong><span>Photos · Music · Wishes</span></div>
-    <div className="hero-card hero-card-main"><div className="hero-card-top"><span>✦ WISHLy STUDIO</span><span>•••</span></div><div className="hero-photo"><span>♥</span></div><p>A little corner of the internet, made just for you.</p><div className="hero-mini-actions"><i>♡</i><i>♫</i><i>✉</i></div></div>
+    <div className="hero-card hero-card-main"><div className="hero-card-top"><span>✦ WISHLy</span><span>•••</span></div><div className="hero-photo"><span>♥</span></div><p>A little corner of the internet, made just for you.</p><div className="hero-mini-actions"><i>♡</i><i>♫</i><i>✉</i></div></div>
     <div className="floating-badge badge-one">✓ Auto-saved</div><div className="floating-badge badge-two">🎵 Music on</div>
    </div>
   </section>

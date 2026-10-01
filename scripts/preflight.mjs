@@ -19,6 +19,19 @@ const requiredFiles = [
 for (const file of requiredFiles) {
   if (!fs.existsSync(path.join(root, file))) throw new Error(`Required template file is missing: ${file}`);
 }
+const masterTemplate = fs.readFileSync(path.join(root, 'public/master-template.html'), 'utf8');
+const masterTemplateMarkers = [
+  "const isEditorMode =",
+  "let demoAudioEnabled = false;",
+  "demoBirthdayTarget = isDemoMode ? new Date(Date.now() + 10000)",
+  "BB_DEMO_AUDIO_ENABLED",
+  "bbEditorNav",
+  "BigBuckBunny.mp4",
+  "anime1/800/600"
+];
+for (const marker of masterTemplateMarkers) {
+  if (!masterTemplate.includes(marker)) throw new Error(`Master Template marker is missing: ${marker}`);
+}
 const runtime = fs.readFileSync(path.join(root, 'public/templates/master-birthday/runtime.html'), 'utf8');
 const demoGuards = [
   'let musicEnabled = !window.__BB_FORCE_DEMO;',
