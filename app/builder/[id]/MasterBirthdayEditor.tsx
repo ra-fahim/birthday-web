@@ -32,7 +32,7 @@ export default function MasterBirthdayEditor({ config, onChange, websiteId, tab 
   const reasonCountLabel = useMemo(() => `${reasons.length} reason${reasons.length===1?'':'s'} · add up to 12`, [reasons.length]);
 
   if (tab === 'overview') return <>
-    <div className="builder-quickstart"><div className="builder-quick-card"><b>Original experience preserved</b><span>Studio values are layered onto the supplied Birthday HTML/CSS/JS without rebuilding its visual experience.</span></div><div className="builder-quick-card"><b>Personalize safely</b><span>Edit values here or select editable items directly on the canvas.</span></div><div className="builder-quick-card"><b>Save, then publish</b><span>Draft changes stay private until you create the live link.</span></div></div>
+    <div className="builder-quickstart"><div className="builder-quick-card"><b>Original experience preserved</b><span>Editor values are layered onto the supplied Birthday HTML/CSS/JS without rebuilding its visual experience.</span></div><div className="builder-quick-card"><b>Personalize safely</b><span>Edit values here or select editable items directly on the canvas.</span></div><div className="builder-quick-card"><b>Save, then publish</b><span>Draft changes stay private until you create the live link.</span></div></div>
     <section className="builder-section"><div className="builder-section-head"><div><div className="builder-eyebrow">IDENTITY</div><h2>Basic information</h2><p>These values drive the Master Birthday experience and metadata.</p></div></div><div className="mt-5 builder-grid-2">
       <Field label="Recipient Name"><input value={config.recipientName} onChange={e=>onChange({...config,recipientName:e.target.value,cake:{...config.cake,recipientName:e.target.value}})} /></Field>
       <Field label="Sender Name"><input value={config.senderName} onChange={e=>set('senderName',e.target.value)} /></Field>
@@ -87,5 +87,5 @@ export default function MasterBirthdayEditor({ config, onChange, websiteId, tab 
 
   if (tab === 'advanced') return <section className="builder-section"><div className="builder-section-head"><div><div className="builder-eyebrow">SOURCE SAFETY</div><h2>Advanced metadata</h2><p>No raw CSS editor is exposed for Master Birthday. Use the safe controls above.</p></div></div><div className="mt-5 builder-note">The original source is preserved in <code>public/templates/master-birthday/original.html</code>. The published experience layers saved values onto that original source.</div></section>;
 
-  return <section className="builder-section"><div className="builder-note">Choose a Master Birthday editing section from the Studio menu.</div></section>;
+  return <section className="builder-section"><div className="builder-note">Choose a Master Birthday editing section from the editor menu.</div></section>;
 }

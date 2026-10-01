@@ -15,7 +15,6 @@ import UniversalElementEditor from './UniversalElementEditor';
 import { TimelineEditor, MemoriesEditor, WishlistEditor, GuestbookToggle } from './ContentListEditors';
 import { templateCatalog } from '@/lib/templates';
 import { getTemplateInspection } from '@/lib/template-inspector';
-import StudioOnboarding from './StudioOnboarding';
 
 // Keep the complete occasion list stable even when an occasion has no templates yet.
 // New HTML templates can then be registered under any of these categories later.
@@ -413,7 +412,7 @@ export default function Builder() {
     <header className="builder-topbar">
       <div className="builder-brand">
         <div className="builder-logo">W</div>
-        <div><strong>Wishly Studio</strong><span>Experience editor</span></div>
+        <div><strong>Wishly</strong><span>Website editor</span></div>
       </div>
       <div className="builder-top-actions">
         <div className={`builder-status ${dirty ? 'is-dirty' : ''}`}><i />{dirty ? 'Unsaved changes' : status === 'published' ? 'Published' : 'All changes saved'}</div>
@@ -427,7 +426,7 @@ export default function Builder() {
     <div className="builder-layout">
       <aside className={`builder-sidebar ${mobileSidebarOpen ? 'is-mobile-open' : ''}`}>
         <div className="builder-mobile-sidebar-head">
-          <div><span className="builder-eyebrow">STUDIO MENU</span><strong>Build your website</strong></div>
+          <div><span className="builder-eyebrow">EDITOR MENU</span><strong>Build your website</strong></div>
           <button type="button" onClick={() => setMobileSidebarOpen(false)} aria-label="Close menu"><X size={18} /></button>
         </div>
         <div className="builder-project-card">
@@ -473,8 +472,8 @@ export default function Builder() {
       <section className="builder-workspace">
         <div className={`builder-editor-panel ${mobileToolsOpen ? 'mobile-tools-open' : ''}`}>
           {mobileToolsOpen && <div className="builder-mobile-editor-toolbar">
-            <button type="button" className="builder-mobile-editor-nav" onClick={() => setMobileToolsOpen(false)} aria-label="Back to studio preview">← Preview</button>
-            <button type="button" className="builder-mobile-editor-nav builder-mobile-editor-menu" onClick={() => setMobileSidebarOpen(true)} aria-label="Open studio sidebar"><Menu size={15} /> Studio menu</button>
+            <button type="button" className="builder-mobile-editor-nav" onClick={() => setMobileToolsOpen(false)} aria-label="Back to preview">← Preview</button>
+            <button type="button" className="builder-mobile-editor-nav builder-mobile-editor-menu" onClick={() => setMobileSidebarOpen(true)} aria-label="Open editor menu"><Menu size={15} /> Editor menu</button>
           </div>}
           <div className="builder-panel-head"><div><div className="builder-eyebrow">{activeGroup?.icon} {activeGroup?.label || 'Editor'}</div><h2>{activeTab?.[2]}</h2></div><span className="builder-live-pill">● LIVE</span></div>
           <div className="builder-mobile-category-tabs">{visibleGroups.map(g => <button key={g.id} className={activeGroup?.id === g.id ? 'active' : ''} onClick={() => { setEditGroup(g.id); setTab(g.tabs[0] as TabId); setMobileToolsOpen(true); }}><span>{g.icon}</span>{g.label}</button>)}</div>
@@ -638,7 +637,7 @@ export default function Builder() {
             </Section>}
             {templateId === 'miss-you-1' && tab === 'music' && <Section eyebrow="SOUNDTRACK" title="Background music" description="This template contains one audio element. Replace the bundled track with an uploaded file or public direct audio URL."><SingleMediaUpload kind="audio" url={String(missYouConfig.musicUrl || '')} onChange={musicUrl => updateMissYou({ musicUrl })} websiteId={id} /></Section>}
             {templateId === 'master-proposal' && tab === 'music' && <Section eyebrow="SOUNDTRACK" title="Background music" description="The source code contains one BackgroundMusic component and one configurable soundtrack URL."><SingleMediaUpload kind="audio" url={String(masterProposalConfig.bgMusicUrl || '')} onChange={bgMusicUrl => updateMasterProposal({ bgMusicUrl })} websiteId={id} /></Section>}
-            {templateId === 'wedding-proposal' && tab === 'music' && <Section eyebrow="SOURCE MUSIC" title="Built-in wedding soundtrack" description="This template does not use an uploaded music file. Its music and sound effects are generated in the original JavaScript with AudioContext, so the Studio preserves that exact behavior."><div className="builder-protected"><span>♫</span><div><b>Code-generated audio</b><p>The source contains a generated music layer plus sound effects. There is no external audio URL in this template to replace.</p></div></div></Section>}
+            {templateId === 'wedding-proposal' && tab === 'music' && <Section eyebrow="SOURCE MUSIC" title="Built-in wedding soundtrack" description="This template does not use an uploaded music file. Its music and sound effects are generated in the original JavaScript with AudioContext, so the editor preserves that exact behavior."><div className="builder-protected"><span>♫</span><div><b>Code-generated audio</b><p>The source contains a generated music layer plus sound effects. There is no external audio URL in this template to replace.</p></div></div></Section>}
 
             {tab === 'letter' && <Section eyebrow="THE LETTER" title="Your letter" description="The envelope animation stays fixed, but the words inside the letter are fully editable line by line."><ArrayEditor title="Letter lines" description="Each item becomes a handwritten line in the reveal animation." items={c.letter} placeholder="Write one line for the letter…" multiline onChange={items => updateArray('letter', items)} /><div className="builder-note mt-4">The protected core message is separate from this editable letter. This lets the template keep its signature reveal while still giving you a real writing surface.</div></Section>}
 
@@ -681,7 +680,7 @@ export default function Builder() {
         <section className="builder-preview-panel">
           <div className="builder-preview-head">
             <div className="builder-preview-title">
-              <button type="button" className="builder-mobile-menu-btn builder-preview-menu-btn" onClick={() => setMobileSidebarOpen(v => !v)} aria-label={mobileSidebarOpen ? 'Close studio menu' : 'Open studio menu'} aria-expanded={mobileSidebarOpen}>
+              <button type="button" className="builder-mobile-menu-btn builder-preview-menu-btn" onClick={() => setMobileSidebarOpen(v => !v)} aria-label={mobileSidebarOpen ? 'Close editor menu' : 'Open editor menu'} aria-expanded={mobileSidebarOpen}>
                 {mobileSidebarOpen ? <X size={18} /> : <Menu size={18} />}
               </button>
               <button
@@ -732,6 +731,5 @@ export default function Builder() {
       </section>
     </div>
     {msg && <div className="builder-toast">{msg}</div>}
-    <StudioOnboarding />
   </main>;
 }

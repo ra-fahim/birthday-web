@@ -48,7 +48,7 @@ export default function PublicNavbar({ user }: { user: PublicNavbarUser }) {
       <div className="premium-container premium-nav-inner" ref={wrapRef}>
         <Link href="/" className="brand-lockup" onClick={close}>
           <span className="brand-mark">✦</span>
-          <span><b>Wishly</b><small>Studio</small></span>
+          <span><b>Wishly</b><small>Create moments</small></span>
         </Link>
 
         <div className="premium-nav-links">
@@ -70,7 +70,7 @@ export default function PublicNavbar({ user }: { user: PublicNavbarUser }) {
                 {user ? <>
                   <div className="profile-quick-grid">
                     <Link href="/dashboard" onClick={close}>Dashboard</Link>
-                    <Link href="/builder/new" onClick={close}>Create website</Link>
+                    <Link href="/create" onClick={close}>Create website</Link>
                   </div>
                   <div className="profile-popover-links">
                     <Link href="/profile" onClick={close}>Profile settings <span>↗</span></Link>
@@ -87,7 +87,7 @@ export default function PublicNavbar({ user }: { user: PublicNavbarUser }) {
           <div className="mobile-nav-panel">
             <div className="mobile-nav-panel-profile">
               <div className="profile-avatar-lg">{avatar ? <img src={avatar} alt="" /> : initial}</div>
-              <div><strong>{user?.name || (user ? 'Creator' : 'Welcome')}</strong><small>{user?.email || 'Explore Wishly Studio'}</small></div>
+              <div><strong>{user?.name || (user ? 'Creator' : 'Welcome')}</strong><small>{user?.email || 'Explore Wishly'}</small></div>
             </div>
             <div className="mobile-nav-links">
               {links.map(([href, label]) => <Link key={href} href={href} onClick={close}>{label}<span>↗</span></Link>)}
@@ -98,7 +98,7 @@ export default function PublicNavbar({ user }: { user: PublicNavbarUser }) {
             <div className="mobile-nav-account">
               {user ? <>
                 <Link href="/dashboard" onClick={close}>Dashboard</Link>
-                <Link href="/builder/new" onClick={close}>Create website</Link>
+                <Link href="/create" onClick={close}>Create website</Link>
                 <Link href="/profile" onClick={close}>Profile settings</Link>
                 {user.role === 'admin' && <Link href="/admin" onClick={close}>Admin</Link>}
                 <a href="/api/auth/logout">Log out</a>

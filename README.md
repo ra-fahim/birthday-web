@@ -18,7 +18,7 @@ Production-oriented birthday website builder using **Next.js + Supabase + Vercel
 - `SUPABASE_SERVICE_ROLE_KEY` (server-only)
 - optional direct `SMTP_*` variables for application/admin messages
 
-There is no Supabase setup and no `Supabase`/`Supabase`.
+Supabase Auth owns authentication and passwords; the app does not ship a separate password database.
 
 ## Google redirect
 In Supabase Authentication > URL Configuration, add:
@@ -28,7 +28,7 @@ In Supabase Authentication > URL Configuration, add:
 Create/sign up a user, then set that user's `profiles.role` to `admin` in Supabase Table Editor/SQL Editor. Admin routes are protected server-side and no public admin-login button is exposed.
 
 ## Verification
-Run `npm run build`. The project contains a Supabase-only preflight script and no Supabase build step.
+Run `npm run preflight` for a fast project/template sanity check, `npm run typecheck` for TypeScript validation, and `npm run build` for the production build. Demo previews are intentionally muted, while published experiences keep their configured music behavior.
 
 
 ## Product direction

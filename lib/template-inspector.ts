@@ -19,9 +19,9 @@ export type TemplateInspection = {
 // public/templates. They intentionally describe each template separately;
 // the studio must never assume every template has the same media structure.
 export const templateInspections: Record<string, TemplateInspection> = {
-  'master-birthday': {
-    slug: 'master-birthday',
-    sourceFiles: ['/templates/master-birthday/original.html', '/templates/master-birthday/runtime.html'],
+  'master': {
+    slug: 'master',
+    sourceFiles: ['/master-template.html', '/master-template-editor.html'],
     summary: 'Original supplied Birthday HTML/CSS/JS experience with countdown, cinematic cake interaction, reasons, dynamic memories, videos, letter, secret ending, audio and effects.',
     media: [
       { key: 'memories', label: 'Photo / Memory gallery', kind: 'image', behavior: 'Dynamic memories rendered in the original gallery and Lightbox.', sourceType: 'file-or-url', count: 0 },
@@ -34,20 +34,6 @@ export const templateInspections: Record<string, TemplateInspection> = {
     editableAreas: [
       'basic information', 'countdown', 'greeting', 'cake interaction copy and candle count', 'reasons', 'memories', 'Lightbox', 'videos', 'soundtrack', 'letter', 'secret ending', 'theme', 'effects'
     ],
-  },
-  master: {
-    slug: 'master',
-    sourceFiles: ['/master-template.html', '/master-template-editor.html'],
-    summary: 'Cinematic birthday template with separate background, countdown and wishing audio plus gallery and one video scene.',
-    media: [
-      { key: 'musicUrl', label: 'Background music', kind: 'audio', behavior: 'Loops as the main soundtrack.', sourceType: 'file-or-url' },
-      { key: 'countdownAudioUrl', label: 'Countdown audio', kind: 'audio', behavior: 'Plays during the final countdown window.', sourceType: 'file-or-url' },
-      { key: 'wishingAudioUrl', label: 'Wishing / birthday audio', kind: 'audio', behavior: 'Plays when the celebration unlocks.', sourceType: 'file-or-url' },
-      { key: 'gallery', label: 'Photo gallery', kind: 'image', behavior: 'Multiple photos; each item can use an uploaded file or public image URL.', sourceType: 'file-or-url', count: 0 },
-      { key: 'videoUrl', label: 'Special video', kind: 'video', behavior: 'One video scene; direct video URL, YouTube or Vimeo link, or upload.', sourceType: 'file-or-url' },
-      { key: 'video-bg', label: 'Animated background video', kind: 'video', behavior: 'Built into the original template; not a user content slot by default.', sourceType: 'code-generated' },
-    ],
-    editableAreas: ['text', 'buttons', 'countdown date/time', 'countdown labels', 'photos', 'special video', 'three audio slots', 'theme']
   },
   'master-proposal': {
     slug: 'master-proposal',

@@ -27,11 +27,11 @@ export default async function Dashboard({ searchParams }: { searchParams: { pend
   return (
     <main className="studio-dashboard">
       <aside className="studio-dashboard-sidebar">
-        <div className="studio-wordmark"><span>✦</span><div><b>Wishly</b><small>Studio</small></div></div>
+        <div className="studio-wordmark"><span>✦</span><div><b>Wishly</b><small>Create moments</small></div></div>
         <nav>
           <Link className="active" href="/dashboard">▦ <span>My Websites</span></Link>
           <Link href="/templates">◈ <span>Template Library</span></Link>
-          <Link href="/builder/new">＋ <span>Create New</span></Link>
+          <Link href="/create">＋ <span>Create New</span></Link>
         </nav>
         <div className="studio-sidebar-bottom">
           <Link href="/profile">⚙ <span>Settings</span></Link>
@@ -45,7 +45,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { pend
           <div><p>YOUR WORKSPACE</p><h1>My Websites</h1><span>Create, edit and publish beautiful experiences.</span></div>
           <div className="studio-header-actions">
             {u.role === 'admin' && <Link className="studio-secondary-btn" href="/admin">Admin</Link>}
-            {gated ? <span className="studio-primary-btn disabled">＋ Create New</span> : <Link className="studio-primary-btn" href="/builder/new">＋ Create New</Link>}
+            {gated ? <span className="studio-primary-btn disabled">＋ Create New</span> : <Link className="studio-primary-btn" href="/create">＋ Create New</Link>}
           </div>
         </header>
 
@@ -74,7 +74,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { pend
               </div>
             </article>;
           })}
-          {!sites.length && <div className="studio-empty"><div>✦</div><h3>Your first masterpiece starts here.</h3><p>Choose a template and build a celebration that feels completely personal.</p>{!gated && <Link className="studio-primary-btn" href="/builder/new">Create your first website</Link>}</div>}
+          {!sites.length && <div className="studio-empty"><div>✦</div><h3>Your first masterpiece starts here.</h3><p>Choose a template and build a celebration that feels completely personal.</p>{!gated && <Link className="studio-primary-btn" href="/create">Create your first website</Link>}</div>}
         </div>
       </section>
     </main>

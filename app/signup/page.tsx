@@ -36,7 +36,7 @@ export default function Signup() {
 
   return (
     <main className="auth-shell">
-      <section className="auth-brand-side"><div className="auth-brand-card"><div className="brand-lockup"><span className="brand-mark">✦</span><span><b>Wishly</b><small>Studio</small></span></div><h1>Make something they’ll <span>remember.</span></h1><p>Choose a beautiful template, add your story, and publish one link that feels like it was made just for them.</p><div className="auth-points"><div className="auth-point"><i>✦</i> Premium templates</div><div className="auth-point"><i>＋</i> Add photos, music and video</div><div className="auth-point"><i>✓</i> Auto-save and responsive preview</div></div></div></section><section className="auth-form-side"><div className="auth-form-card">
+      <section className="auth-brand-side"><div className="auth-brand-card"><div className="brand-lockup"><span className="brand-mark">✦</span><span><b>Wishly</b><small>Create moments</small></span></div><h1>Make something they’ll <span>remember.</span></h1><p>Choose a beautiful template, add your story, and publish one link that feels like it was made just for them.</p><div className="auth-points"><div className="auth-point"><i>✦</i> Premium templates</div><div className="auth-point"><i>＋</i> Add photos, music and video</div><div className="auth-point"><i>✓</i> Auto-save and responsive preview</div></div></div></section><section className="auth-form-side"><div className="auth-form-card">
         <h1 className="text-3xl font-bold">Create account</h1>
         {invite && <p className="mt-3 text-sm text-emerald-400">Invite link detected — your account will be approved instantly.</p>}
         <form onSubmit={go} className="mt-6 space-y-4">

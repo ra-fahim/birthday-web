@@ -1296,7 +1296,8 @@
 
         function showWishMoment() {
             const now = new Date();
-            if (isBirthday(now) && !birthdayAudioPlayed) {
+            // Never start soundtrack audio automatically inside a demo/preview.
+            if (!window.__BB_FORCE_DEMO && isBirthday(now) && !birthdayAudioPlayed) {
                 playBirthdayAudio();
             }
 
@@ -1321,7 +1322,8 @@
         }
 
         function requestMicAuto() {
-            if (micAutoRequested || cakeCut || candlesBlown === totalCandles) return;
+            // A template demo must never trigger a microphone permission prompt.
+            if (window.__BB_FORCE_DEMO || micAutoRequested || cakeCut || candlesBlown === totalCandles) return;
             micAutoRequested = true;
             startMicrophone();
         }
@@ -1984,7 +1986,8 @@
   let demoTimer = null;
   let currentTrackIndex = 0;
   let bgAudio = null;
-  let musicEnabled = true;
+  // Demo/preview surfaces are always silent. Published experiences default to music ON.
+  let musicEnabled = !window.__BB_FORCE_DEMO;
 
   let spotifyFrame = null;
   let youtubeFrame = null;
@@ -2118,7 +2121,9 @@
     setText('#countdownScreen .countdown-title', state.countdown.title);
     setText('#countdownMessage', state.countdown.message);
     const ca = q('#countdownAudio');
-    if (ca) ca.muted = !state.countdown.audioEnabled;
+    // Countdown audio follows the configured setting on the live site, but is
+    // forcibly muted in demo/preview mode so opening a template never creates sound.
+    if (ca) ca.muted = !state.countdown.audioEnabled || !!window.__BB_FORCE_DEMO;
   }
 
   function applyCake() {
@@ -2299,10 +2304,12 @@
     btn.firstChild && (btn.firstChild.textContent = musicEnabled ? '🔊 ' : '🔇 ');
   }
   function setMusicEnabled(enabled){
-    musicEnabled=!!enabled;
+    // Demo/preview mode is intentionally silent even if a parent/editor message
+    // asks the embedded template to enable audio.
+    musicEnabled = !!enabled && !window.__BB_FORCE_DEMO;
     if(!musicEnabled) { try{window.pauseBirthdayAudio?.();}catch(_){} }
     syncAudioToggle();
-    if(musicEnabled && !window.__BB_FORCE_DEMO) { try{window.playBirthdayAudio?.();}catch(_){} }
+    if(musicEnabled) { try{window.playBirthdayAudio?.();}catch(_){} }
   }
   document.addEventListener('click',e=>{
     const btn=e.target?.closest?.('#bbAudioToggle');
@@ -2373,7 +2380,11 @@
     demoTimer=null;
     window.__BB_FORCE_DEMO = true;
     window.__BB_DEMO_UNLOCKED = false;
+    musicEnabled = false;
     try{window.pauseBirthdayAudio?.();}catch(_){}
+    try{q('#countdownAudio')?.pause?.();}catch(_){}
+    try{q('#countdownAudio') && (q('#countdownAudio').muted = true);}catch(_){}
+    syncAudioToggle();
     // Every Demo open starts from a fresh 10-second countdown, regardless of
     // any previous screen state or content message delivered by the Studio.
     q('#countdownScreen')?.classList.remove('hide');
@@ -2393,7 +2404,7 @@
       setText('#hours',String(h).padStart(2,'0'));
       setText('#mins',String(m).padStart(2,'0'));
       setText('#secs',String(s).padStart(2,'0'));
-      if(total<=10&&total>0&&state.countdown.audioEnabled&&state.countdown.audioEnabled){try{q('#countdownAudio')?.play?.().catch(()=>{});}catch(_){}}
+      // Keep demo countdown completely silent.
       if(left<=0){
         clearInterval(demoTimer); demoTimer=null;
         q('#countdownScreen')?.classList.add('hide');
@@ -2401,9 +2412,11 @@
         // Demo should continue into the real cake interaction automatically.
         q('#cakeScreen')?.classList.add('show');
         window.__BB_DEMO_UNLOCKED = true;
+        musicEnabled = false;
+        try{window.pauseBirthdayAudio?.();}catch(_){}
         try{window.loadCakeState?.();}catch(_){}
         try{window.showWishMoment?.();}catch(_){}
-        try{ if (musicEnabled) window.playBirthdayAudio?.(); }catch(_){}
+        syncAudioToggle();
       }
     };
     tick();
@@ -2413,8 +2426,21 @@
   window.addEventListener('message',function(event){
     const data=event.data||{};
     if(data.type==='BB_CONTENT'){receivedContent=true;applyAll(data.content||{});return;}
-    if(data.type==='BB_DEMO_MODE'){demoStarted=!!data.enabled; if(data.enabled)startDemoCountdown();return;}
-    if(data.type==='BB_DEMO_PLAY_AUDIO'){ if(window.__BB_DEMO_UNLOCKED && musicEnabled){try{window.playBirthdayAudio?.();}catch(_){}} }
+    if(data.type==='BB_DEMO_MODE'){
+      demoStarted=!!data.enabled;
+      if(data.enabled){
+        window.__BB_FORCE_DEMO = true;
+        musicEnabled = false;
+        try{window.pauseBirthdayAudio?.();}catch(_){}
+        try{q('#countdownAudio')?.pause?.();}catch(_){}
+        try{q('#countdownAudio') && (q('#countdownAudio').muted = true);}catch(_){}
+        startDemoCountdown();
+      }
+      return;
+    }
+    // Demo audio is never enabled by postMessage. Sound on the public experience
+    // remains controlled by its own user interaction/music toggle.
+    if(data.type==='BB_DEMO_PLAY_AUDIO'){ return; }
     if(data.type==='BB_SET_AUDIO_ENABLED'){ setMusicEnabled(data.enabled !== false); }
     if(data.type==='BB_EDITOR_MODE'){document.documentElement.dataset.bbEditor=data.enabled?'1':'0';return;}
     if(data.type==='BB_CANVAS_HISTORY'){return;}

@@ -32,7 +32,10 @@ export default function MasterBirthdayTemplate({ content, demo = false, websiteS
     const send = () => {
       frame.contentWindow?.postMessage({ type: 'BB_CONTENT', content: resolvedContent, websiteSlug: websiteSlug || '', recipientId: recipientId || '' }, '*');
       frame.contentWindow?.postMessage({ type: 'BB_EDITOR_MODE', enabled: !!editorMode }, '*');
-      if (demo) frame.contentWindow?.postMessage({ type: 'BB_DEMO_MODE', enabled: true, muted: false }, '*');
+      if (demo) {
+        frame.contentWindow?.postMessage({ type: 'BB_DEMO_MODE', enabled: true, muted: true }, '*');
+        frame.contentWindow?.postMessage({ type: 'BB_SET_AUDIO_ENABLED', enabled: false }, '*');
+      }
     };
     frame.addEventListener('load', send);
     send();

@@ -13,14 +13,14 @@ export type TemplateDefinition = {
 // A template only appears anywhere in the product when it is registered here.
 export const templateCatalog: TemplateDefinition[] = [
   {
-    slug: 'master-birthday',
-    name: 'Master Birthday',
-    description: 'The original cinematic Birthday experience, preserved as supplied and made fully editable.',
+    slug: 'master',
+    name: 'Master Template',
+    description: 'The flagship cinematic birthday experience — built as the main editable template for your first website.',
     category: 'birthday',
     emoji: '🎂',
-    accent: '#ff69b4',
-    kind: 'master-birthday',
-    originalHtml: '/templates/master-birthday/original.html',
+    accent: '#ec4899',
+    kind: 'master',
+    originalHtml: '/master-template.html',
   },
   {
     slug: 'wedding-proposal',

@@ -49,7 +49,7 @@ export default function Login() {
 
   return (
     <main className="auth-shell">
-      <section className="auth-brand-side"><div className="auth-brand-card"><div className="brand-lockup"><span className="brand-mark">✦</span><span><b>Wishly</b><small>Studio</small></span></div><h1>Welcome back to your <span>creative space.</span></h1><p>Your celebrations, memories and stories—kept beautifully in one place.</p><div className="auth-points"><div className="auth-point"><i>✦</i> Edit directly on your design</div><div className="auth-point"><i>↶</i> Undo and redo whenever you need</div><div className="auth-point"><i>📱</i> Build from your phone</div></div></div></section><section className="auth-form-side"><div className="auth-form-card">
+      <section className="auth-brand-side"><div className="auth-brand-card"><div className="brand-lockup"><span className="brand-mark">✦</span><span><b>Wishly</b><small>Create moments</small></span></div><h1>Welcome back to your <span>creative space.</span></h1><p>Your celebrations, memories and stories—kept beautifully in one place.</p><div className="auth-points"><div className="auth-point"><i>✦</i> Edit directly on your design</div><div className="auth-point"><i>↶</i> Undo and redo whenever you need</div><div className="auth-point"><i>📱</i> Build from your phone</div></div></div></section><section className="auth-form-side"><div className="auth-form-card">
         <h1 className="text-3xl font-bold">Welcome back</h1>
 
         <a
