@@ -84,6 +84,46 @@ export default function UniversalElementEditor({ selected, content, templateId, 
         return <><div className="universal-editor-media-head"><div className="universal-editor-icon"><Video size={16}/></div><div><b>Video {i+1}</b><span>Upload, public URL, YouTube, caption and poster</span></div></div><SingleMediaUpload kind="video" url={String(item.source||'').match(/^(https?:\/\/.*\.(?:mp4|webm|mov)(?:\?.*)?)$/i)?.[1] || ''} websiteId={websiteId} onChange={url=>updateItem({source:url})}/><Field label="Video source URL"><input type="url" value={String(item.source||'')} onChange={e=>updateItem({source:e.target.value})} placeholder="YouTube or direct video URL"/></Field><Field label="Title"><input autoFocus value={String(item.title||'')} onChange={e=>updateItem({title:e.target.value})}/></Field><Field label="Caption"><textarea rows={3} value={String(item.caption||'')} onChange={e=>updateItem({caption:e.target.value})}/></Field><Field label="Poster / thumbnail"><input value={String(item.poster||'')} onChange={e=>updateItem({poster:e.target.value})}/></Field><Field label="Alt text"><input value={String(item.alt||'')} onChange={e=>updateItem({alt:e.target.value})}/></Field><div className="universal-editor-grid"><button type="button" className="builder-mini-btn" onClick={()=>updateMasterBirthdayPath('videos.items',[...items,{...item,id:`video-${Date.now()}`}])}>Duplicate</button><button type="button" className="builder-mini-btn" onClick={()=>updateMasterBirthdayPath('videos.items',items.filter((_,idx)=>idx!==i))}>Delete</button></div></>;
       }
       const value = String(get(path) ?? selected.value ?? '');
+      if (path === 'countdown.birthdayDateTime') {
+        const toLocalDateTime = (raw: string) => {
+          const d = new Date(raw || '');
+          if (Number.isNaN(d.getTime())) return '';
+          const pad = (n: number) => String(n).padStart(2, '0');
+          return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        };
+        const current = `${masterBirthdayConfig.birthdayDate}T${masterBirthdayConfig.birthdayTime}`;
+        return <Field label="Birthday date & time"><input type="datetime-local" value={toLocalDateTime(current)} autoFocus onChange={e => {
+          const raw = e.target.value;
+          if (!raw) return;
+          const d = new Date(raw);
+          if (Number.isNaN(d.getTime())) return;
+          const pad = (n:number) => String(n).padStart(2,'0');
+          const next = JSON.parse(JSON.stringify(masterBirthdayConfig));
+          next.birthdayDate = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+          next.birthdayTime = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+          onTemplateConfigChange({ masterBirthday: next });
+        }} /><small className="builder-field-hint">Set the exact birthday date and time used by the countdown.</small></Field>;
+      }
+      if (path === 'cake.ageCandleCount') {
+        return <Field label="Birthday age"><input type="number" min="1" max="120" value={Number(get(path) || 1)} onChange={e=>updateMasterBirthdayPath(path, Math.max(1, Number(e.target.value)||1))} /><small className="builder-field-hint">Sets the number of birthday candles.</small></Field>;
+      }
+      if (path === 'countdown.audioUrl') {
+        return <>
+          <div className="universal-editor-media-head"><div className="universal-editor-icon"><Music2 size={16}/></div><div><b>Countdown audio</b><span>Change the sound used during the countdown.</span></div></div>
+          <SingleMediaUpload kind="audio" url={String(get(path) || '')} websiteId={websiteId} onChange={url=>updateMasterBirthdayPath(path,url)} />
+          <Field label="Audio URL"><input type="url" value={String(get(path) || '')} onChange={e=>updateMasterBirthdayPath(path,e.target.value)} placeholder="https://..." /></Field>
+          <Switch label="Countdown audio" value={Boolean(get('countdown.audioEnabled'))} onChange={v=>updateMasterBirthdayPath('countdown.audioEnabled',v)} />
+          <MoreSettings rows={[['Playback','Final countdown window'],['Loop','Off'],['Editor','Silent']]}/>
+        </>;
+      }
+      if (path === 'wishingAudioUrl') {
+        return <>
+          <div className="universal-editor-media-head"><div className="universal-editor-icon"><Music2 size={16}/></div><div><b>Wishing audio</b><span>Plays once after the countdown finishes.</span></div></div>
+          <Field label="YouTube / audio URL"><input type="url" value={String(get(path) || '')} onChange={e=>updateMasterBirthdayPath(path,e.target.value)} placeholder="YouTube or direct audio URL" /></Field>
+          <SingleMediaUpload kind="audio" url={String(get(path) || '')} websiteId={websiteId} onChange={url=>updateMasterBirthdayPath(path,url)} />
+          <MoreSettings rows={[['Playback','Once after countdown'],['Loop','Off'],['Editor','Silent']]}/>
+        </>;
+      }
       const isToggle = ['cake.microphoneEnabled','cake.soundEffects','cake.vibration','countdown.audioEnabled'].includes(path) || path.startsWith('effects.');
       if (isToggle) return <Switch label={selected.label} value={Boolean(get(path))} onChange={v=>updateMasterBirthdayPath(path,v)} />;
       return <TextField value={value} multiline={value.length>70 || /message|note|subtitle|text/.test(path)} onChange={v=>updateMasterBirthdayPath(path,v)} />;

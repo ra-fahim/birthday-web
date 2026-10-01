@@ -67,6 +67,10 @@
         .bb-audio-toggle { position:fixed; right:18px; bottom:18px; z-index:10050; border:1px solid rgba(255,255,255,.7); border-radius:999px; padding:10px 14px; background:rgba(40,20,60,.72); color:#fff; font:600 13px 'Quicksand',sans-serif; box-shadow:0 10px 24px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.18); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); cursor:pointer; display:flex; align-items:center; gap:7px; }
         .bb-audio-toggle.off { opacity:.78; background:rgba(30,30,40,.58); }
         .bb-audio-toggle:active { transform:scale(.97); }
+        .bb-editor-audio-control { display:none; margin-top:16px; padding:9px 14px; border:1px solid rgba(255,255,255,.6); border-radius:999px; background:rgba(40,20,60,.18); color:inherit; font:700 12px 'Quicksand',sans-serif; cursor:pointer; box-shadow:0 10px 24px rgba(0,0,0,.08); backdrop-filter:blur(10px); }
+        html[data-bb-editor="1"] .bb-editor-audio-control { display:inline-flex; align-items:center; justify-content:center; }
+        html[data-bb-editor="1"] #bbAudioToggle { display:none !important; }
+
         @media (max-width:600px){ .bb-audio-toggle{ right:10px; bottom:10px; padding:9px 12px; font-size:12px; } }
 
         .countdown-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; background:linear-gradient(135deg, rgba(255,209,220,0.4), rgba(230,230,250,0.4)); backdrop-filter:blur(8px); z-index:1000; transition:1s; text-align:center; padding:20px; }
@@ -354,12 +358,14 @@
             <div class="count-item"><span class="count-number" id="secs">00</span><span class="count-label">Secs</span></div>
         </div>
         <div class="countdown-message" id="countdownMessage"></div>
+        <button class="bb-editor-audio-control" id="bbCountdownAudioEditor" type="button">🎵 Countdown audio</button>
     </div>
 
     <div class="greeting-screen" id="greetingScreen">
         <h1>Happy Birthday Pagli❤️🎂💫</h1>
         <div class="greeting-text" id="greetingText"></div>
-        <button class="enter-btn" onclick="goToCakeScreen()">Click to enter your world 💕</button>
+        <button class="enter-btn" id="enterWorldBtn" onclick="goToCakeScreen()">Click to enter your world 💕</button>
+        <button class="bb-editor-audio-control" id="bbWishingAudioEditor" type="button">🎵 Wishing audio</button>
     </div>
 
     <div class="cake-screen" id="cakeScreen">
@@ -547,38 +553,20 @@
             <p>Every moment spent with you has been magical. Let's cherish these precious memories Anarkoli...</p>
         </div>
         <div class="photo-container">
-            <!-- ═══ আসল ছবি ═══ -->
-            <div class="photo-card" onclick="openLightbox('https://res.cloudinary.com/dpctt0wao/image/upload/v1786824168/zy6ndwpdsdbrry4eojcus.png')">
-                <img src="https://res.cloudinary.com/dpctt0wao/image/upload/v1786824168/zy6ndwpddbrsry4eojcus.png" alt="What is time" class="photo-img">
+            <div class="photo-card" onclick="openLightbox('https://picsum.photos/seed/anime1/800/600')">
+                <img src="https://picsum.photos/seed/anime1/800/600" alt="Anime 1" class="photo-img">
                 <div class="photo-date">A Magical Reflection 💖</div>
                 <div class="photo-caption">A reflection of pure grace, elegance, and unmatched beauty. 🌹👑</div>
             </div>
-            <div class="photo-card" onclick="openLightbox('https://res.cloudinary.com/dpctt0wao/image/upload/v1786824169/auvpg9sbqzbh1g2enuh8z.png')">
-                <img src="https://res.cloudinary.com/dpctt0wao/image/upload/v1786824169/auvpgs9bqzbh1g2enuh8z.png" alt="Her Smile" class="photo-img">
-                <div class="photo-date">Lost in Bengali Lore</div>
+            <div class="photo-card" onclick="openLightbox('https://picsum.photos/seed/anime2/800/600')">
+                <img src="https://picsum.photos/seed/anime2/800/600" alt="Anime 2" class="photo-img">
+                <div class="photo-date">Lost in Anime Lore</div>
                 <div class="photo-caption">May your journey ahead be filled with happiness, success, and endless smiles😊💕</div>
             </div>
-            <div class="photo-card" onclick="openLightbox('https://res.cloudinary.com/dpctt0wao/image/upload/v1786s823873/qj1taxj8jw4hyu1c4wvf.jpg')">
-                <img src="https://res.cloudinary.com/dpctt0wao/image/upload/v1786823873/qj1staxj8jw4hyu1c4wvf.jpg" alt="Together Vibes" class="photo-img">
+            <div class="photo-card" onclick="openLightbox('https://picsum.photos/seed/anime3/800/600')">
+                <img src="https://picsum.photos/seed/anime3/800/600" alt="Anime 3" class="photo-img">
                 <div class="photo-date">Her Smile Says It All</div>
-                <div class="photo-caption">You're truly one of the sweetest girls I know, and I feel lucky to have a friend like you❤️</div>
-            </div>
-
-            <!-- ═══ 🎬 DEMO ছবি (placeholder — পরে আপনার নিজের URL বসান) ═══ -->
-            <div class="photo-card" onclick="openLightbox('https://picsum.photos/seed/birthday1/800/600')">
-                <img src="https://picsum.photos/seed/birthday1/800/600" alt="Demo 1" class="photo-img">
-                <div class="photo-date">Demo Memory 1 🌸</div>
-                <div class="photo-caption">এই জায়গায় আপনার নিজের ছবি ও ক্যাপশন বসবে — URL শুধু বদলে দিলেই হবে।</div>
-            </div>
-            <div class="photo-card" onclick="openLightbox('https://picsum.photos/seed/birthday2/800/600')">
-                <img src="https://picsum.photos/seed/birthday2/800/600" alt="Demo 2" class="photo-img">
-                <div class="photo-date">Demo Memory 2 ✨</div>
-                <div class="photo-caption">প্রতিটি ডেমো কার্ড আলাদা স্টাইল/কালার দেখাতে ব্যবহার করা হয়েছে।</div>
-            </div>
-            <div class="photo-card" onclick="openLightbox('https://picsum.photos/seed/birthday3/800/600')">
-                <img src="https://picsum.photos/seed/birthday3/800/600" alt="Demo 3" class="photo-img">
-                <div class="photo-date">Demo Memory 3 💫</div>
-                <div class="photo-caption">এই ছবিগুলো temporary placeholder, পরে আপনার গ্যালারি দিয়ে replace করবেন।</div>
+                <div class="photo-caption">You're truly one of the sweetest girls I know, and I feel lucky to have a person like you❤️</div>
             </div>
         </div>
         <button class="photo-next-btn" onclick="goToVideoScreen()">Again Your Storylane 🎥</button>
@@ -588,38 +576,11 @@
         <h2>A Special Video Message</h2>
         <div class="video-container">
             <div class="video-grid">
-                <!-- ═══ আসল ভিডিও ═══ -->
                 <div class="video-card">
-                    <h3>Happy Birthday Anarkoli❤️🎂</h3>
+                    <h3>Happy Birthday Anarkoli ❤️🎂</h3>
                     <div class="video-wrapper">
                         <video controls preload="metadata">
-                            <source src="https://res.cloudinary.com/dpctt0wao/video/upload/v1786828837/ksdkkclkksdsqpgdzfxcp.mp4" type="video/mp4">
-                        </video>
-                    </div>
-                </div>
-                <div class="video-card">
-                    <h3>When Anarkoli act like a actor..</h3>
-                    <div class="video-wrapper">
-                        <video controls preload="metadata">
-                            <source src="https://res.cloudinary.com/dpctt0wao/video/upload/v1786827683/esdcqmem9gdaunokk8uo9.mp4" type="video/mp4">
-                        </video>
-                    </div>
-                </div>
-
-                <!-- ═══ 🎬 DEMO ভিডিও (public sample videos — পরে আপনার নিজের URL বসান) ═══ -->
-                <div class="video-card">
-                    <h3>🎬 Demo Video — Big Buck Bunny</h3>
-                    <div class="video-wrapper">
-                        <video controls preload="metadata" poster="https://picsum.photos/seed/vid1/800/450">
                             <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
-                        </video>
-                    </div>
-                </div>
-                <div class="video-card">
-                    <h3>🎬 Demo Video — Elephants Dream</h3>
-                    <div class="video-wrapper">
-                        <video controls preload="metadata" poster="https://picsum.photos/seed/vid2/800/450">
-                            <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" type="video/mp4">
                         </video>
                     </div>
                 </div>
@@ -676,6 +637,8 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const BB_FORCE_DEMO = urlParams.get('demo') === '1' || urlParams.get('bbDemo') === '1';
+        const BB_EDITOR_MODE = urlParams.get('edit') === '1' || urlParams.get('bbEdit') === '1';
+        window.__BB_EDITOR_MODE = BB_EDITOR_MODE;
         if (BB_FORCE_DEMO) window.__BB_FORCE_DEMO = true;
         if (urlParams.get('name')) {
             CONFIG.name = decodeURIComponent(urlParams.get('name'));
@@ -685,7 +648,7 @@
            YouTube IFrame Player — hidden audio for the birthday song
            Video: https://youtu.be/73Hld4gpaPA
            ───────────────────────────────────────────────────────────── */
-        const YT_VIDEO_ID = '73Hld4gpaPA';
+        const YT_VIDEO_ID = 'AfybMbBSwaA';
         let ytPlayer = null;
         let ytPlayerReady = false;
         let ytApiReady = false;
@@ -697,8 +660,7 @@
                 videoId: YT_VIDEO_ID,
                 playerVars: {
                     autoplay: 0,
-                    loop: 1,
-                    playlist: YT_VIDEO_ID,   // required so loop works
+                    loop: 0,
                     controls: 0,
                     disablekb: 1,
                     fs: 0,
@@ -736,7 +698,7 @@
         }
 
         function playBirthdayAudio() {
-            if (birthdayAudioPlayed) return;
+            if (window.__BB_EDITOR_MODE || (window.__BB_FORCE_DEMO && !musicEnabled) || birthdayAudioPlayed) return;
             if (!ytApiReady || !ytPlayerReady) {
                 pendingPlay = true;
                 return;
@@ -1979,7 +1941,7 @@
 <script>
 (function () {
   'use strict';
-  const DEFAULT = {"recipientName":"Anarkoli","senderName":"","age":17,"birthdayDate":"2027-08-22","birthdayTime":"00:00","timezone":"Asia/Dhaka","pageTitle":"Something's Coming 💫","browserTitle":"Loading... 💫","ogTitle":"Something's Coming 💫","ogDescription":"Tap to open when the time is right ✨","ogImage":"","customSlug":"","countdown":{"title":"Something special is unlocking...⌛","message":"","audioUrl":"https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3","audioEnabled":true},"greeting":{"heading":"Happy Birthday Pagli❤️🎂💫","text":"Hey You Know What! You're the most adorable human i ever met! 💖","enterButton":"Click to enter your world 💕"},"cake":{"cakeText":"happy","birthdayText":"birthday","recipientName":"Anarkoli","ageCandleCount":17,"wishTitle":"Close your eyes and make a wish...","wishSubtitle":"Then blow out the candles 🕯️","micHint":"🎤 Blow into your mic to blow out the candles, or tap them","cakeStatus":"","cutInstruction":"🔪 Press and drag anywhere on the cake — cut it your way","nextButton":"Enter your storyline 💫","microphoneEnabled":true,"soundEffects":true,"vibration":true},"reasons":{"heading":"Happy Birthday Just Friend.. 💖","note":"","items":[{"id":"reason-1","text":"You're such a kind and wonderful person, and I feel lucky to share such a good bond with you.","emoji":"🌟"},{"id":"reason-2","text":"May your day be filled with love, laughter, and endless joy.","emoji":"💗"},{"id":"reason-3","text":"Wishing you success, happiness, and everything your heart desires.","emoji":"💕"},{"id":"reason-4","text":"Stay the amazing girl you are—always spreading positivity around. Have the happiest year ahead! 🥳","emoji":"🌟"}],"buttonText":"Click Here... 💕"},"memories":{"heading":"The Beautiful Moments ","subtitle":"Every moment spent with you has been magical. Let's cherish these precious memories Anarkoli...","nextButton":"Again Your Storylane 🎥","items":[{"id":"memory-1","url":"https://res.cloudinary.com/dpctt0wao/image/upload/v1786824168/zy6ndwpddbrsry4eojcus.png","title":"A Magical Reflection 💖","caption":"A reflection of pure grace, elegance, and unmatched beauty. 🌹👑","date":"A Magical Reflection 💖","alt":"What is time"},{"id":"memory-2","url":"https://res.cloudinary.com/dpctt0wao/image/upload/v1786824169/auvpgs9bqzbh1g2enuh8z.png","title":"Lost in Bengali Lore","caption":"May your journey ahead be filled with happiness, success, and endless smiles😊💕","date":"Lost in Bengali Lore","alt":"Her Smile"},{"id":"memory-3","url":"https://res.cloudinary.com/dpctt0wao/image/upload/v1786823873/qj1staxj8jw4hyu1c4wvf.jpg","title":"Her Smile Says It All","caption":"You're truly one of the sweetest girls I know, and I feel lucky to have a friend like you❤️","date":"Her Smile Says It All","alt":"Together Vibes"},{"id":"memory-4","url":"https://picsum.photos/seed/birthday1/800/600","title":"Demo Memory 1 🌸","caption":"এই জায়গায় আপনার নিজের ছবি ও ক্যাপশন বসবে — URL শুধু বদলে দিলেই হবে।","date":"Demo Memory 1 🌸","alt":"Demo 1"},{"id":"memory-5","url":"https://picsum.photos/seed/birthday2/800/600","title":"Demo Memory 2 ✨","caption":"প্রতিটি ডেমো কার্ড আলাদা স্টাইল/কালার দেখাতে ব্যবহার করা হয়েছে।","date":"Demo Memory 2 ✨","alt":"Demo 2"},{"id":"memory-6","url":"https://picsum.photos/seed/birthday3/800/600","title":"Demo Memory 3 💫","caption":"এই ছবিগুলো temporary placeholder, পরে আপনার গ্যালারি দিয়ে replace করবেন।","date":"Demo Memory 3 💫","alt":"Demo 3"}]},"videos":{"title":"A Special Video Message","nextButton":"See your letter 💌","items":[{"id":"video-1","source":"https://res.cloudinary.com/dpctt0wao/video/upload/v1786828837/ksdkkclkksdsqpgdzfxcp.mp4","title":"Happy Birthday Anarkoli❤️🎂","caption":"","poster":"","alt":"Happy Birthday video"},{"id":"video-2","source":"https://res.cloudinary.com/dpctt0wao/video/upload/v1786827683/esdcqmem9gdaunokk8uo9.mp4","title":"When Anarkoli act like a actor..","caption":"","poster":"","alt":"Birthday video"},{"id":"video-3","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4","title":"🎬 Demo Video — Big Buck Bunny","caption":"","poster":"https://picsum.photos/seed/vid1/800/450","alt":"Demo video"},{"id":"video-4","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4","title":"🎬 Demo Video — Elephants Dream","caption":"","poster":"https://picsum.photos/seed/vid2/800/450","alt":"Demo video"}]},"soundtrack":{"items":[{"id":"track-1","title":"Birthday soundtrack","artist":"","sourceType":"youtube","url":"https://www.youtube.com/watch?v=73Hld4gpaPA","cover":""}]},"letter":{"title":"A Letter for You friend 💌","paragraphs":["Every laugh, every chat, and every moment we've shared has been truly special.💫","I'm so grateful for the bond we have, and for the positivity.","On your birthday, I just wish for endless happiness, love, and success to come your way.🌸","You deserve all the joy in the world—keep shining and spreading your beautiful energy.✨","Again Happy Birthday💝"],"signature":"","buttonText":"Again, Happy Birthday Anarkoli Bury"},"secret":{"image":"https://res.cloudinary.com/dpctt0wao/image/upload/v1786828377/dcdqkuihl9g0ztwpugoar.png","imageAlt":"Secret Memory","buttonText":"See Your Friend","buttonIcon":"instagram","socialPlatform":"Instagram","socialUrl":"https://www.instagram.com/rafahimn"},"theme":{"main":"#ff69b4","secondary":"#9b6dff","accent":"#d4145a","button":"#ff69b4","text":"#4a4a4a","glow":"#ffb6d9","overlay":"linear-gradient(135deg, rgba(255,192,203,0.3), rgba(147,112,219,0.3))","backgroundImage":"","backgroundVideo":"https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp4","mode":"light","fontPreset":"original","animationIntensity":"full"},"effects":{"butterflies":true,"flowers":true,"hearts":true,"sparkles":true,"customCursor":true,"confetti":true,"smoke":true,"soundEffects":true,"vibration":true,"microphone":true}};
+  const DEFAULT = {"recipientName":"Anarkoli","senderName":"","age":17,"birthdayDate":"2027-08-22","birthdayTime":"00:00","timezone":"Asia/Dhaka","pageTitle":"Something's Coming 💫","browserTitle":"Loading... 💫","ogTitle":"Something's Coming 💫","ogDescription":"Tap to open when the time is right ✨","ogImage":"","customSlug":"","countdown":{"title":"Something special is unlocking...⌛","message":"","audioUrl":"https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3","audioEnabled":true},"greeting":{"heading":"Happy Birthday Pagli❤️🎂💫","text":"Hey You Know What! You're the most adorable human i ever met! 💖","enterButton":"Click to enter your world 💕"},"cake":{"cakeText":"happy","birthdayText":"birthday","recipientName":"Anarkoli","ageCandleCount":17,"wishTitle":"Close your eyes and make a wish...","wishSubtitle":"Then blow out the candles 🕯️","micHint":"🎤 Blow into your mic to blow out the candles, or tap them","cakeStatus":"","cutInstruction":"🔪 Press and drag anywhere on the cake — cut it your way","nextButton":"Enter your storyline 💫","microphoneEnabled":true,"soundEffects":true,"vibration":true},"reasons":{"heading":"Happy Birthday Just Friend.. 💖","note":"","items":[{"id":"reason-1","text":"You're such a kind and wonderful person, and I feel lucky to share such a good bond with you.","emoji":"🌟"},{"id":"reason-2","text":"May your day be filled with love, laughter, and endless joy.","emoji":"💗"},{"id":"reason-3","text":"Wishing you success, happiness, and everything your heart desires.","emoji":"💕"},{"id":"reason-4","text":"Stay the amazing girl you are—always spreading positivity around. Have the happiest year ahead! 🥳","emoji":"🌟"}],"buttonText":"Click Here... 💕"},"memories":{"heading":"The Beautiful Moments ","subtitle":"Every moment spent with you has been magical. Let's cherish these precious memories Anarkoli...","nextButton":"Again Your Storylane 🎥","items":[{"id":"memory-1","url":"https://picsum.photos/seed/anime1/800/600","title":"A Magical Reflection 💖","caption":"A reflection of pure grace, elegance, and unmatched beauty. 🌹👑","date":"A Magical Reflection 💖","alt":"Anime 1"},{"id":"memory-2","url":"https://picsum.photos/seed/anime2/800/600","title":"Lost in Anime Lore","caption":"May your journey ahead be filled with happiness, success, and endless smiles😊💕","date":"Lost in Anime Lore","alt":"Anime 2"},{"id":"memory-3","url":"https://picsum.photos/seed/anime3/800/600","title":"Her Smile Says It All","caption":"You're truly one of the sweetest girls I know, and I feel lucky to have a person like you❤️","date":"Her Smile Says It All","alt":"Anime 3"}]},"videos":{"title":"A Special Video Message","nextButton":"See your letter 💌","items":[{"id":"video-1","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4","title":"Happy Birthday Anarkoli ❤️🎂","caption":"","poster":"","alt":"Happy Birthday video"}]},"soundtrack":{"items":[{"id":"track-1","title":"Birthday wishing audio","artist":"","sourceType":"youtube","url":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","cover":""}]},"letter":{"title":"A Letter for You friend 💌","paragraphs":["Every laugh, every chat, and every moment we've shared has been truly special.💫","I'm so grateful for the bond we have, and for the positivity.","On your birthday, I just wish for endless happiness, love, and success to come your way.🌸","You deserve all the joy in the world—keep shining and spreading your beautiful energy.✨","Again Happy Birthday💝"],"signature":"","buttonText":"Again, Happy Birthday Anarkoli Bury"},"secret":{"image":"https://res.cloudinary.com/dpctt0wao/image/upload/v1786828377/dcdqkuihl9g0ztwpugoar.png","imageAlt":"Secret Memory","buttonText":"See Your Friend","buttonIcon":"instagram","socialPlatform":"Instagram","socialUrl":"https://www.instagram.com/rafahimn"},"theme":{"main":"#ff69b4","secondary":"#9b6dff","accent":"#d4145a","button":"#ff69b4","text":"#4a4a4a","glow":"#ffb6d9","overlay":"linear-gradient(135deg, rgba(255,192,203,0.3), rgba(147,112,219,0.3))","backgroundImage":"","backgroundVideo":"https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp4","mode":"light","fontPreset":"original","animationIntensity":"full"},"effects":{"butterflies":true,"flowers":true,"hearts":true,"sparkles":true,"customCursor":true,"confetti":true,"smoke":true,"soundEffects":true,"vibration":true,"microphone":true},"wishingAudioUrl":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya"};
   let state = JSON.parse(JSON.stringify(DEFAULT));
   let demoStarted = false;
   let receivedContent = false;
@@ -1987,7 +1949,7 @@
   let currentTrackIndex = 0;
   let bgAudio = null;
   // Demo/preview surfaces are always silent. Published experiences default to music ON.
-  let musicEnabled = !window.__BB_FORCE_DEMO;
+  let musicEnabled = !window.__BB_FORCE_DEMO && !window.__BB_EDITOR_MODE;
 
   let spotifyFrame = null;
   let youtubeFrame = null;
@@ -2123,7 +2085,7 @@
     const ca = q('#countdownAudio');
     // Countdown audio follows the configured setting on the live site, but is
     // forcibly muted in demo/preview mode so opening a template never creates sound.
-    if (ca) ca.muted = !state.countdown.audioEnabled || !!window.__BB_FORCE_DEMO;
+    if (ca) ca.muted = !state.countdown.audioEnabled || (!!window.__BB_FORCE_DEMO && !musicEnabled) || !!window.__BB_EDITOR_MODE;
   }
 
   function applyCake() {
@@ -2304,12 +2266,12 @@
     btn.firstChild && (btn.firstChild.textContent = musicEnabled ? '🔊 ' : '🔇 ');
   }
   function setMusicEnabled(enabled){
-    // Demo/preview mode is intentionally silent even if a parent/editor message
-    // asks the embedded template to enable audio.
-    musicEnabled = !!enabled && !window.__BB_FORCE_DEMO;
-    if(!musicEnabled) { try{window.pauseBirthdayAudio?.();}catch(_){} }
+    if(window.__BB_EDITOR_MODE){ musicEnabled=false; syncAudioToggle(); return; }
+    musicEnabled = !!enabled;
+    if(!musicEnabled) { try{window.pauseBirthdayAudio?.();}catch(_){} try{q('#countdownAudio')?.pause?.();}catch(_){} }
+    else if(window.__BB_DEMO_UNLOCKED || countdownFinished){ try{window.playBirthdayAudio?.();}catch(_){} }
     syncAudioToggle();
-    if(musicEnabled) { try{window.playBirthdayAudio?.();}catch(_){} }
+    applyCountdown?.();
   }
   document.addEventListener('click',e=>{
     const btn=e.target?.closest?.('#bbAudioToggle');
@@ -2321,38 +2283,50 @@
   syncAudioToggle();
 
   function applyTrackEngine(){
-    const tracks=Array.isArray(state.soundtrack.items)?state.soundtrack.items:[];
+    const tracks=[{url:String(state.wishingAudioUrl||DEFAULT.wishingAudioUrl||'').trim(),sourceType:'youtube'}];
     currentTrackIndex=Math.min(currentTrackIndex,Math.max(0,tracks.length-1));
-    if(!bgAudio){bgAudio=new Audio(); bgAudio.loop=false; bgAudio.preload='auto'; bgAudio.style.display='none'; document.body.appendChild(bgAudio); bgAudio.addEventListener('ended',()=>{ const list=state.soundtrack.items||[]; if(list.length>1){ currentTrackIndex=(currentTrackIndex+1)%list.length; applyTrackEngine(); window.playBirthdayAudio?.(); } });}
+    if(!bgAudio){bgAudio=new Audio(); bgAudio.loop=false; bgAudio.preload='auto'; bgAudio.style.display='none'; document.body.appendChild(bgAudio);}
     if(spotifyFrame){spotifyFrame.remove();spotifyFrame=null;} if(youtubeFrame){youtubeFrame.remove();youtubeFrame=null;}
     const track=tracks[currentTrackIndex]; if(!track || !track.url) return;
     const type=sourceType(track.url,track.sourceType);
     if(type==='spotify'){
       const src=spotifyEmbed(track.url); if(!src)return; spotifyFrame=document.createElement('iframe');spotifyFrame.src=src;spotifyFrame.title='Spotify soundtrack';spotifyFrame.allow='autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';spotifyFrame.style.cssText='position:fixed;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none';document.body.appendChild(spotifyFrame);
     } else if(type==='youtube'){
-      const id=ytId(track.url), list=ytPlaylistId(track.url);
-      try {
-        if(ytPlayer && ytPlayerReady){
-          if(list && typeof ytPlayer.loadPlaylist==='function'){ytPlayer.loadPlaylist({listType:'playlist',list}); ytPlayer.setLoop?.(true);}
-          else if(id && typeof ytPlayer.loadVideoById==='function'){ytPlayer.loadVideoById(id); ytPlayer.setLoop?.(true);}
-        }
-      } catch(_) {}
+      // Do not load/play the YouTube source here. The wishing audio starts only
+      // after the countdown unlocks and only through playBirthdayAudio().
+      return;
     } else {
       const direct=safeUrl(track.url); if(direct){ bgAudio.src=direct; bgAudio.load(); }
     }
   }
   window.playBirthdayAudio=function(){
-    if(!musicEnabled) return;
+    if(window.__BB_EDITOR_MODE || !musicEnabled || birthdayAudioPlayed) return;
     if(window.__BB_FORCE_DEMO && !window.__BB_DEMO_UNLOCKED) return;
-    const track=(state.soundtrack.items||[])[currentTrackIndex]; if(!track)return;
-    const type=sourceType(track.url,track.sourceType);
+    const source=String(state.wishingAudioUrl||DEFAULT.wishingAudioUrl||'').trim();
+    const type=sourceType(source);
     try{
       if(type==='youtube'){
-        if(ytPlayer&&ytPlayerReady){const list=ytPlaylistId(track.url), id=ytId(track.url);if(list&&typeof ytPlayer.loadPlaylist==='function'){ytPlayer.loadPlaylist({listType:'playlist',list});ytPlayer.setLoop?.(true);}else if(id&&typeof ytPlayer.loadVideoById==='function'){ytPlayer.loadVideoById(id);ytPlayer.setLoop?.(true);}ytPlayer.unMute?.();ytPlayer.setVolume?.(100);ytPlayer.playVideo?.();}
-        else pendingPlay=true;
+        const id=ytId(source);
+        if(!id) return;
+        if(ytPlayer&&ytPlayerReady&&typeof ytPlayer.loadVideoById==='function'){
+          ytPlayer.loadVideoById(id);
+          ytPlayer.setLoop?.(false);
+          ytPlayer.unMute?.();
+          ytPlayer.setVolume?.(100);
+          ytPlayer.playVideo?.();
+        } else {
+          pendingPlay=true;
+        }
         return;
       }
-      if(type==='url'||type==='upload') {bgAudio?.play?.().catch(()=>{});return;}
+      const direct=safeUrl(source);
+      if(!direct) return;
+      if(!bgAudio){ bgAudio=new Audio(); bgAudio.preload='auto'; bgAudio.loop=false; document.body.appendChild(bgAudio); }
+      bgAudio.loop=false;
+      if(bgAudio.src!==direct) bgAudio.src=direct;
+      bgAudio.currentTime=0;
+      bgAudio.onended=()=>{ birthdayAudioPlayed=true; };
+      bgAudio.play?.().then(()=>{birthdayAudioPlayed=true;}).catch(()=>{});
     }catch(_){ }
   };
   window.pauseBirthdayAudio=function(){try{ytPlayer?.pauseVideo?.();}catch(_){} try{bgAudio?.pause?.();}catch(_){} };
@@ -2366,7 +2340,7 @@
   function applyAll(content){
     const incoming=(content&&typeof content==='object')?content:{};
     const cfg=incoming.templateConfig?.masterBirthday || incoming.templateConfig || incoming;
-    state={...DEFAULT,...cfg,countdown:{...DEFAULT.countdown,...cfg.countdown},greeting:{...DEFAULT.greeting,...cfg.greeting},cake:{...DEFAULT.cake,...cfg.cake},reasons:{...DEFAULT.reasons,...cfg.reasons},memories:{...DEFAULT.memories,...cfg.memories},videos:{...DEFAULT.videos,...cfg.videos},soundtrack:{...DEFAULT.soundtrack,...cfg.soundtrack},letter:{...DEFAULT.letter,...cfg.letter},secret:{...DEFAULT.secret,...cfg.secret},theme:{...DEFAULT.theme,...cfg.theme},effects:{...DEFAULT.effects,...cfg.effects}};
+    state={...DEFAULT,...cfg,countdown:{...DEFAULT.countdown,...cfg.countdown},greeting:{...DEFAULT.greeting,...cfg.greeting},cake:{...DEFAULT.cake,...cfg.cake},reasons:{...DEFAULT.reasons,...cfg.reasons,items:Array.isArray(cfg.reasons?.items)?cfg.reasons.items:DEFAULT.reasons.items},memories:{...DEFAULT.memories,...cfg.memories,items:Array.isArray(cfg.memories?.items)?cfg.memories.items:DEFAULT.memories.items},videos:{...DEFAULT.videos,...cfg.videos,items:Array.isArray(cfg.videos?.items)?cfg.videos.items:DEFAULT.videos.items},soundtrack:{...DEFAULT.soundtrack,...cfg.soundtrack,items:Array.isArray(cfg.soundtrack?.items)?cfg.soundtrack.items:DEFAULT.soundtrack.items},letter:{...DEFAULT.letter,...cfg.letter,paragraphs:Array.isArray(cfg.letter?.paragraphs)?cfg.letter.paragraphs:DEFAULT.letter.paragraphs},secret:{...DEFAULT.secret,...cfg.secret},theme:{...DEFAULT.theme,...cfg.theme},effects:{...DEFAULT.effects,...cfg.effects}};
     if(incoming.name && !cfg.recipientName) state.recipientName=String(incoming.name);
     if(incoming.birthday && !cfg.birthdayDate){const d=new Date(incoming.birthday);if(!Number.isNaN(d.getTime())){state.birthdayDate=d.toISOString().slice(0,10);state.birthdayTime=d.toTimeString().slice(0,5);}}
     applyBasics();applyTheme();applyEffects();applyCountdown();applyGreeting();applyCake();applyReasons();applyMemories();applyVideos();applyLetter();applySecret();applyTrackEngine();
@@ -2380,7 +2354,7 @@
     demoTimer=null;
     window.__BB_FORCE_DEMO = true;
     window.__BB_DEMO_UNLOCKED = false;
-    musicEnabled = false;
+    musicEnabled = !window.__BB_EDITOR_MODE;
     try{window.pauseBirthdayAudio?.();}catch(_){}
     try{q('#countdownAudio')?.pause?.();}catch(_){}
     try{q('#countdownAudio') && (q('#countdownAudio').muted = true);}catch(_){}
@@ -2404,18 +2378,17 @@
       setText('#hours',String(h).padStart(2,'0'));
       setText('#mins',String(m).padStart(2,'0'));
       setText('#secs',String(s).padStart(2,'0'));
-      // Keep demo countdown completely silent.
+      if(left <= 10000 && musicEnabled && state.countdown.audioEnabled && !countdownAudioPlayed){
+        try { const ca=q('#countdownAudio'); if(ca){ ca.muted=false; ca.play().then(()=>{ countdownAudioPlayed=true; }).catch(()=>{}); } } catch(_) {}
+      }
       if(left<=0){
         clearInterval(demoTimer); demoTimer=null;
         q('#countdownScreen')?.classList.add('hide');
-        q('#greetingScreen')?.classList.remove('show');
-        // Demo should continue into the real cake interaction automatically.
-        q('#cakeScreen')?.classList.add('show');
+        q('#greetingScreen')?.classList.add('show');
+        q('#cakeScreen')?.classList.remove('show');
         window.__BB_DEMO_UNLOCKED = true;
-        musicEnabled = false;
-        try{window.pauseBirthdayAudio?.();}catch(_){}
-        try{window.loadCakeState?.();}catch(_){}
-        try{window.showWishMoment?.();}catch(_){}
+        try{if(typeof typeGreeting==='function') typeGreeting();}catch(_){}
+        if(musicEnabled) { try{ window.playBirthdayAudio?.(); }catch(_){} }
         syncAudioToggle();
       }
     };
@@ -2430,28 +2403,31 @@
       demoStarted=!!data.enabled;
       if(data.enabled){
         window.__BB_FORCE_DEMO = true;
-        musicEnabled = false;
+        musicEnabled = !window.__BB_EDITOR_MODE;
         try{window.pauseBirthdayAudio?.();}catch(_){}
         try{q('#countdownAudio')?.pause?.();}catch(_){}
-        try{q('#countdownAudio') && (q('#countdownAudio').muted = true);}catch(_){}
+        try{q('#countdownAudio') && (q('#countdownAudio').muted = false);}catch(_){}
         startDemoCountdown();
       }
       return;
     }
-    // Demo audio is never enabled by postMessage. Sound on the public experience
-    // remains controlled by its own user interaction/music toggle.
+    // Demo audio can be toggled by the demo host. Editor mode always remains silent.
     if(data.type==='BB_DEMO_PLAY_AUDIO'){ return; }
+    if(data.type==='BB_DEMO_AUDIO_ENABLED'){ setMusicEnabled(data.enabled !== false); return; }
     if(data.type==='BB_SET_AUDIO_ENABLED'){ setMusicEnabled(data.enabled !== false); }
-    if(data.type==='BB_EDITOR_MODE'){document.documentElement.dataset.bbEditor=data.enabled?'1':'0';return;}
-    if(data.type==='BB_CANVAS_HISTORY'){return;}
+    if(data.type==='BB_EDITOR_MODE'){ window.__BB_EDITOR_MODE=!!data.enabled; document.documentElement.dataset.bbEditor=data.enabled?'1':'0'; if(data.enabled){musicEnabled=false;try{window.pauseBirthdayAudio?.();}catch(_){}try{q('#countdownAudio')?.pause?.();}catch(_){} } else { musicEnabled=true; } applyCountdown?.(); postEditorHistoryState?.(); return;}
+
   });
 
   function editorSelectionForTarget(target){
     if(!document.documentElement.dataset.bbEditor)return null;
-    const t=target?.closest?.('h1,h2,h3,h4,p,button,img,video,.photo-card,.video-card,.bb-video-caption'); if(!t)return null;
+    const t=target?.closest?.('h1,h2,h3,h4,p,button,img,video,.photo-card,.video-card,.bb-video-caption,.bb-editor-audio-control'); if(!t)return null;
     if(t.matches('.countdown-title')) return {key:'mb.countdown.title',label:'Countdown title',value:t.innerText,kind:'text'};
     if(t.matches('#countdownMessage')) return {key:'mb.countdown.message',label:'Countdown message',value:t.innerText,kind:'text'};
+    if(t.matches('#countdownBox, .count-item, .count-number')) return {key:'mb.countdown.birthdayDateTime',label:'Birthday date & time',value:'',kind:'datetime'};
+    if(t.matches('#bbCountdownAudioEditor')) return {key:'mb.countdown.audioUrl',label:'Countdown audio',value:'',kind:'audio'};
     if(t.matches('#greetingScreen h1')) return {key:'mb.greeting.heading',label:'Greeting heading',value:t.innerText,kind:'text'};
+    if(t.matches('#bbWishingAudioEditor')) return {key:'mb.wishingAudioUrl',label:'Wishing audio',value:'',kind:'audio'};
     if(t.matches('#greetingText')) return {key:'mb.greeting.text',label:'Greeting message',value:t.innerText,kind:'text'};
     if(t.matches('.enter-btn')) return {key:'mb.greeting.enterButton',label:'Enter button text',value:t.innerText,kind:'button'};
     if(t.matches('#cakeSvg text:nth-of-type(1)')) return {key:'mb.cake.cakeText',label:'Cake text',value:t.textContent,kind:'text'};
@@ -2484,22 +2460,63 @@
     let btn=document.getElementById('bb-inline-edit'); if(!btn){btn=document.createElement('button');btn.id='bb-inline-edit';btn.type='button';btn.textContent='✏';btn.style.cssText='position:fixed;z-index:100000;border:0;border-radius:999px;background:#111827;color:#fff;width:34px;height:34px;box-shadow:0 8px 25px rgba(0,0,0,.28);font-size:15px;display:none;';document.body.appendChild(btn);}
     const rect=target.getBoundingClientRect(); btn.style.left=Math.min(window.innerWidth-44,Math.max(8,rect.right-34))+'px';btn.style.top=Math.max(8,rect.top-42)+'px';btn.style.display='block';btn.onclick=(e)=>{e.preventDefault();e.stopPropagation();window.parent?.postMessage?.({type:'BB_ELEMENT_SELECTED',selection},'*');};
   }
-  document.addEventListener('pointerover',e=>{const sel=editorSelectionForTarget(e.target);if(sel)showEditorButton(e.target.closest?.('h1,h2,h3,h4,p,button,img,video,.photo-card,.video-card,.bb-video-caption'),sel);});
+  document.addEventListener('pointerover',e=>{const sel=editorSelectionForTarget(e.target);if(sel)showEditorButton(e.target.closest?.('h1,h2,h3,h4,p,button,img,video,.photo-card,.video-card,.bb-video-caption,.bb-editor-audio-control'),sel);});
   // In Canvas Edit mode, a normal single click must keep the template's
   // original interaction alive. Editing is intentionally explicit: use the
   // visible ✏ button or double-click/double-tap. This prevents buttons such
   // as Enter, Next, Lightbox, and the cake controls from becoming dead.
   document.addEventListener('click',e=>{
     const sel=editorSelectionForTarget(e.target); if(!sel)return;
-    const target=e.target.closest?.('h1,h2,h3,h4,p,button,img,video,.photo-card,.video-card,.bb-video-caption')||e.target;
+    const target=e.target.closest?.('h1,h2,h3,h4,p,button,img,video,.photo-card,.video-card,.bb-video-caption,.bb-editor-audio-control')||e.target;
     showEditorButton(target,sel);
   },true);
   document.addEventListener('dblclick',e=>{const sel=editorSelectionForTarget(e.target);if(!sel)return;e.preventDefault();e.stopPropagation();window.parent?.postMessage?.({type:'BB_ELEMENT_SELECTED',selection:sel},'*');},true);
+  function guardEditorAction(e){
+    if(!window.__BB_EDITOR_MODE) return;
+    const target=e.target;
+    if(target?.closest?.('#bb-inline-edit')) return;
+    const sel=editorSelectionForTarget(target);
+    if(sel){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      window.parent?.postMessage?.({type:'BB_ELEMENT_SELECTED',selection:sel},'*');
+      return;
+    }
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  }
+  document.addEventListener('click',guardEditorAction,true);
+  document.addEventListener('pointerdown',guardEditorAction,true);
+  document.addEventListener('touchstart',guardEditorAction,{capture:true,passive:false});
 
   // Ensure navigation state is visible to the editor without changing the source flow.
   const pushHistory=window.updateHistory;
-  window.updateHistory=function(screen){ try{pushHistory?.(screen);}finally{ window.parent?.postMessage?.({type:'BB_CANVAS_HISTORY_STATE',canBack:(historyStack?.length||0)>1,canForward:false,screen},'*'); }};
-  window.addEventListener('hashchange',()=>window.parent?.postMessage?.({type:'BB_CANVAS_HISTORY_STATE',canBack:(historyStack?.length||0)>1,canForward:false,screen:location.hash.replace('#','')},'*'));
+  const editorScreenOrder=['countdown','greeting','cake','reasons','photo','video','letter','secret'];
+  let editorHistoryIndex=0;
+  function currentEditorScreen(){
+    const visible=editorScreenOrder.find(screen=>{
+      if(screen==='countdown') return !q('#countdownScreen')?.classList.contains('hide');
+      const el=q('#'+({greeting:'greetingScreen',cake:'cakeScreen',reasons:'reasonsScreen',photo:'photoScreen',video:'videoScreen',letter:'letterScreen',secret:'secretScreen'}[screen]||''));
+      return !!el?.classList.contains('show');
+    });
+    return visible || editorScreenOrder[editorHistoryIndex] || 'countdown';
+  }
+  function syncEditorIndexFromScreen(screen){ const i=editorScreenOrder.indexOf(screen); if(i>=0) editorHistoryIndex=i; }
+  function postEditorHistoryState(){ const screen=editorScreenOrder[editorHistoryIndex]||'countdown'; window.parent?.postMessage?.({type:'BB_CANVAS_HISTORY_STATE',canBack:editorHistoryIndex>0,canForward:editorHistoryIndex<editorScreenOrder.length-1,screen},'*'); }
+  window.updateHistory=function(screen){
+    try{ syncEditorIndexFromScreen(screen); pushHistory?.(screen); }finally{ postEditorHistoryState(); }
+  };
+  window.BB_EDITOR_NAVIGATE=function(direction){
+    if(!window.__BB_EDITOR_MODE) return;
+    const next=Math.max(0,Math.min(editorScreenOrder.length-1,editorHistoryIndex+direction));
+    if(next===editorHistoryIndex) return;
+    editorHistoryIndex=next;
+    showScreen(editorScreenOrder[editorHistoryIndex]);
+    postEditorHistoryState();
+  };
+  window.addEventListener('message',e=>{ if(e?.data?.type==='BB_CANVAS_HISTORY'){ window.BB_EDITOR_NAVIGATE?.(e.data.direction==='back'?-1:1); } });
+  window.addEventListener('hashchange',postEditorHistoryState);
+  postEditorHistoryState();
 
   // Default standalone behavior for this runtime copy.
   setTimeout(()=>{try{if(!receivedContent) applyAll(DEFAULT);}catch(e){console.error('Master Birthday init failed',e);} if(!receivedContent && (new URLSearchParams(location.search).get('demo')==='1'||new URLSearchParams(location.search).get('bbDemo')==='1')){demoStarted=true;startDemoCountdown();}},0);

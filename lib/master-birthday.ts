@@ -44,7 +44,7 @@ export const masterBirthdayDefaults: MasterBirthdayConfig = {
   ogImage: '',
   customSlug: '',
   countdown: { title: 'Something special is unlocking...⌛', message: '⏰ Something is coming soon...', audioUrl: 'https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3', audioEnabled: true },
-  wishingAudioUrl: '',
+  wishingAudioUrl: 'https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya',
   greeting: { heading: 'Happy Birthday Anarkoli..❤️🎂💫', text: "Hey You Know What! You're the most adorable human i ever met! 💖", enterButton: 'Click to enter your world 💕' },
   cake: { cakeText: 'happy', birthdayText: 'birthday', recipientName: 'Anarkoli', ageCandleCount: 24, wishTitle: 'Close your eyes and make a wish...', wishSubtitle: 'Then blow out the candles 🕯️', micHint: '🎤 Blow into your mic to blow out the candles, or tap them', cakeStatus: '🎉 Cake cut! Happy Birthday! 🎉', cutInstruction: '🔪 Press and drag anywhere on the cake — cut it your way', nextButton: 'Enter your storyline 💫', microphoneEnabled: true, soundEffects: true, vibration: true },
   reasons: { heading: 'Happy birthday princess 👑', note: '', items: [
@@ -61,7 +61,7 @@ export const masterBirthdayDefaults: MasterBirthdayConfig = {
   videos: { title: 'A Special Video Message', nextButton: 'See your letter 💌', items: [
     { id:'video-1', source:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', title:'Happy Birthday Anarkoli ❤️🎂', caption:'', poster:'', alt:'Happy Birthday video' }
   ]},
-  soundtrack: { items: [{ id:'track-1', title:'Birthday soundtrack', artist:'', sourceType:'youtube', url:'https://youtu.be/73Hlddd4gpaPA', cover:'' }] },
+  soundtrack: { items: [{ id:'track-1', title:'Birthday wishing audio', artist:'', sourceType:'youtube', url:'https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya', cover:'' }] },
   letter: { title: 'A Letter for My favourite chapter..  💌', paragraphs: [
     'Every laugh, every chat, and every moment we once shared will always hold a special place in my heart.💫',
     "Even though time and things have changed, I'm still grateful for the bond we had and the beautiful energy you brought into my life.",
@@ -73,6 +73,7 @@ export const masterBirthdayDefaults: MasterBirthdayConfig = {
   theme: { main:'#ff69b4', secondary:'#9b6dff', accent:'#d4145a', button:'#ff69b4', text:'#4a4a4a', glow:'#ffb6d9', overlay:'linear-gradient(135deg, rgba(255,192,203,0.3), rgba(147,112,219,0.3))', backgroundImage:'', backgroundVideo:'https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp4', mode:'light', fontPreset:'original', animationIntensity:'full' },
   effects: { butterflies:true, flowers:true, hearts:true, sparkles:true, customCursor:true, confetti:true, smoke:true, soundEffects:true, vibration:true, microphone:true },
 };
+
 
 export function mergeMasterBirthdayConfig(value?: Partial<MasterBirthdayConfig> | null): MasterBirthdayConfig {
   const v = value || {};

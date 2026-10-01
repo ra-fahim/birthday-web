@@ -22,9 +22,10 @@ export default function MasterBirthdayTemplate({ content, demo = false, websiteS
   const src = useMemo(() => {
     const params = new URLSearchParams();
     if (demo) { params.set('demo', '1'); params.set('bbDemo', '1'); }
+    if (editorMode) { params.set('edit', '1'); params.set('bbEdit', '1'); }
     if (recipientId) params.set('recipient', recipientId);
     return `/templates/master-birthday/runtime.html${params.toString() ? `?${params.toString()}` : ''}`;
-  }, [demo, recipientId]);
+  }, [demo, editorMode, recipientId]);
 
   useEffect(() => {
     const frame = frameRef.current;
@@ -33,8 +34,8 @@ export default function MasterBirthdayTemplate({ content, demo = false, websiteS
       frame.contentWindow?.postMessage({ type: 'BB_CONTENT', content: resolvedContent, websiteSlug: websiteSlug || '', recipientId: recipientId || '' }, '*');
       frame.contentWindow?.postMessage({ type: 'BB_EDITOR_MODE', enabled: !!editorMode }, '*');
       if (demo) {
-        frame.contentWindow?.postMessage({ type: 'BB_DEMO_MODE', enabled: true, muted: true }, '*');
-        frame.contentWindow?.postMessage({ type: 'BB_SET_AUDIO_ENABLED', enabled: false }, '*');
+        frame.contentWindow?.postMessage({ type: 'BB_DEMO_MODE', enabled: true, muted: false }, '*');
+        frame.contentWindow?.postMessage({ type: 'BB_SET_AUDIO_ENABLED', enabled: true }, '*');
       }
     };
     frame.addEventListener('load', send);

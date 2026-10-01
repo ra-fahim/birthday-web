@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { defaultContent, BirthdayContent } from '@/lib/types';
-import { MasterTemplate } from '@/components/template/MasterTemplate';
 import MasterBirthdayTemplate from '@/components/template/MasterBirthdayTemplate';
 import MasterBirthdayEditor from './MasterBirthdayEditor';
 import { masterBirthdayDefaults, mergeMasterBirthdayConfig } from '@/lib/master-birthday';
@@ -201,7 +200,8 @@ export default function Builder() {
   const [templateId, setTemplateId] = useState('master');
   const [occasion, setOccasion] = useState('birthday');
   const [dirty, setDirty] = useState(false);
-  const [editorMode, setEditorMode] = useState(true);
+  const [previewMode, setPreviewMode] = useState(false);
+  const editorMode = !previewMode;
   const [editGroup, setEditGroup] = useState<EditGroupId>('content');
   const [device, setDevice] = useState<'desktop'|'tablet'|'mobile'>('desktop');
   const [selectedElement, setSelectedElement] = useState<CanvasSelection | null>(null);
@@ -377,7 +377,7 @@ export default function Builder() {
   useEffect(() => {
     if (!visibleTabs.some(([value]) => value === tab)) setTab('overview');
     setSelectedElement(null);
-    setEditorMode(false);
+    setPreviewMode(false);
   }, [templateId]);
   useEffect(() => {
     const group = EDIT_GROUPS.find(([, , , tabs]) => tabs.includes(tab as TabId));
@@ -423,17 +423,18 @@ export default function Builder() {
               {editorMode && <><button type="button" className="builder-device" onClick={() => handleCanvasHistory('back')} disabled={!canvasHistory.canBack} title="Previous screen">← Previous</button><button type="button" className="builder-device" onClick={() => handleCanvasHistory('forward')} disabled={!canvasHistory.canForward} title="Next screen">Next →</button></>}
               <button
                 type="button"
-                className={`builder-device builder-canvas-edit-toggle ${editorMode ? 'active' : ''}`}
-                aria-pressed={editorMode}
-                onClick={() => setEditorMode(v => !v)}
+                className={`builder-device builder-preview-toggle ${previewMode ? 'active' : ''}`}
+                aria-pressed={previewMode}
+                onClick={() => setPreviewMode(v => !v)}
+                title={previewMode ? 'Return to template editing' : 'Preview the website as a visitor'}
               >
-                {editorMode ? '✎ Canvas editing' : '✎ Enable canvas editing'}
+                {previewMode ? '✎ Back to edit' : '▶ Preview'}
               </button>
             </div>
           </div>
-          <div className="builder-canvas-hint">Click any editable text, photo, video, button, reason, memory, letter or audio control inside the template to change it. Use Previous / Next to move between screens while editing.</div>
+          <div className="builder-canvas-hint">Editing is always on. Click an editable part of the template to change it; website actions are locked while editing. Use Previous / Next to move between screens, or Preview to experience the website normally.</div>
           {status === 'published' && publicUrl && <div className="builder-live-link"><div><span>YOUR LIVE LINK</span><strong>{publicUrl}</strong></div><div className="builder-live-link-actions"><button onClick={() => navigator.clipboard?.writeText(publicUrl)}>Copy link</button><a href={publicUrl} target="_blank" rel="noreferrer">Open ↗</a></div></div>}
-          <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}><div className="builder-canvas-stage">{!loaded || !previewContent ? <div className="builder-template-empty"><div>…</div><h3>Loading website</h3><p>Preparing the selected template…</p></div> : templateId === 'master-birthday' ? <MasterBirthdayTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId === 'master' ? <MasterTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div></div>
+          <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}><div className="builder-canvas-stage">{!loaded || !previewContent ? <div className="builder-template-empty"><div>…</div><h3>Loading website</h3><p>Preparing the selected template…</p></div> : (templateId === 'master' || templateId === 'master-birthday') ? <MasterBirthdayTemplate content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div></div>
           {selectedElement && editorMode && (
             <section className="builder-context-editor" aria-label="Selected element editor">
               <div className="builder-context-editor-head">

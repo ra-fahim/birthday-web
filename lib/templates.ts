@@ -20,7 +20,7 @@ export const templateCatalog: TemplateDefinition[] = [
     emoji: '🎂',
     accent: '#ec4899',
     kind: 'master',
-    originalHtml: '/master-template.html',
+    originalHtml: '/templates/master-birthday/runtime.html',
   },
   {
     slug: 'wedding-proposal',

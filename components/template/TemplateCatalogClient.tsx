@@ -10,7 +10,7 @@ const labels: Record<string, string> = {
 };
 
 const demoSrc: Record<string, string> = {
-  master: '/master-template.html?demo=1&bbDemo=1',
+  master: '/templates/master-birthday/runtime.html?demo=1&bbDemo=1',
   'wedding-proposal': '/templates/wedding-proposal-original.html?bbDemo=1',
   'master-proposal': '/templates/master-proposal/index.html?bbDemo=1',
   'miss-you-1': '/templates/miss-you-1/index.html?bbDemo=1',
@@ -49,7 +49,7 @@ function LiveTemplatePreview({ template, compact = false }: { template: Template
 
 function DemoModal({ template, onClose }: { template: TemplateDefinition; onClose: () => void }) {
   const src = getDemoSrc(template);
-  const [audioEnabled, setAudioEnabled] = useState(false);
+  const [audioEnabled, setAudioEnabled] = useState(true);
 
   const syncDemoAudio = (iframe: HTMLIFrameElement, enabled: boolean) => {
     iframe.contentWindow?.postMessage({ type: 'BB_DEMO_MODE', enabled: true, muted: !enabled }, '*');
