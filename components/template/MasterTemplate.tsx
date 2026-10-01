@@ -41,7 +41,7 @@ export default function MasterTemplate({ data, content, demo, websiteSlug, recip
   // template (which would replay its intro/animations on every change).
   const src = useMemo(() => {
     const p = new URLSearchParams();
-    if (demo) p.set('demo', '1');
+    if (demo || editorMode) { p.set('demo', '1'); p.set('bbDemo', '1'); }
     if (recipientId) p.set('recipient', recipientId);
     const templatePath = editorMode ? '/master-template-editor.html' : '/master-template.html';
     return `${templatePath}${p.toString() ? `?${p.toString()}` : ''}`;
@@ -53,6 +53,7 @@ export default function MasterTemplate({ data, content, demo, websiteSlug, recip
     const send = () => {
       frame.contentWindow?.postMessage({ type: 'BB_CONTENT', content, websiteSlug: websiteSlug || '', recipientId: recipientId || '' }, '*');
       frame.contentWindow?.postMessage({ type: 'BB_EDITOR_MODE', enabled: !!editorMode }, '*');
+      if (demo || editorMode) frame.contentWindow?.postMessage({ type: 'BB_DEMO_MODE', enabled: true, muted: true }, '*');
     };
     frame.addEventListener('load', send);
     send();

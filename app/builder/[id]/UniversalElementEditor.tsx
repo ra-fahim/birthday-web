@@ -23,7 +23,7 @@ export default function UniversalElementEditor({ selected, content, templateId, 
   const common = (content as any)[key];
   const templateConfig = (content.templateConfig || {}) as Record<string, any>;
   const master = templateId === 'master-proposal';
-  const masterBirthday = templateId === 'master-birthday';
+  const masterBirthday = templateId === 'master-birthday' || templateId === 'master';
   const masterBirthdayConfig = mergeMasterBirthdayConfig((templateConfig as any)?.masterBirthday);
   const updateMasterBirthdayPath = (path: string, value: unknown) => {
     const parts = path.split('.');

@@ -16,8 +16,39 @@ const demoSrc: Record<string, string> = {
   'miss-you-1': '/templates/miss-you-1/index.html?bbDemo=1',
 };
 
-function DemoModal({ template, onClose }: { template: TemplateDefinition; onClose: () => void }) {
+function getDemoSrc(template: TemplateDefinition) {
   const src = demoSrc[template.slug] || template.originalHtml || '';
+  if (!src || src.includes('bbDemo=')) return src;
+  return `${src}${src.includes('?') ? '&' : '?'}bbDemo=1`;
+}
+
+function LiveTemplatePreview({ template, compact = false }: { template: TemplateDefinition; compact?: boolean }) {
+  const src = getDemoSrc(template);
+  return (
+    <div className={compact ? 'catalog-template-live catalog-template-live-compact' : 'catalog-template-live'} aria-hidden="true">
+      <iframe
+        title={`${template.name} live preview`}
+        src={src}
+        loading="lazy"
+        allow="fullscreen; picture-in-picture"
+        tabIndex={-1}
+        className="catalog-template-live-iframe"
+        onLoad={(event) => {
+          event.currentTarget.contentWindow?.postMessage({ type: 'BB_DEMO_MODE', enabled: true, muted: true }, '*');
+        }}
+      />
+      <div className="catalog-template-live-head">
+        <span className="live-dot" />
+        <span>LIVE PREVIEW</span>
+        <span className="catalog-template-live-muted">🔇</span>
+      </div>
+      <div className="catalog-template-live-scrim" />
+    </div>
+  );
+}
+
+function DemoModal({ template, onClose }: { template: TemplateDefinition; onClose: () => void }) {
+  const src = getDemoSrc(template);
   return (
     <div className="demo-modal-backdrop" role="dialog" aria-modal="true" aria-label={`${template.name} demo`} onClick={onClose}>
       <div className="demo-modal" onClick={(event) => event.stopPropagation()}>
@@ -52,13 +83,7 @@ function TemplateCard({ template, isAuthenticated, onDemo }: { template: Templat
   return (
     <article className="catalog-template-card">
       <div className="catalog-template-preview" style={{ ['--template-accent' as string]: template.accent }}>
-        <div className="catalog-template-preview-top"><span>{labels[template.category] || template.category}</span><b>{template.emoji}</b></div>
-        <div className="catalog-template-preview-card">
-          <span>{template.name}</span>
-          <strong>{template.slug === 'wedding-proposal' ? 'A question worth remembering.' : 'Your moment, beautifully yours.'}</strong>
-          <small>Interactive · Mobile ready · Editable</small>
-        </div>
-        <div className="catalog-template-glow" />
+        <LiveTemplatePreview template={template} />
       </div>
       <div className="catalog-template-copy">
         <div>
@@ -78,11 +103,13 @@ function TemplateCard({ template, isAuthenticated, onDemo }: { template: Templat
 export default function TemplateCatalogClient({
   templates,
   isAuthenticated,
+  eyebrow = 'TEMPLATES',
   heading = 'Choose a template.',
   subheading = 'Every template is shown on its own. Preview it first, then use it to open the editor.',
 }: {
   templates: TemplateDefinition[];
   isAuthenticated: boolean;
+  eyebrow?: string;
   heading?: string;
   subheading?: string;
 }) {
@@ -97,7 +124,7 @@ export default function TemplateCatalogClient({
   return (
     <section className="template-catalog-page">
       <div className="premium-container inner-hero template-catalog-hero">
-        <p className="section-kicker">TEMPLATES</p>
+        <p className="section-kicker">{eyebrow}</p>
         <h1>{heading}</h1>
         <p>{subheading}</p>
       </div>

@@ -216,7 +216,7 @@ export default function Builder() {
     fetch('/api/websites/' + id).then(r => r.json()).then(j => {
       if (j.content) {
         const nextContent = { ...defaultContent, ...j.content };
-        if (typeof j.templateId === 'string' && j.templateId === 'master-birthday') {
+        if (typeof j.templateId === 'string' && (j.templateId === 'master' || j.templateId === 'master-birthday')) {
           const mb = mergeMasterBirthdayConfig((j.content.templateConfig as any)?.masterBirthday);
           nextContent.name = mb.recipientName;
           nextContent.birthday = `${mb.birthdayDate}T${mb.birthdayTime}`;
@@ -285,7 +285,7 @@ export default function Builder() {
       if (!value) return;
       const index = typeof raw.index === 'number' ? raw.index : undefined;
       const label = typeof raw.label === 'string' && raw.label.trim() ? raw.label : raw.key;
-      if (templateId === 'master-birthday' && raw.key.startsWith('mb.')) {
+      if ((templateId === 'master' || templateId === 'master-birthday') && raw.key.startsWith('mb.')) {
         const current = mergeMasterBirthdayConfig((c.templateConfig as any)?.masterBirthday);
         const next: any = JSON.parse(JSON.stringify(current));
         const path = raw.key.slice(3).split('.');
@@ -328,7 +328,7 @@ export default function Builder() {
     if (!templateId) { setMsg(`Add a ${currentOccasion[2]} template before publishing.`); return; }
     setMsg(publish ? 'Publishing…' : 'Saving…');
     let next: BirthdayContent & { templateConfig?: Record<string, unknown> } = { ...c, occasion, templateId };
-    if (templateId === 'master-birthday') {
+    if (templateId === 'master' || templateId === 'master-birthday') {
       const mb = mergeMasterBirthdayConfig((c.templateConfig as any)?.masterBirthday);
       next = {
         ...next,
@@ -340,7 +340,7 @@ export default function Builder() {
         templateConfig: { ...(c.templateConfig || {}), masterBirthday: mb },
       };
     }
-    const r = await fetch('/api/websites/' + id, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ content: next, templateId, status: publish ? 'published' : 'draft', title: next.name || c.name, seo: { title: next.seoTitle, description: next.seoDescription, shareImage: next.shareImage }, ...(templateId === 'master-birthday' && String((next.templateConfig as any)?.masterBirthday?.customSlug || '').trim() ? { slug: String((next.templateConfig as any).masterBirthday.customSlug).trim() } : {}) }) });
+    const r = await fetch('/api/websites/' + id, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ content: next, templateId, status: publish ? 'published' : 'draft', title: next.name || c.name, seo: { title: next.seoTitle, description: next.seoDescription, shareImage: next.shareImage }, ...((templateId === 'master' || templateId === 'master-birthday') && String((next.templateConfig as any)?.masterBirthday?.customSlug || '').trim() ? { slug: String((next.templateConfig as any).masterBirthday.customSlug).trim() } : {}) }) });
     const j = await r.json();
     setMsg(r.ok ? (publish ? 'Published successfully ✨' : 'Draft saved ✓') : (j.error || 'Something went wrong'));
     if (r.ok) { setStatus(publish ? 'published' : 'draft'); setDirty(false); if (j.slug) setPublicUrl(`${window.location.origin}/site/${j.slug}`); }
@@ -371,6 +371,7 @@ export default function Builder() {
     if (templateId === 'wedding-proposal') return ['overview', 'opening', 'music'].includes(value as string);
     if (templateId === 'miss-you-1') return ['overview', 'story', 'music'].includes(value as string);
     if (templateId === 'master-proposal') return ['overview', 'opening', 'story', 'gallery', 'music', 'letter'].includes(value as string);
+    if (templateId === 'master' || templateId === 'master-birthday') return ['overview','opening','story','gallery','video','music','letter','theme','effects','social','advanced'].includes(value as string);
     return value !== 'social' || templateId === 'master';
   });
   const activeTab = visibleTabs.find(x => x[0] === tab) || visibleTabs[0];
@@ -401,10 +402,11 @@ export default function Builder() {
     }
   }, [editorMode]);
 
-  const previewContent = useMemo<BirthdayContent | null>(() => !loaded ? null : (templateId === 'master-birthday' ? ({ ...c, occasion, templateId, name: masterBirthdayConfig.recipientName, birthday: `${masterBirthdayConfig.birthdayDate}T${masterBirthdayConfig.birthdayTime}`, templateConfig: { ...(c.templateConfig || {}), masterBirthday: masterBirthdayConfig } }) : ({ ...c, occasion, templateId })), [c, occasion, templateId, masterBirthdayConfig, loaded]);
+  const previewContent = useMemo<BirthdayContent | null>(() => !loaded ? null : ((templateId === 'master' || templateId === 'master-birthday') ? ({ ...c, occasion, templateId, name: masterBirthdayConfig.recipientName, birthday: `${masterBirthdayConfig.birthdayDate}T${masterBirthdayConfig.birthdayTime}`, templateConfig: { ...(c.templateConfig || {}), masterBirthday: masterBirthdayConfig } }) : ({ ...c, occasion, templateId })), [c, occasion, templateId, masterBirthdayConfig, loaded]);
   const resetToMasterDefaults = () => {
     const keepName = c.name;
-    setC({ ...defaultContent, name: keepName || defaultContent.name, templateId: 'master', occasion: 'birthday' });
+    const mb = mergeMasterBirthdayConfig(undefined);
+    setC({ ...defaultContent, name: keepName || mb.recipientName, birthday: `${mb.birthdayDate}T${mb.birthdayTime}`, templateId: 'master', occasion: 'birthday', templateConfig: { ...(c.templateConfig || {}), masterBirthday: mb } });
     setTemplateId('master'); setOccasion('birthday'); setDirty(true); setMsg('Master template defaults restored.');
   };
 
@@ -435,7 +437,7 @@ export default function Builder() {
         </div>
 
         <div className="builder-selector-grid">
-          <div><span>Occasion</span><select value={occasion} onChange={e => { const nextOccasion = e.target.value; const nextTemplate = firstTemplateForOccasion(nextOccasion); setOccasion(nextOccasion); setTemplateId(nextTemplate); if (nextTemplate === 'miss-you-1' && !c.templateConfig) setC(prev => ({ ...prev, templateConfig: getMissYouDefaults() })); if (nextTemplate === 'master-proposal' && !c.templateConfig) setC(prev => ({ ...prev, templateConfig: getMasterProposalDefaults() })); if (nextTemplate === 'master-birthday' && !(c.templateConfig as any)?.masterBirthday) setC(prev => ({ ...prev, name: masterBirthdayDefaults.recipientName, birthday: `${masterBirthdayDefaults.birthdayDate}T${masterBirthdayDefaults.birthdayTime}`, templateConfig: { ...(prev.templateConfig || {}), masterBirthday: mergeMasterBirthdayConfig(undefined) } })); setDirty(true); }}>{AVAILABLE_OCCASIONS.map(([value, emoji, label]) => <option value={value} key={value}>{emoji} {label}</option>)}</select></div>
+          <div><span>Occasion</span><select value={occasion} onChange={e => { const nextOccasion = e.target.value; const nextTemplate = firstTemplateForOccasion(nextOccasion); setOccasion(nextOccasion); setTemplateId(nextTemplate); if (nextTemplate === 'miss-you-1' && !c.templateConfig) setC(prev => ({ ...prev, templateConfig: getMissYouDefaults() })); if (nextTemplate === 'master-proposal' && !c.templateConfig) setC(prev => ({ ...prev, templateConfig: getMasterProposalDefaults() })); if ((nextTemplate === 'master' || nextTemplate === 'master-birthday') && !(c.templateConfig as any)?.masterBirthday) setC(prev => ({ ...prev, name: masterBirthdayDefaults.recipientName, birthday: `${masterBirthdayDefaults.birthdayDate}T${masterBirthdayDefaults.birthdayTime}`, templateConfig: { ...(prev.templateConfig || {}), masterBirthday: mergeMasterBirthdayConfig(undefined) } })); setDirty(true); }}>{AVAILABLE_OCCASIONS.map(([value, emoji, label]) => <option value={value} key={value}>{emoji} {label}</option>)}</select></div>
           <div><span>Experience</span><select value={templateId} disabled={!occasionTemplates.length} onChange={e => { setTemplateId(e.target.value); setDirty(true); }}>
             {!occasionTemplates.length && <option value="">No {currentOccasion[2]} template added yet</option>}
             {occasionTemplates.map((t) => <option value={t.slug} key={t.slug}>{t.name}</option>)}
@@ -478,7 +480,7 @@ export default function Builder() {
           <div className="builder-panel-head"><div><div className="builder-eyebrow">{activeGroup?.icon} {activeGroup?.label || 'Editor'}</div><h2>{activeTab?.[2]}</h2></div><span className="builder-live-pill">● LIVE</span></div>
           <div className="builder-mobile-category-tabs">{visibleGroups.map(g => <button key={g.id} className={activeGroup?.id === g.id ? 'active' : ''} onClick={() => { setEditGroup(g.id); setTab(g.tabs[0] as TabId); setMobileToolsOpen(true); }}><span>{g.icon}</span>{g.label}</button>)}</div>
           <div className="builder-form-scroll">
-            {templateId === 'master-birthday' ? <MasterBirthdayEditor config={masterBirthdayConfig} onChange={updateMasterBirthday} websiteId={id} tab={tab} /> : <>
+            {(templateId === 'master' || templateId === 'master-birthday') ? <MasterBirthdayEditor config={masterBirthdayConfig} onChange={updateMasterBirthday} websiteId={id} tab={tab} /> : <>
             {tab === 'overview' && templateId !== 'miss-you-1' && templateId !== 'master-proposal' && (templateId === 'wedding-proposal' ? <>
               <div className="builder-quickstart"><div className="builder-quick-card"><b>1. Personalize</b><span>Set the recipient and sender names.</span></div><div className="builder-quick-card"><b>2. Edit the proposal</b><span>Only the words used by this original HTML are editable.</span></div><div className="builder-quick-card"><b>3. Share</b><span>Save it and create one live link.</span></div></div>
               <Section eyebrow="IDENTITY" title="Who is this proposal for?" description="Only the values used by the Wedding Proposal template are shown.">
