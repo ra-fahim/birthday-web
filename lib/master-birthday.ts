@@ -56,7 +56,7 @@ export const masterBirthdayDefaults: MasterBirthdayConfig = {
   memories: { heading: 'The Beautiful Moments ', subtitle: "Every moment spent with you has been magical. Let's cherish these precious memories Anarkoli...", nextButton: 'Again Your Storylane 🎥', items: [
     { id:'memory-1', url:'https://picsum.photos/seed/anime1/800/600', title:'A Magical Reflection 💖', caption:'A reflection of pure grace, elegance, and unmatched beauty. 🌹👑', date:'A Magical Reflection 💖', alt:'Anime 1' },
     { id:'memory-2', url:'https://picsum.photos/seed/anime2/800/600', title:'Lost in Anime Lore', caption:'May your journey ahead be filled with happiness, success, and endless smiles😊💕', date:'Lost in Anime Lore', alt:'Anime 2' },
-    { id:'memory-3', url:'https://picsum.photos/seed/anime3/800/600', title:'Her Smile Says It All', caption:'You're truly one of the sweetest girls I know, and I feel lucky to have a person like you❤️', date:'Her Smile Says It All', alt:'Anime 3' }
+    { id:'memory-3', url:'https://picsum.photos/seed/anime3/800/600', title:'Her Smile Says It All', caption:"You're truly one of the sweetest girls I know, and I feel lucky to have a person like you❤️", date:'Her Smile Says It All', alt:'Anime 3' }
   ]},
   videos: { title: 'A Special Video Message', nextButton: 'See your letter 💌', items: [
     { id:'video-1', source:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', title:'Happy Birthday Anarkoli ❤️🎂', caption:'', poster:'', alt:'Happy Birthday video' }
