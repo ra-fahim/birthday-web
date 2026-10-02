@@ -643,10 +643,10 @@
                         </g>
                     </g>
 
-                    <text id="cakeHappyText" data-bb-key="mb.cake.cakeText" data-bb-label="Cake first line" data-bb-type="text" x="270" y="120" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 120)">happy</text>
-                    <text id="cakeBirthdayText" data-bb-key="mb.cake.birthdayText" data-bb-label="Cake second line" data-bb-type="text" x="270" y="153" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 153)">birthday</text>
+                    <text id="cakeHappyText" data-bb-key="mb.cake.group" data-bb-label="Cake text" data-bb-type="text" x="270" y="120" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 120)">happy</text>
+                    <text id="cakeBirthdayText" data-bb-key="mb.cake.group" data-bb-label="Cake text" data-bb-type="text" x="270" y="153" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 153)">birthday</text>
                     <path d="M266 169 c-4 -6 -14 -2 -8 6 c3 4 8 4 8 4 s5 0 8 -4 c6 -8 -4 -12 -8 -6 z" fill="#fdf8f0" opacity="0.9"/>
-                    <text id="cakeNameText" data-bb-key="mb.cake.recipientName" data-bb-label="Cake recipient name" data-bb-type="text" x="270" y="203" font-family="'Dancing Script', cursive" font-weight="700" font-size="25" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 203)">Anarkoli</text>
+                    <text id="cakeNameText" data-bb-key="mb.cake.group" data-bb-label="Cake text" data-bb-type="text" x="270" y="203" font-family="'Dancing Script', cursive" font-weight="700" font-size="25" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 203)">Anarkoli</text>
 
                     <line id="sliceShadow" x1="45" y1="199" x2="355" y2="199" stroke="#3d2c20" stroke-width="12" stroke-linecap="round" stroke-dasharray="330" stroke-dashoffset="330" opacity="0.5"/>
                     <line id="sliceLine" x1="45" y1="195" x2="355" y2="195" stroke="url(#sliceGrad)" stroke-width="11" stroke-linecap="round" stroke-dasharray="330" stroke-dashoffset="330" opacity="1"/>
@@ -1215,6 +1215,27 @@
             if (!isEditorMode) return;
             const index = editorScreens.indexOf(editorScreen);
             if (index < 0) return;
+
+            // Reasons are a multi-step editor screen. Previous/Next should
+            // move between Reason 1/2/3/4 first, then leave the screen.
+            if (editorScreen === 'reasons') {
+                const currentDisplayed = Math.max(0, currentReasonIndex - 1);
+                if (direction > 0) {
+                    if (currentReasonIndex < reasons.length) {
+                        displayReason(currentReasonIndex);
+                        return;
+                    }
+                    editorShowScreen('photo');
+                    return;
+                }
+                if (currentDisplayed > 0) {
+                    displayReason(currentDisplayed - 1);
+                    return;
+                }
+                editorShowScreen('cake');
+                return;
+            }
+
             const nextIndex = Math.max(0, Math.min(editorScreens.length - 1, index + direction));
             if (nextIndex === index) return;
             editorShowScreen(editorScreens[nextIndex]);
@@ -2079,33 +2100,49 @@
             return card;
         }
 
-        function displayReason() {
+        function displayReason(reasonIndex) {
             if (isTransitioning) return;
+            const targetIndex = Number.isInteger(reasonIndex) ? reasonIndex : currentReasonIndex;
+
+            if (targetIndex < 0) {
+                editorScreen === 'reasons' ? editorShowScreen('cake') : null;
+                return;
+            }
+            if (targetIndex >= reasons.length) {
+                if (isEditorMode) editorShowScreen('photo');
+                else goToPhotoScreen();
+                return;
+            }
+
             isTransitioning = true;
+            const card = createReasonCard(reasons[targetIndex]);
+            const container = document.getElementById('reasonsContainer');
+            container.innerHTML = '';
+            container.appendChild(card);
 
-            if (currentReasonIndex < reasons.length) {
-                const card = createReasonCard(reasons[currentReasonIndex]);
-                const container = document.getElementById('reasonsContainer');
-                container.innerHTML = '';
-                container.appendChild(card);
+            gsap.from(card, { opacity:0, y:50, duration:0.5, ease:"back.out" });
 
-                gsap.from(card, { opacity:0, y:50, duration:0.5, ease:"back.out" });
+            document.getElementById('reasonCounter').textContent =
+                `Reason ${targetIndex + 1} of ${reasons.length}`;
 
-                document.getElementById('reasonCounter').textContent =
-                    `Reason ${currentReasonIndex + 1} of ${reasons.length}`;
+            // currentReasonIndex stores the next reason that the live button
+            // should reveal. This also lets the editor Previous/Next buttons
+            // move one reason at a time without losing saved edits.
+            currentReasonIndex = targetIndex + 1;
 
-                currentReasonIndex++;
-
-                if (currentReasonIndex === reasons.length) {
-                    const btn = document.getElementById('reasonsBtn');
+            const btn = document.getElementById('reasonsBtn');
+            if (btn) {
+                if (targetIndex === reasons.length - 1) {
                     btn.textContent = window._bbFinalReasonText || "You're the BESTEST ! 💖";
                     btn.classList.add('story-mode');
+                } else {
+                    const cfg = window.BB_CONTENT?.templateConfig?.masterBirthday?.reasons || window.BB_CONTENT?.reasons || {};
+                    btn.textContent = cfg.buttonText || 'Click Here... 💕';
+                    btn.classList.remove('story-mode');
                 }
-
-                setTimeout(() => { isTransitioning = false; }, 500);
-            } else {
-                goToPhotoScreen();
             }
+
+            setTimeout(() => { isTransitioning = false; }, 500);
         }
 
         const reasonsButtonEl = document.getElementById('reasonsBtn');
@@ -2433,12 +2470,12 @@
     cleanup();
     if(!enabled) return;
     var selectors=['#countdownTitle','#countdownMessage','#countdownBox','#greetingTitle','#greetingText','#enterWorldBtn','#cakeHappyText','#cakeBirthdayText','#cakeNameText','#cakeStatus','#cakeNextBtn','#reasonsTitle','#photoTitle','#photoSubtitle','#photoNextBtn','#videoTitle','#videoNextBtn','#letterTitle','#letterContent','#letterReturnBtn','#secretButton'];
-    selectors.forEach(function(sel){ var el=document.querySelector(sel); if(!el)return; if(!el.getAttribute('data-bb-key')){
+    selectors.forEach(function(sel){ var el=document.querySelector(sel); if(!el)return; if(sel==='#reasonsBtn' || sel==='#envelopeEl') return; if(!el.getAttribute('data-bb-key')){
       var map={'#countdownTitle':['mb.countdown.title','Countdown title'],'#countdownMessage':['mb.countdown.message','Countdown message'],'#countdownBox':['mb.countdown.birthdayDateTime','Birthday date & time'],'#greetingTitle':['mb.greeting.heading','Greeting heading'],'#greetingText':['mb.greeting.text','Greeting text'],'#enterWorldBtn':['mb.greeting.enterButton','Enter button text'],'#cakeHappyText':['mb.cake.group','Cake text'],'#cakeBirthdayText':['mb.cake.group','Cake text'],'#cakeNameText':['mb.cake.group','Cake text'],'#cakeStatus':['mb.cake.cakeStatus','Cake cut message'],'#cakeNextBtn':['mb.cake.nextButton','Cake next button'],'#reasonsTitle':['mb.reasons.heading','Reasons heading'],'#reasonsBtn':['mb.reasons.buttonText','Reasons button'],'#photoTitle':['mb.memories.heading','Gallery heading'],'#photoSubtitle':['mb.memories.subtitle','Gallery subtitle'],'#photoNextBtn':['mb.memories.nextButton','Gallery next button'],'#videoTitle':['mb.videos.title','Video heading'],'#videoNextBtn':['mb.videos.nextButton','Video next button'],'#letterTitle':['mb.letter.title','Letter title'],'#letterContent':['mb.letter.paragraphs','Letter content'],'#letterReturnBtn':['mb.letter.buttonText','Letter button'],'#secretButton':['mb.secret.buttonText','Secret button'],'#secretButtonLink':['mb.secret.socialUrl','Secret profile link']};
       var m=map[sel]; if(m){el.setAttribute('data-bb-key',m[0]);el.setAttribute('data-bb-label',m[1]);}
     }
     var h=function(e){e.preventDefault();e.stopPropagation();select(e.currentTarget);}; el.addEventListener('click',h,true); cleanups.push(function(){el.removeEventListener('click',h,true);}); });
-    document.querySelectorAll('.reason-card').forEach(function(el){el.setAttribute('data-bb-key','mb.reasons.items');el.setAttribute('data-bb-label','Reason'); var h=function(e){e.preventDefault();e.stopPropagation();select(el)};el.addEventListener('click',h,true);cleanups.push(function(){el.removeEventListener('click',h,true)});});
+    document.querySelectorAll('.reason-card').forEach(function(el){var idx=el.getAttribute('data-bb-index');el.setAttribute('data-bb-key','mb.reasons.items');el.setAttribute('data-bb-index',idx||'0');el.setAttribute('data-bb-label','Reason '+(Number(idx||0)+1)); var h=function(e){e.preventDefault();e.stopPropagation();select(el)};el.addEventListener('click',h,true);cleanups.push(function(){el.removeEventListener('click',h,true)});});
     document.querySelectorAll('.photo-card[data-bb-key="mb.memories.items"]').forEach(function(el){var h=function(e){e.preventDefault();e.stopPropagation();select(el)};el.addEventListener('click',h,true);cleanups.push(function(){el.removeEventListener('click',h,true)});});
     document.querySelectorAll('.video-card[data-bb-key="mb.videos.items"]').forEach(function(el){var h=function(e){e.preventDefault();e.stopPropagation();select(el)};el.addEventListener('click',h,true);cleanups.push(function(){el.removeEventListener('click',h,true)});});
   }
@@ -2447,10 +2484,11 @@
     return !!(target && target.closest && (target.closest('#reasonsBtn') || target.closest('#envelopeEl')));
   }
   function isSelectableTarget(target){ return !!(target && target.closest && target.closest('[data-bb-key]')); }
+  function isInlineEditorControl(target){ return !!(target && target.closest && target.closest('#reasonsButtonEdit, .bb-inline-edit-control')); }
   function guardEditorInteraction(e){
     if(!enabled) return;
     var target=e.target;
-    if(isNavTarget(target)) return;
+    if(isNavTarget(target) || isInlineEditorControl(target)) { if(isInlineEditorControl(target)){ var control=target.closest('#reasonsButtonEdit, .bb-inline-edit-control'); select(control); } return; }
     // These two interactions are intentionally live in Edit mode so the
     // creator can step through the experience and reach the dynamic reason
     // cards / letter before editing their content.
@@ -2493,3 +2531,4 @@ window.addEventListener('message',function(e){
 })();</script>
 <script>(function(){window.addEventListener('load',function(){try{if(isDemoMode && !window._bbDemoAudioEnabled)muteAllMedia();}catch(_){} try{if(isEditorMode){document.body.classList.add('bb-editor-active');updateCountdown();updateEditorNav();}}catch(_){}});})();</script></body>
 </html>
+

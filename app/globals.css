@@ -568,3 +568,14 @@ body.bb-editor-mode .wishly-edit-badge{display:grid!important}
   .builder-context-editor-head strong{font-size:12px}
   .builder-context-editor-body .universal-editor-body{padding-bottom:4px}
 }
+
+/* Final responsive canvas height: keep enough vertical room for the full template while editing. */
+.builder-preview-frame{height:clamp(600px,84vh,900px)!important;min-height:600px!important;}
+.builder-preview-canvas{min-height:0!important;}
+@media(max-width:900px){
+  .builder-preview-frame{height:clamp(560px,80vh,820px)!important;min-height:560px!important;}
+}
+@media(max-width:560px){
+  .builder-preview-frame{height:clamp(520px,78vh,720px)!important;min-height:520px!important;width:calc(100% - 12px)!important;}
+  .builder-preview-panel{min-width:0!important;overflow-x:hidden!important;}
+}

@@ -74,6 +74,9 @@
         html[data-bb-editor="1"] .bb-editable-target::after { content:'Click to edit'; position:absolute; top:-27px; left:8px; z-index:12000; display:none; padding:4px 8px; border-radius:999px; background:rgba(24,24,27,.92); color:#fff; font:700 10px 'Quicksand',sans-serif; letter-spacing:.02em; white-space:nowrap; box-shadow:0 8px 20px rgba(0,0,0,.18); pointer-events:none; }
         html[data-bb-editor="1"] .bb-editable-target:hover::after { display:block; }
         html[data-bb-editor="1"] .bb-editable-target.is-media::after { content:'Click to edit media'; }
+        html[data-bb-editor="1"] .reason-card.bb-editable-target,html[data-bb-editor="1"] .reason-card .reason-text.bb-editable-target{outline:2px dashed rgba(236,72,153,.72)!important;outline-offset:7px!important;box-shadow:0 0 0 4px rgba(236,72,153,.10),0 12px 34px rgba(236,72,153,.08)!important;}
+        html[data-bb-editor="1"] .reason-card .reason-text.bb-editable-target{cursor:pointer!important;}
+        html[data-bb-editor="1"] .reason-card.bb-editable-target:hover,html[data-bb-editor="1"] .reason-card .reason-text.bb-editable-target:hover{outline-color:rgba(236,72,153,.98)!important;}
         @media(max-width:700px){ html[data-bb-editor="1"] .bb-editable-target::after { top:auto; bottom:-24px; left:50%; transform:translateX(-50%); } }
         html[data-bb-editor="1"] .bb-editor-audio-control { display:inline-flex; align-items:center; justify-content:center; }
         html[data-bb-editor="1"] #bbAudioToggle { display:none !important; }
@@ -511,10 +514,10 @@
                         </g>
                     </g>
 
-                    <text id="cakeHappyText" data-bb-key="mb.cake.cakeText" data-bb-label="Cake first line" data-bb-type="text" x="270" y="120" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 120)">happy</text>
-                    <text id="cakeBirthdayText" data-bb-key="mb.cake.birthdayText" data-bb-label="Cake second line" data-bb-type="text" x="270" y="153" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 153)">birthday</text>
+                    <text id="cakeHappyText" data-bb-key="mb.cake.group" data-bb-label="Cake text" data-bb-type="text" x="270" y="120" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 120)">happy</text>
+                    <text id="cakeBirthdayText" data-bb-key="mb.cake.group" data-bb-label="Cake text" data-bb-type="text" x="270" y="153" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 153)">birthday</text>
                     <path d="M266 169 c-4 -6 -14 -2 -8 6 c3 4 8 4 8 4 s5 0 8 -4 c6 -8 -4 -12 -8 -6 z" fill="#fdf8f0" opacity="0.9"/>
-                    <text id="cakeNameText" data-bb-key="mb.cake.recipientName" data-bb-label="Cake recipient name" data-bb-type="text" x="270" y="203" font-family="'Dancing Script', cursive" font-weight="700" font-size="25" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 203)">Anarkoli</text>
+                    <text id="cakeNameText" data-bb-key="mb.cake.group" data-bb-label="Cake text" data-bb-type="text" x="270" y="203" font-family="'Dancing Script', cursive" font-weight="700" font-size="25" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 203)">Anarkoli</text>
 
                     <line id="sliceShadow" x1="45" y1="199" x2="355" y2="199" stroke="#3d2c20" stroke-width="12" stroke-linecap="round" stroke-dasharray="330" stroke-dashoffset="330" opacity="0.5"/>
                     <line id="sliceLine" x1="45" y1="195" x2="355" y2="195" stroke="url(#sliceGrad)" stroke-width="11" stroke-linecap="round" stroke-dasharray="330" stroke-dashoffset="330" opacity="1"/>
@@ -1821,19 +1824,19 @@
         window.addEventListener('pointerup', onCutPointerUp);
         window.addEventListener('pointercancel', onCutPointerUp);
 
-        function createReasonCard(reason) {
+        function createReasonCard(reason, reasonIndex = currentReasonIndex) {
             const card = document.createElement('div');
             card.className = 'reason-card';
             card.setAttribute('data-bb-key','mb.reasons.items');
-            card.setAttribute('data-bb-index', String(currentReasonIndex));
-            card.setAttribute('data-bb-label', `Reason ${currentReasonIndex + 1}`);
+            card.setAttribute('data-bb-index', String(reasonIndex));
+            card.setAttribute('data-bb-label', `Reason ${reasonIndex + 1}`);
             card.setAttribute('data-bb-type','text');
 
             const text = document.createElement('div');
             text.className = 'reason-text';
             text.setAttribute('data-bb-key','mb.reasons.items');
-            text.setAttribute('data-bb-index', String(currentReasonIndex));
-            text.setAttribute('data-bb-label', `Reason ${currentReasonIndex + 1}`);
+            text.setAttribute('data-bb-index', String(reasonIndex));
+            text.setAttribute('data-bb-label', `Reason ${reasonIndex + 1}`);
             text.setAttribute('data-bb-type','text');
             text.textContent = reason.text;
 
@@ -1847,33 +1850,49 @@
             return card;
         }
 
-        function displayReason() {
+        function displayReason(reasonIndex) {
             if (isTransitioning) return;
+            const targetIndex = Number.isInteger(reasonIndex) ? reasonIndex : currentReasonIndex;
+
+            if (targetIndex < 0) {
+                editorScreen === 'reasons' ? editorShowScreen('cake') : null;
+                return;
+            }
+            if (targetIndex >= reasons.length) {
+                if (isEditorMode) editorShowScreen('photo');
+                else goToPhotoScreen();
+                return;
+            }
+
             isTransitioning = true;
+            const card = createReasonCard(reasons[targetIndex], targetIndex);
+            const container = document.getElementById('reasonsContainer');
+            container.innerHTML = '';
+            container.appendChild(card);
 
-            if (currentReasonIndex < reasons.length) {
-                const card = createReasonCard(reasons[currentReasonIndex]);
-                const container = document.getElementById('reasonsContainer');
-                container.innerHTML = '';
-                container.appendChild(card);
+            gsap.from(card, { opacity:0, y:50, duration:0.5, ease:"back.out" });
 
-                gsap.from(card, { opacity:0, y:50, duration:0.5, ease:"back.out" });
+            document.getElementById('reasonCounter').textContent =
+                `Reason ${targetIndex + 1} of ${reasons.length}`;
 
-                document.getElementById('reasonCounter').textContent =
-                    `Reason ${currentReasonIndex + 1} of ${reasons.length}`;
+            // currentReasonIndex stores the next reason that the live button
+            // should reveal. This also lets the editor Previous/Next buttons
+            // move one reason at a time without losing saved edits.
+            currentReasonIndex = targetIndex + 1;
 
-                currentReasonIndex++;
-
-                if (currentReasonIndex === reasons.length) {
-                    const btn = document.getElementById('reasonsBtn');
+            const btn = document.getElementById('reasonsBtn');
+            if (btn) {
+                if (targetIndex === reasons.length - 1) {
                     btn.textContent = window._bbFinalReasonText || "You're the BESTEST ! 💖";
                     btn.classList.add('story-mode');
+                } else {
+                    const cfg = window.BB_CONTENT?.templateConfig?.masterBirthday?.reasons || window.BB_CONTENT?.reasons || {};
+                    btn.textContent = cfg.buttonText || 'Click Here... 💕';
+                    btn.classList.remove('story-mode');
                 }
-
-                setTimeout(() => { isTransitioning = false; }, 500);
-            } else {
-                goToPhotoScreen();
             }
+
+            setTimeout(() => { isTransitioning = false; }, 500);
         }
 
         window.handleReasonClick = function() {
@@ -2636,9 +2655,10 @@
     if(t.matches('#cakeNextBtn')) return {key:'mb.cake.nextButton',label:'Cake next button',value:t.innerText,kind:'button'};
     if(t.matches('#reasonsScreen h1')) return {key:'mb.reasons.heading',label:'Reasons heading',value:t.innerText,kind:'text'};
     if(t.matches('.bb-reasons-note')) return {key:'mb.reasons.note',label:'Reasons note',value:t.innerText,kind:'text'};
-    if(t.matches('.reason-card .reason-text')){const cards=qa('.reason-card .reason-text');const idx=cards.indexOf(t);return idx>=0?{key:'mb.reasons.items',label:`Reason ${idx+1}`,index:idx,value:t.innerText,kind:'text'}:null;}
-    if(t.matches('.reason-card')){const cards=qa('.reason-card');const idx=cards.indexOf(t);return idx>=0?{key:'mb.reasons.items',label:`Reason ${idx+1}`,index:idx,value:t.querySelector('.reason-text')?.innerText||'',kind:'text'}:null;}
-    if(t.matches('#reasonsBtn')) return {key:'mb.reasons.buttonText',label:'Reasons button',value:t.innerText,kind:'button'};
+    if(t.matches('.reason-card .reason-text')){const idx=Number(t.getAttribute('data-bb-index'));return Number.isFinite(idx)?{key:'mb.reasons.items',label:`Reason ${idx+1}`,index:idx,value:t.innerText,kind:'text'}:null;}
+    if(t.matches('.reason-card')){const idx=Number(t.getAttribute('data-bb-index'));return Number.isFinite(idx)?{key:'mb.reasons.items',label:`Reason ${idx+1}`,index:idx,value:t.querySelector('.reason-text')?.innerText||'',kind:'text'}:null;}
+    if(t.matches('#reasonsButtonEdit, .bb-inline-edit-control')) return {key:'mb.reasons.buttonText',label:'Reasons button text',value:q('#reasonsBtn')?.innerText||'',kind:'button'};
+    if(t.matches('#reasonsBtn')) return null;
     if(t.matches('#photoScreen .photo-header h1')) return {key:'mb.memories.heading',label:'Memory heading',value:t.innerText,kind:'text'};
     if(t.matches('#photoScreen .photo-header p')) return {key:'mb.memories.subtitle',label:'Memory subtitle',value:t.innerText,kind:'text'};
     if(t.matches('.photo-card')){const cards=qa('.photo-card');return {key:'mb.memories.items',label:`Memory ${cards.indexOf(t)+1}`,index:cards.indexOf(t),kind:'image'};}
@@ -2696,10 +2716,59 @@
   window.BB_EDITOR_NAVIGATE=function(direction){
     if(!window.__BB_EDITOR_MODE) return;
     const delta=direction<0?-1:1;
+
+    // Reasons are a single editor screen with four internal steps. While the
+    // canvas is on Reasons, Previous/Next moves through Reason 1 → 2 → 3 → 4
+    // before leaving for Cake/Photos. Existing text edits stay in BB_CONTENT.
+    const screen = editorScreenOrder[editorHistoryIndex];
+    if(screen==='reasons'){
+      const displayed = Math.max(0, currentReasonIndex - 1);
+      if(delta > 0){
+        if(currentReasonIndex < reasons.length){
+          isTransitioning=false;
+          try { displayReason?.(currentReasonIndex); } catch(_) {}
+          postEditorHistoryState();
+          return;
+        }
+        editorHistoryIndex=Math.min(editorScreenOrder.length-1, editorHistoryIndex+1);
+        const nextScreen=editorScreenOrder[editorHistoryIndex];
+        try { showScreen(nextScreen); } catch(_) {}
+        postEditorHistoryState();
+        return;
+      }
+      if(displayed > 0){
+        isTransitioning=false;
+        try { displayReason?.(displayed - 1); } catch(_) {}
+        postEditorHistoryState();
+        return;
+      }
+      editorHistoryIndex=Math.max(0, editorHistoryIndex-1);
+      const prevScreen=editorScreenOrder[editorHistoryIndex];
+      if(prevScreen==='cake'){ try { loadCakeState?.(); } catch(_) {} }
+      try { showScreen(prevScreen); } catch(_) {}
+      postEditorHistoryState();
+      return;
+    }
+
     const next=Math.max(0,Math.min(editorScreenOrder.length-1,editorHistoryIndex+delta));
     if(next===editorHistoryIndex){ postEditorHistoryState(); return; }
     editorHistoryIndex=next;
-    showScreen(editorScreenOrder[editorHistoryIndex]);
+    const nextScreen=editorScreenOrder[editorHistoryIndex];
+    // Reset the interactive state only when entering a screen through the
+    // editor arrows. This keeps edits intact while restoring each screen's
+    // original first-view behavior (Reason 1 / closed envelope / fresh cake).
+    if(nextScreen==='reasons') {
+      currentReasonIndex=0;
+      isTransitioning=false;
+      try { applyReasons?.(); } catch(_) {}
+      try { q('#reasonsContainer').innerHTML=''; } catch(_) {}
+    }
+    if(nextScreen==='letter') { try { resetEnvelope?.(); } catch(_) {} }
+    if(nextScreen==='cake') { try { loadCakeState?.(); } catch(_) {} }
+    showScreen(nextScreen);
+    if(nextScreen==='reasons') {
+      try { displayReason?.(0); } catch(_) {}
+    }
     postEditorHistoryState();
   };
   window.addEventListener('message',e=>{ if(e?.data?.type==='BB_CANVAS_HISTORY'){ window.BB_EDITOR_NAVIGATE?.(e.data.direction==='back'?-1:1); } if(e?.data?.type==='BB_CANVAS_REQUEST_HISTORY_STATE'){ postEditorHistoryState(); } });

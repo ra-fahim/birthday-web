@@ -634,10 +634,10 @@
                         </g>
                     </g>
 
-                    <text id="cakeHappyText" data-bb-key="mb.cake.cakeText" data-bb-label="Cake first line" data-bb-type="text" x="270" y="120" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 120)">happy</text>
-                    <text id="cakeBirthdayText" data-bb-key="mb.cake.birthdayText" data-bb-label="Cake second line" data-bb-type="text" x="270" y="153" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 153)">birthday</text>
+                    <text id="cakeHappyText" data-bb-key="mb.cake.group" data-bb-label="Cake text" data-bb-type="text" x="270" y="120" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 120)">happy</text>
+                    <text id="cakeBirthdayText" data-bb-key="mb.cake.group" data-bb-label="Cake text" data-bb-type="text" x="270" y="153" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 153)">birthday</text>
                     <path d="M266 169 c-4 -6 -14 -2 -8 6 c3 4 8 4 8 4 s5 0 8 -4 c6 -8 -4 -12 -8 -6 z" fill="#fdf8f0" opacity="0.9"/>
-                    <text id="cakeNameText" data-bb-key="mb.cake.recipientName" data-bb-label="Cake recipient name" data-bb-type="text" x="270" y="203" font-family="'Dancing Script', cursive" font-weight="700" font-size="25" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 203)">Anarkoli</text>
+                    <text id="cakeNameText" data-bb-key="mb.cake.group" data-bb-label="Cake text" data-bb-type="text" x="270" y="203" font-family="'Dancing Script', cursive" font-weight="700" font-size="25" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 203)">Anarkoli</text>
 
                     <line id="sliceShadow" x1="45" y1="199" x2="355" y2="199" stroke="#3d2c20" stroke-width="12" stroke-linecap="round" stroke-dasharray="330" stroke-dashoffset="330" opacity="0.5"/>
                     <line id="sliceLine" x1="45" y1="195" x2="355" y2="195" stroke="url(#sliceGrad)" stroke-width="11" stroke-linecap="round" stroke-dasharray="330" stroke-dashoffset="330" opacity="1"/>
@@ -1205,6 +1205,27 @@
             if (!isEditorMode) return;
             const index = editorScreens.indexOf(editorScreen);
             if (index < 0) return;
+
+            // Reasons are a multi-step editor screen. Previous/Next should
+            // move between Reason 1/2/3/4 first, then leave the screen.
+            if (editorScreen === 'reasons') {
+                const currentDisplayed = Math.max(0, currentReasonIndex - 1);
+                if (direction > 0) {
+                    if (currentReasonIndex < reasons.length) {
+                        displayReason(currentReasonIndex);
+                        return;
+                    }
+                    editorShowScreen('photo');
+                    return;
+                }
+                if (currentDisplayed > 0) {
+                    displayReason(currentDisplayed - 1);
+                    return;
+                }
+                editorShowScreen('cake');
+                return;
+            }
+
             const nextIndex = Math.max(0, Math.min(editorScreens.length - 1, index + direction));
             if (nextIndex === index) return;
             editorShowScreen(editorScreens[nextIndex]);
@@ -2069,33 +2090,49 @@
             return card;
         }
 
-        function displayReason() {
+        function displayReason(reasonIndex) {
             if (isTransitioning) return;
+            const targetIndex = Number.isInteger(reasonIndex) ? reasonIndex : currentReasonIndex;
+
+            if (targetIndex < 0) {
+                editorScreen === 'reasons' ? editorShowScreen('cake') : null;
+                return;
+            }
+            if (targetIndex >= reasons.length) {
+                if (isEditorMode) editorShowScreen('photo');
+                else goToPhotoScreen();
+                return;
+            }
+
             isTransitioning = true;
+            const card = createReasonCard(reasons[targetIndex]);
+            const container = document.getElementById('reasonsContainer');
+            container.innerHTML = '';
+            container.appendChild(card);
 
-            if (currentReasonIndex < reasons.length) {
-                const card = createReasonCard(reasons[currentReasonIndex]);
-                const container = document.getElementById('reasonsContainer');
-                container.innerHTML = '';
-                container.appendChild(card);
+            gsap.from(card, { opacity:0, y:50, duration:0.5, ease:"back.out" });
 
-                gsap.from(card, { opacity:0, y:50, duration:0.5, ease:"back.out" });
+            document.getElementById('reasonCounter').textContent =
+                `Reason ${targetIndex + 1} of ${reasons.length}`;
 
-                document.getElementById('reasonCounter').textContent =
-                    `Reason ${currentReasonIndex + 1} of ${reasons.length}`;
+            // currentReasonIndex stores the next reason that the live button
+            // should reveal. This also lets the editor Previous/Next buttons
+            // move one reason at a time without losing saved edits.
+            currentReasonIndex = targetIndex + 1;
 
-                currentReasonIndex++;
-
-                if (currentReasonIndex === reasons.length) {
-                    const btn = document.getElementById('reasonsBtn');
+            const btn = document.getElementById('reasonsBtn');
+            if (btn) {
+                if (targetIndex === reasons.length - 1) {
                     btn.textContent = window._bbFinalReasonText || "You're the BESTEST ! 💖";
                     btn.classList.add('story-mode');
+                } else {
+                    const cfg = window.BB_CONTENT?.templateConfig?.masterBirthday?.reasons || window.BB_CONTENT?.reasons || {};
+                    btn.textContent = cfg.buttonText || 'Click Here... 💕';
+                    btn.classList.remove('story-mode');
                 }
-
-                setTimeout(() => { isTransitioning = false; }, 500);
-            } else {
-                goToPhotoScreen();
             }
+
+            setTimeout(() => { isTransitioning = false; }, 500);
         }
 
         const reasonsButtonEl = document.getElementById('reasonsBtn');
