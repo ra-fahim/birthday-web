@@ -499,6 +499,7 @@ export default function Builder() {
   const masterBirthdayConfig = useMemo(() => mergeMasterBirthdayConfig((c.templateConfig as any)?.masterBirthday), [c.templateConfig]);
   const updateMasterBirthday = useCallback((next: typeof masterBirthdayDefaults) => update({ templateConfig: { ...(c.templateConfig || {}), masterBirthday: next } }), [c.templateConfig]);
   const templateInspection = useMemo(() => getTemplateInspection(templateId), [templateId]);
+  const templateDisplayName = useMemo(() => templateCatalog.find(t => t.slug === templateId)?.name || templateInspection.slug || 'Template', [templateId, templateInspection.slug]);
   const editableMediaKeys = useMemo(() => new Set(
     templateInspection.media.filter(slot => slot.sourceType === 'file-or-url').map(slot => slot.key)
   ), [templateInspection]);
@@ -554,6 +555,10 @@ export default function Builder() {
       <div className="builder-top-actions">
         <div className={`builder-status ${dirty ? 'is-dirty' : ''}`}><i />{dirty ? 'Unsaved changes' : status === 'published' ? 'Published' : 'All changes saved'}</div>
         <div className={`builder-live-sync builder-live-sync-${syncState}`} aria-live="polite">{syncState === 'updating' ? '● Preview updating' : syncState === 'saving' ? '● Auto-saving' : syncState === 'saved' ? '✓ Saved automatically' : '✓ Preview synced'}</div>
+        <div className="builder-top-view-switch" aria-label="Preview device controls">
+          {(['desktop','tablet','mobile'] as const).map(d => <button key={d} type="button" className={`builder-device ${device===d?'active':''}`} onClick={()=>setDevice(d)}>{d[0].toUpperCase()+d.slice(1)}</button>)}
+          <button type="button" className={`builder-device builder-preview-toggle ${previewMode ? 'active' : ''}`} aria-pressed={previewMode} onClick={() => setPreviewMode(v => !v)} title={previewMode ? 'Return to template editing' : 'Preview the website as a visitor'}>{previewMode ? '✎ Preview off' : '▶ Preview'}</button>
+        </div>
         <button className="builder-ghost" type="button" onClick={undoEdit} disabled={!historyRef.current.past.length} title="Undo last change">↶ Undo</button>
         <button className="builder-ghost" type="button" onClick={redoEdit} disabled={!historyRef.current.future.length} title="Redo last undone change">↷ Redo</button>
         <button className="builder-ghost" type="button" onClick={resetEdits} title="Restore this template default content">Reset</button>
@@ -567,22 +572,10 @@ export default function Builder() {
       <section className="builder-preview-panel">
           <div className="builder-preview-head">
             <div className="builder-preview-title">
-              <div><span>LIVE PREVIEW</span><strong>{c.name || 'Untitled celebration'}</strong></div>
+              <div><span>LIVE PREVIEW</span><strong>{templateDisplayName}</strong><em>Live canvas • Auto-sync enabled</em></div>
             </div>
-            <div className="builder-preview-actions">
-              {(['desktop','tablet','mobile'] as const).map(d => <button key={d} className={`builder-device ${device===d?'active':''}`} onClick={()=>{setDevice(d)}}>{d[0].toUpperCase()+d.slice(1)}</button>)}
-              <button
-                type="button"
-                className={`builder-device builder-preview-toggle ${previewMode ? 'active' : ''}`}
-                aria-pressed={previewMode}
-                onClick={() => setPreviewMode(v => !v)}
-                title={previewMode ? 'Return to template editing' : 'Preview the website as a visitor'}
-              >
-                {previewMode ? '✎ Back to edit' : '▶ Preview'}
-              </button>
-            </div>
+            <div className="builder-preview-badge">{previewMode ? 'Visitor mode' : 'Edit mode'}</div>
           </div>
-          <div className="builder-canvas-hint">Editing is always on. Editable text and media stay highlighted. Click any highlighted item to edit it; changes appear instantly in this preview and auto-save in the background. Website actions are locked while editing. Use the side arrows to move between screens, or Preview to experience the website normally.</div>
           {status === 'published' && publicUrl && <div className="builder-live-link"><div><span>YOUR LIVE LINK</span><strong>{publicUrl}</strong></div><div className="builder-live-link-actions"><button onClick={() => navigator.clipboard?.writeText(publicUrl)}>Copy link</button><a href={publicUrl} target="_blank" rel="noreferrer">Open ↗</a></div></div>}
           <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}><div className="builder-canvas-nav-overlay" aria-label="Canvas screen navigation">{editorMode && <><button type="button" className="builder-canvas-nav builder-canvas-nav-prev" onClick={() => handleCanvasHistory('back')} disabled={!canvasHistory.canBack} title="Previous screen" aria-label="Previous screen">←</button><button type="button" className="builder-canvas-nav builder-canvas-nav-next" onClick={() => handleCanvasHistory('forward')} disabled={!canvasHistory.canForward} title="Next screen" aria-label="Next screen">→</button></>}</div><div className="builder-canvas-stage">{!loaded || !previewContent ? <div className="builder-template-empty"><div>…</div><h3>Loading website</h3><p>Preparing the selected template…</p></div> : (templateId === 'master' || templateId === 'master-birthday') ? <MasterBirthdayTemplate key={`${templateId}-${previewMode ? 'preview' : 'edit'}`} content={previewContent} demo={false} preview={previewMode} editorMode={editorMode} websiteSlug={slug} siteKey={id} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div></div>
           {selectedElement && editorMode && (

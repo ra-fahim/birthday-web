@@ -62,6 +62,42 @@ export default function UniversalElementEditor({ selected, content, templateId, 
       }
       return <><Field label={`Reason ${selected.index + 1}`}><textarea rows={4} autoFocus value={items[selected.index] || ''} onChange={e=>onChange({ reasons: items.map((x,i)=>i===selected.index ? e.target.value : x) })} /></Field><div className="universal-editor-grid"><button type="button" className="builder-mini-btn" onClick={()=>onChange({ reasons:items.filter((_,i)=>i!==selected.index) })}>Remove</button><button type="button" className="builder-mini-btn" onClick={()=>onChange({ reasons:[...items,''] })}>＋ Add another</button></div></>;
     }
+    if (key.startsWith('preset.')) {
+      const field = key.slice('preset.'.length);
+      const preset = (templateConfig.preset || {}) as Record<string, unknown>;
+      return <TextField value={String(preset[field] ?? selected.value ?? '')} multiline={field === 'sectionTitle'} onChange={value => onTemplateConfigChange({ preset: { ...preset, [field]: value } })} />;
+    }
+    if (key.startsWith('gx.')) {
+      const genericEdits = (templateConfig.genericEdits || {}) as Record<string, any>;
+      const current = genericEdits[key] || { type: selected.kind === 'image' ? 'image' : selected.kind === 'video' ? 'video' : selected.kind === 'audio' ? 'audio' : selected.kind === 'link' ? 'link' : 'text', value: selected.value || '', label: selected.label };
+      const updateGeneric = (patch: Record<string, unknown>) => {
+        const next = { ...genericEdits, [key]: { ...current, ...patch, label: current.label || selected.label } };
+        onTemplateConfigChange({ genericEdits: next });
+      };
+      if (current.type === 'image') return <>
+        <div className="universal-editor-media-head"><div className="universal-editor-icon"><ImagePlus size={16}/></div><div><b>{current.label || selected.label}</b><span>Replace this image</span></div></div>
+        <InlineMediaField value={String(current.value || '')} placeholder="Image URL" accept="image/*" folder="gallery" websiteId={websiteId} onChange={url=>updateGeneric({ value: url })}/>
+        <Field label="Image URL"><input type="url" value={String(current.value || '')} onChange={e=>updateGeneric({ value: e.target.value })} placeholder="https://..." /></Field>
+        <Field label="Alt text"><input value={String(current.alt || '')} onChange={e=>updateGeneric({ alt: e.target.value })} /></Field>
+      </>;
+      if (current.type === 'video') return <>
+        <div className="universal-editor-media-head"><div className="universal-editor-icon"><Video size={16}/></div><div><b>{current.label || selected.label}</b><span>Replace this video</span></div></div>
+        <SingleMediaUpload kind="video" url={String(current.value || '')} websiteId={websiteId} onChange={url=>updateGeneric({ value: url })}/>
+        <Field label="Video source URL"><input type="url" value={String(current.value || '')} onChange={e=>updateGeneric({ value: e.target.value })} placeholder="YouTube or direct video URL" /></Field>
+        <Field label="Poster / thumbnail"><input value={String(current.poster || '')} onChange={e=>updateGeneric({ poster: e.target.value })} /></Field>
+      </>;
+      if (current.type === 'audio') return <>
+        <div className="universal-editor-media-head"><div className="universal-editor-icon"><Music2 size={16}/></div><div><b>{current.label || selected.label}</b><span>Replace this audio</span></div></div>
+        <SingleMediaUpload kind="audio" url={String(current.value || '')} websiteId={websiteId} onChange={url=>updateGeneric({ value: url })}/>
+        <Field label="Audio URL"><input type="url" value={String(current.value || '')} onChange={e=>updateGeneric({ value: e.target.value })} placeholder="https://..." /></Field>
+      </>;
+      if (current.type === 'link') return <>
+        <Field label={selected.label || 'Link text'}><input autoFocus value={String(current.value || '')} onChange={e=>updateGeneric({ value: e.target.value })} /></Field>
+        <Field label="Link URL"><input type="url" value={String(current.href || '')} onChange={e=>updateGeneric({ href: e.target.value })} placeholder="https://..." /></Field>
+      </>;
+      return <TextField value={String(current.value ?? selected.value ?? '')} multiline={true} onChange={value=>updateGeneric({ value })} />;
+    }
+
     if (masterBirthday && key.startsWith('mb.')) {
       const path = key.slice(3);
       const cfg:any = masterBirthdayConfig;

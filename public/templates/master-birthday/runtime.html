@@ -2142,8 +2142,10 @@
             }
         }
 
-        updateCountdown();
-        setInterval(updateCountdown, 1000);
+        // Countdown scheduling is initialized after the runtime state exists.
+        // This guard keeps the early bootstrap script from aborting before the
+        // state/config bridge (declared in the next script block) is ready.
+        try { if (typeof updateCountdown === 'function') updateCountdown(); } catch (_) {}
 
         window.addEventListener('beforeunload', function() {
             stopMicrophone();
@@ -2697,6 +2699,17 @@
     syncAudioToggle();
     if(demoStarted && !window.__BB_PREVIEW_HOST_MODE) startDemoCountdown();
   }
+
+  // Authoritative real-time ticker. The editor canvas and published page both
+  // need a continuously updating clock; Demo/Catalog owns its own 250ms timer.
+  if (window.__BB_COUNTDOWN_TICKER) clearInterval(window.__BB_COUNTDOWN_TICKER);
+  window.__BB_COUNTDOWN_TICKER = setInterval(() => {
+    try {
+      if (window.__BB_FORCE_DEMO) return;
+      updateCountdown();
+    } catch (_) {}
+  }, 250);
+  try { updateCountdown(); } catch (_) {}
 
   function startDemoCountdown(){
     if(!demoStarted)return;

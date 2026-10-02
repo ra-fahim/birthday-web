@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import GenericEditableIframe from './GenericEditableIframe';
 import type { BirthdayContent } from '@/lib/types';
 
 type Props = { content: BirthdayContent; editorMode?: boolean; onElementSelect?: (selection: { key:string; label:string; index?:number; value?:string; kind?:string })=>void; onHistoryState?: (state:{canBack?:boolean;canForward?:boolean;screen?:string})=>void };
@@ -98,13 +99,17 @@ export default function WeddingProposalTemplate({ content, editorMode = false, o
   }
 
   return (
-    <iframe
+    <GenericEditableIframe
       title="Wedding Proposal template"
       srcDoc={html}
-      sandbox="allow-scripts allow-same-origin"
-      loading="eager"
-      style={{ width: '100%', height: '100%', minHeight: 720, border: 0, display: 'block', background: '#07000b' }}
-      referrerPolicy="no-referrer"
+      content={content}
+      editorMode={editorMode}
+      genericEdits={((content.templateConfig || {}) as any).genericEdits || {}}
+      extraMessages={[{ type: 'BB_CONTENT', content }, { type: 'BB_EDITOR_MODE', enabled: !!editorMode }]}
+      minHeight={720}
+      background="#07000b"
+      onElementSelect={onElementSelect}
+      onHistoryState={onHistoryState}
     />
   );
 }

@@ -2,6 +2,7 @@
 import React from 'react';
 import type { BirthdayContent } from '@/lib/types';
 import WeddingProposalTemplate from './WeddingProposalTemplate';
+import GenericEditableIframe from './GenericEditableIframe';
 
 const presets: Record<string,{label:string;eyebrow:string;headline:string;accent:string;surface:string;emoji:string}> = {
   birthday:{label:'Birthday',eyebrow:'A day made just for you',headline:'Celebrate the person who makes every day brighter.',accent:'#ec4899',surface:'#1b1020',emoji:'🎂'},
@@ -26,18 +27,10 @@ const presets: Record<string,{label:string;eyebrow:string;headline:string;accent
 };
 
 function MissYouTemplate({ content, editorMode = false, onElementSelect, onHistoryState }: { content: BirthdayContent; editorMode?: boolean; onElementSelect?: (selection: { key: string; label: string; index?: number; value?: string; kind?: string }) => void; onHistoryState?: (state: { canBack?: boolean; canForward?: boolean; screen?: string }) => void }) {
-  const [config, setConfig] = React.useState(() => ({ ...getMissYouDefaults(), ...(content.templateConfig || {}) }));
-  React.useEffect(() => {
-    const next = { ...getMissYouDefaults(), ...(content.templateConfig || {}) };
-    setConfig(next);
-  }, [content.templateConfig]);
+  const config = { ...getMissYouDefaults(), ...(content.templateConfig || {}) };
   const src = React.useMemo(() => '/templates/miss-you-1/index.html?bbEdit=1', []);
-  const frameRef = React.useRef<HTMLIFrameElement>(null);
-  React.useEffect(() => { const f=frameRef.current; if(!f)return; const post=()=>{ f.contentWindow?.postMessage({type:'BB_EDITOR_MODE',enabled:!!editorMode},'*'); f.contentWindow?.postMessage({type:'BB_MISSYOU_CONFIG',config},'*'); }; f.addEventListener('load',post); post(); return()=>f.removeEventListener('load',post); }, [editorMode, src, config]);
-  React.useEffect(() => { const h=(e:MessageEvent)=>{ if(e.source!==frameRef.current?.contentWindow || !e.data) return; if(e.data.type==='BB_ELEMENT_SELECTED') onElementSelect?.(e.data.selection); if(e.data.type==='BB_CANVAS_HISTORY_STATE') onHistoryState?.(e.data); }; window.addEventListener('message',h); return()=>window.removeEventListener('message',h); }, [onElementSelect, onHistoryState]);
-  return <iframe ref={frameRef} title="Miss You 1" src={src} style={{ width: '100%', height: '100%', minHeight: 760, border: 0, display: 'block', background: '#ffe' }} />;
+  return <GenericEditableIframe title="Miss You 1" src={src} content={content} editorMode={editorMode} genericEdits={((content.templateConfig || {}) as any).genericEdits || {}} extraMessages={[{ type: 'BB_MISSYOU_CONFIG', config }, { type: 'BB_EDITOR_MODE', enabled: !!editorMode }]} minHeight={760} background="#ffe" onElementSelect={onElementSelect} onHistoryState={onHistoryState} />;
 }
-
 export function getMissYouDefaults() {
   return {
     name1: 'Anarkoli', name2: 'Selim', connector: 'and', together: 'together',
@@ -93,8 +86,7 @@ function MasterProposalTemplate({ content, editorMode, onElementSelect, onHistor
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
   }, [onElementSelect, onHistoryState]);
-  return <iframe ref={frameRef} title="Master Proposal" src={src} style={{ width: '100%', height: '100%', minHeight: 0, border: 0, display: 'block', background: '#FAF9F6' }} />;
-}
+  return <GenericEditableIframe title="Master Proposal" src={src} content={content} editorMode={editorMode} genericEdits={((content.templateConfig||{}) as any).genericEdits || {}} extraMessages={[{ type: 'BB_CONTENT', content }, { type: 'BB_EDITOR_MODE', enabled: !!editorMode }]} minHeight={720} background="#FAF9F6" onElementSelect={onElementSelect} onHistoryState={onHistoryState} />}
 
 export function getMasterProposalDefaults() {
   return {
@@ -220,10 +212,11 @@ export default function ExperienceTemplate({variant='romantic',content,editorMod
  if (variant === 'wedding-proposal') return <WeddingProposalTemplate content={content} editorMode={editorMode} onElementSelect={onElementSelect} />;
  if (variant === 'miss-you-1') return <MissYouTemplate content={content} editorMode={editorMode} onElementSelect={onElementSelect} onHistoryState={onHistoryState} />;
  if (variant === 'master-proposal') return <MasterProposalTemplate content={content} editorMode={editorMode} onElementSelect={onElementSelect} onHistoryState={onHistoryState} />;
- const p=presets[variant]||presets.romantic; const gallery=content.gallery||[];
+ const p=presets[variant]||presets.romantic; const gallery=content.gallery||[]; const presetCfg=((content.templateConfig||{}) as any).preset || {};
  return <div style={{minHeight:'100%',background:p.surface,color:variant==='minimal'||variant==='elegant'?'#111827':'white',fontFamily:'ui-sans-serif,system-ui'}}>
   <section style={{padding:'72px 24px',textAlign:'center',background:`radial-gradient(circle at 20% 10%, ${p.accent}55, transparent 35%), ${p.surface}`}}>
-   <div style={{fontSize:42}}>{p.emoji}</div><p style={{letterSpacing:3,textTransform:'uppercase',fontSize:12,color:p.accent,fontWeight:800}}>{p.eyebrow}</p>
+   <Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'preset.emoji',label:'Hero emoji'}}><div data-bb-value style={{fontSize:42}}>{String(presetCfg.emoji || p.emoji)}</div></Editable>
+   <Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'preset.eyebrow',label:'Hero eyebrow'}}><p data-bb-value style={{letterSpacing:3,textTransform:'uppercase',fontSize:12,color:p.accent,fontWeight:800}}>{String(presetCfg.eyebrow || p.eyebrow)}</p></Editable>
    <Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'heroTitle',label:'Hero title'}}><h1 style={{fontSize:'clamp(38px,8vw,78px)',lineHeight:1.02,maxWidth:900,margin:'18px auto',fontWeight:900}}>{content.name ? `${content.name}, ${content.heroTitle || p.headline}` : (content.heroTitle || p.headline)}</h1></Editable>
    <Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'heroSubtitle',label:'Hero subtitle'}}><p data-bb-value style={{maxWidth:650,margin:'20px auto',opacity:.75,fontSize:18}}>{content.heroSubtitle || 'A personalized celebration, made to be remembered.'}</p></Editable>
    <Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'buttonText',label:'Main button',kind:'button'}}>
@@ -237,10 +230,10 @@ export default function ExperienceTemplate({variant='romantic',content,editorMod
    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:18}}>
     {(content.reasons?.length?content.reasons:['Beautiful memories','Little moments','A whole lot of joy']).map((x,i)=><Editable key={`reason-${i}`} editorMode={editorMode} onSelect={onElementSelect} selection={{key:'reasons',index:i,label:`Reason ${i+1}`}}><article data-bb-value style={{padding:24,borderRadius:24,background:variant==='minimal'||variant==='elegant'?'white':'rgba(255,255,255,.06)',border:`1px solid ${p.accent}33`}}><b style={{color:p.accent}}>0{i+1}</b><p style={{marginTop:10,fontSize:18}}>{x}</p></article></Editable>)}
    </div>
-   {gallery.length>0 && <div style={{marginTop:55}}><h2 style={{fontSize:30,fontWeight:800,marginBottom:20}}>Moments worth keeping</h2><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:14}}>{gallery.map((g,i)=><Editable key={i} editorMode={editorMode} onSelect={onElementSelect} selection={{key:'gallery',index:i,label:`Photo ${i+1}`,kind:'image'}}><img src={g.url} data-bb-value alt={g.caption||`Memory ${i+1}`} style={{width:'100%',aspectRatio:'1',objectFit:'cover',borderRadius:22}} /></Editable>)}</div></div>}
-   <Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'greeting',label:'Greeting'}}><div style={{marginTop:55,padding:'35px 28px',borderRadius:28,background:`linear-gradient(135deg, ${p.accent}22, transparent)`,border:`1px solid ${p.accent}44`}}><p style={{fontSize:14,textTransform:'uppercase',letterSpacing:2,color:p.accent,fontWeight:800}}>Today & always</p><p style={{fontSize:24,lineHeight:1.5,marginTop:12}}>{content.greeting || 'Wishing you the very best.'}</p></div></Editable>
+   {gallery.length>0 && <div style={{marginTop:55}}><Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'preset.sectionTitle',label:'Gallery section title'}}><h2 data-bb-value style={{fontSize:30,fontWeight:800,marginBottom:20}}>{String(presetCfg.sectionTitle || 'Moments worth keeping')}</h2></Editable><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:14}}>{gallery.map((g,i)=><Editable key={i} editorMode={editorMode} onSelect={onElementSelect} selection={{key:'gallery',index:i,label:`Photo ${i+1}`,kind:'image'}}><img src={g.url} data-bb-value alt={g.caption||`Memory ${i+1}`} style={{width:'100%',aspectRatio:'1',objectFit:'cover',borderRadius:22}} /></Editable>)}</div></div>}
+   <Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'greeting',label:'Greeting'}}><div style={{marginTop:55,padding:'35px 28px',borderRadius:28,background:`linear-gradient(135deg, ${p.accent}22, transparent)`,border:`1px solid ${p.accent}44`}}><p data-bb-value style={{fontSize:14,textTransform:'uppercase',letterSpacing:2,color:p.accent,fontWeight:800}}>{String(presetCfg.todayLabel || 'Today & always')}</p><p style={{fontSize:24,lineHeight:1.5,marginTop:12}}>{content.greeting || 'Wishing you the very best.'}</p></div></Editable>
    {editorMode && <button type="button" className="experience-add-media" onClick={()=>onElementSelect?.({key:'gallery',label:'Add photo',index:gallery.length,kind:'image'})}>＋ Add Photo</button>}
   </section>
   {editorMode && <button type="button" className="experience-music-chip" onClick={(e)=>{e.preventDefault();e.stopPropagation();onElementSelect?.({key:'musicUrl',label:'Background music',kind:'audio'});}}>🎵 {content.musicUrl ? 'Edit music' : 'Add background music'}</button>}
- </div>;
+ </div>
 }
