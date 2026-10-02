@@ -1136,17 +1136,32 @@
 
         const BIRTHDAY_GREETING_WINDOW_MS = 24 * 60 * 60 * 1000;
 
+        function normalizeBirthdayDate(raw) {
+            const value = String(raw || '').trim();
+            if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+            const slash = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (slash) {
+                return `${slash[3]}-${String(slash[1]).padStart(2,'0')}-${String(slash[2]).padStart(2,'0')}`;
+            }
+            const parsed = new Date(value);
+            if (!Number.isNaN(parsed.getTime())) {
+                return `${parsed.getFullYear()}-${String(parsed.getMonth()+1).padStart(2,'0')}-${String(parsed.getDate()).padStart(2,'0')}`;
+            }
+            return '';
+        }
+
         function getConfiguredBirthdayTarget(yearOverride) {
-            const configuredYear = Number(state?.birthdayDate?.slice(0,4));
+            const normalized = normalizeBirthdayDate(state?.birthdayDate);
+            const configuredYear = Number(normalized.slice(0,4));
             const fallbackYear = new Date().getFullYear();
             const year = Number.isFinite(yearOverride) && yearOverride > 0
                 ? yearOverride
                 : (Number.isFinite(configuredYear) && configuredYear > 0 ? configuredYear : fallbackYear);
-            const date = String(state?.birthdayDate || '');
-            const month = Number(date.slice(5,7));
-            const day = Number(date.slice(8,10));
+            const month = Number(normalized.slice(5,7));
+            const day = Number(normalized.slice(8,10));
             const time = String(state?.birthdayTime || '00:00');
-            const safeDate = `${year}-${String(month || 1).padStart(2,'0')}-${String(day || 1).padStart(2,'0')}`;
+            if (!month || !day) return new Date(NaN);
+            const safeDate = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
             return zonedDateTimeToDate(safeDate, time, state?.timezone || 'Asia/Dhaka');
         }
 
@@ -1157,7 +1172,7 @@
         // The first saved year is treated as the anchor; after the 24-hour
         // greeting window, the cycle advances one year at a time.
         function getBirthdayCycle(date = new Date()) {
-            const configuredYear = Number(String(state?.birthdayDate || '').slice(0, 4));
+            const configuredYear = Number(normalizeBirthdayDate(state?.birthdayDate).slice(0, 4));
             let targetYear = Number.isFinite(configuredYear) && configuredYear > 0 ? configuredYear : new Date().getFullYear();
             let target = getConfiguredBirthdayTarget(targetYear);
             while (date >= new Date(target.getTime() + BIRTHDAY_GREETING_WINDOW_MS)) {
@@ -1982,6 +1997,9 @@
                 gsap.fromTo(letter, { opacity:0, y:50, scale:0.96 }, { opacity:1, y:0, scale:1, duration:0.7, ease:'power2.out' });
                 gsap.to(scene, { opacity:0, duration:0.5, onComplete:() => scene.classList.add('hidden') });
                 setTimeout(typeLetter, 400);
+                if (window.__BB_EDITOR_MODE) {
+                    postEditorHistoryState?.();
+                }
             }, 900);
         };
 
@@ -2627,6 +2645,21 @@
             // the canvas stuck at 00:00:00:00.
             if (window.__BB_EDITOR_MODE && !window.__BB_PREVIEW_MODE) {
                 const cycle = getBirthdayCycle(now);
+                const msg = document.getElementById('countdownMessage');
+                if (cycle.inGreetingWindow) {
+                    countdownFinished = true;
+                    try { countdownAudio.pause(); countdownAudio.currentTime = 0; } catch (_) {}
+                    document.getElementById('countdownScreen')?.classList.add('hide');
+                    __bbActivateScreen('greetingScreen');
+                    if (msg) msg.textContent = '🎉 Birthday time is here!';
+                    if (!confettiShown && state.effects?.confetti) {
+                        confettiShown = true;
+                        try { confetti({ particleCount: 100, spread: 70 }); } catch (_) {}
+                    }
+                    if (charIndex === 0) typeGreeting();
+                    return;
+                }
+                countdownFinished = false;
                 const editorDiff = Math.max(0, cycle.target - now);
                 const editorTotal = Math.ceil(editorDiff / 1000);
                 const days = Math.floor(editorTotal / (60 * 60 * 24));
@@ -2635,9 +2668,9 @@
                 const secs = editorTotal % 60;
                 const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = String(value).padStart(2, '0'); };
                 set('days', days); set('hours', hours); set('mins', mins); set('secs', secs);
-                const msg = document.getElementById('countdownMessage');
-                if (msg) msg.textContent = cycle.inGreetingWindow ? '🎉 Birthday time is here!' : 'Click the countdown to set the birthday date & time.';
-                countdownFinished = false;
+                document.getElementById('greetingScreen')?.classList.remove('show');
+                document.getElementById('countdownScreen')?.classList.remove('hide');
+                if (msg) msg.textContent = 'Click the countdown to set the birthday date & time.';
                 return;
             }
 
@@ -2934,6 +2967,13 @@
     const target=e.target;
     const nav = target?.closest?.('[data-bb-editor-nav]');
     if(nav) return;
+    const envelope = target?.closest?.('#envelopeEl');
+    if(envelope) {
+      e.stopImmediatePropagation();
+      e.preventDefault();
+      try { window.openEnvelope?.(); } catch (_) {}
+      return;
+    }
     const sel=editorSelectionForTarget(target);
     e.stopImmediatePropagation();
     e.preventDefault();

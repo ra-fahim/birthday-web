@@ -1201,13 +1201,33 @@
             try { window.parent && window.parent.postMessage({type:'BB_CANVAS_HISTORY_STATE', canBack, canForward, screen: editorScreen}, '*'); } catch(e) {}
         }
 
+        function showLetterEditorContent() {
+            const envelope = document.getElementById('envelopeEl');
+            const flap = document.getElementById('envelopeFlap');
+            const seal = document.getElementById('waxSeal');
+            const scene = document.getElementById('envelopeScene');
+            const letter = document.getElementById('letterContainer');
+            if (!scene || !letter) return;
+
+            if (envelope) envelope.classList.add('opened');
+            if (flap) flap.classList.add('open');
+            if (seal) seal.classList.remove('breaking');
+            scene.classList.add('hidden');
+            gsap.killTweensOf([scene, letter]);
+            gsap.set(scene, { clearProps:'all', opacity:0 });
+            letter.classList.add('show');
+            gsap.set(letter, { clearProps:'all', opacity:1, y:0, scale:1 });
+            resetLetterTyping();
+            typeLetter();
+        }
+
         function editorShowScreen(screen) {
             if (!isEditorMode || !editorScreens.includes(screen)) return;
             if (screen === 'cake') loadCakeState();
-            if (screen === 'letter') resetEnvelope();
             if (screen === 'reasons') { currentReasonIndex = 0; displayReason(); }
             historyStack = [screen];
             showScreen(screen);
+            if (screen === 'letter') showLetterEditorContent();
             updateEditorNav();
         }
 
