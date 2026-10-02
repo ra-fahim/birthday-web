@@ -68,7 +68,8 @@
         .bb-audio-toggle.off { opacity:.78; background:rgba(30,30,40,.58); }
         .bb-audio-toggle:active { transform:scale(.97); }
         .bb-editor-audio-control { display:none; margin-top:16px; padding:9px 14px; border:1px solid rgba(255,255,255,.6); border-radius:999px; background:rgba(40,20,60,.18); color:inherit; font:700 12px 'Quicksand',sans-serif; cursor:pointer; box-shadow:0 10px 24px rgba(0,0,0,.08); backdrop-filter:blur(10px); }
-        html[data-bb-editor="1"] .bb-editable-target { cursor:pointer!important; position:relative; outline:1px dashed rgba(236,72,153,.26); outline-offset:6px; transition:outline-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+        html[data-bb-editor="1"] .bb-editable-target { cursor:pointer!important; position:relative; outline:1px dashed rgba(236,72,153,.30); outline-offset:5px; transition:outline-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+        html[data-bb-editor="1"] .bb-editable-target:hover { outline:2px solid rgba(236,72,153,.88); outline-offset:5px; box-shadow:0 0 0 4px rgba(236,72,153,.10),0 8px 24px rgba(236,72,153,.08); }
         html[data-bb-editor="1"] .bb-editable-target:hover { outline-color:rgba(236,72,153,.9); box-shadow:0 0 0 3px rgba(236,72,153,.08); }
         html[data-bb-editor="1"] .bb-editable-target::after { content:'Click to edit'; position:absolute; top:-27px; left:8px; z-index:12000; display:none; padding:4px 8px; border-radius:999px; background:rgba(24,24,27,.92); color:#fff; font:700 10px 'Quicksand',sans-serif; letter-spacing:.02em; white-space:nowrap; box-shadow:0 8px 20px rgba(0,0,0,.18); pointer-events:none; }
         html[data-bb-editor="1"] .bb-editable-target:hover::after { display:block; }
@@ -76,6 +77,13 @@
         @media(max-width:700px){ html[data-bb-editor="1"] .bb-editable-target::after { top:auto; bottom:-24px; left:50%; transform:translateX(-50%); } }
         html[data-bb-editor="1"] .bb-editor-audio-control { display:inline-flex; align-items:center; justify-content:center; }
         html[data-bb-editor="1"] #bbAudioToggle { display:none !important; }
+        .bb-reason-button-wrap { position:relative; display:inline-flex; align-items:center; justify-content:center; }
+        .bb-reason-edit-handle { display:none; position:absolute; top:-11px; right:-11px; width:28px; height:28px; border:2px solid rgba(255,255,255,.95); border-radius:50%; background:rgba(24,24,27,.95); color:#fff; font:700 13px/24px 'Quicksand',sans-serif; padding:0; cursor:pointer; z-index:12010; box-shadow:0 6px 16px rgba(0,0,0,.22); }
+        html[data-bb-editor="1"] .bb-reason-edit-handle { display:inline-flex; align-items:center; justify-content:center; }
+        html[data-bb-editor="1"] .bb-reason-button-wrap { outline:1px dashed rgba(236,72,153,.28); outline-offset:8px; border-radius:58px; }
+        html[data-bb-editor="1"] .bb-reason-edit-handle:hover { transform:scale(1.08); background:#111113; }
+        html[data-bb-editor="1"] #reasonsBtn { pointer-events:auto !important; }
+
 
         @media (max-width:600px){ .bb-audio-toggle{ right:10px; bottom:10px; padding:9px 12px; font-size:12px; } }
 
@@ -550,7 +558,10 @@
         <div class="reasons-header"><h1>Happy Birthday Just Friend.. 💖</h1></div>
         <div class="reasons-container" id="reasonsContainer"></div>
         <div class="reason-counter" id="reasonCounter">Reason 1 of 4</div>
-        <button class="reasons-btn" id="reasonsBtn" onclick="handleReasonClick()">Click Here... 💕</button>
+        <div class="bb-reason-button-wrap" id="bbReasonButtonWrap">
+            <button class="reasons-btn" id="reasonsBtn" onclick="handleReasonClick()">Click Here... 💕</button>
+            <button class="bb-reason-edit-handle" id="bbReasonEditHandle" type="button" aria-label="Edit Click Here text" title="Edit Click Here text">✎</button>
+        </div>
     </div>
 
     <div class="photo-screen" id="photoScreen">
@@ -645,6 +656,7 @@
         const BB_FORCE_DEMO = urlParams.get('demo') === '1' || urlParams.get('bbDemo') === '1';
         const BB_EDITOR_MODE = urlParams.get('edit') === '1' || urlParams.get('bbEdit') === '1';
         window.__BB_EDITOR_MODE = BB_EDITOR_MODE;
+        if (BB_EDITOR_MODE) document.documentElement.dataset.bbEditor='1';
         if (BB_FORCE_DEMO) window.__BB_FORCE_DEMO = true;
         if (urlParams.get('name')) {
             CONFIG.name = decodeURIComponent(urlParams.get('name'));
@@ -1163,6 +1175,22 @@
             if (window.__BB_FORCE_DEMO) return;
 
             const now = new Date();
+
+            // In editor mode the countdown numbers keep updating, but this timer must
+            // never change the active editor screen. Otherwise navigation to Greeting
+            // or any later screen is immediately overwritten on the next tick.
+            if (window.__BB_EDITOR_MODE) {
+                const currentYear = now.getFullYear();
+                let birthday = new Date(currentYear, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
+                if (now > birthday) birthday = new Date(currentYear + 1, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
+                const diff = birthday - now;
+                const totalSecondsLeft = Math.max(0, Math.ceil(diff / 1000));
+                setText('#days', String(Math.floor(totalSecondsLeft / 86400)).padStart(2, '0'));
+                setText('#hours', String(Math.floor((totalSecondsLeft / 3600) % 24)).padStart(2, '0'));
+                setText('#mins', String(Math.floor((totalSecondsLeft / 60) % 60)).padStart(2, '0'));
+                setText('#secs', String(totalSecondsLeft % 60).padStart(2, '0'));
+                return;
+            }
 
             const isBirthdayToday = isBirthday(now);
 
@@ -1786,6 +1814,7 @@
                 const container = document.getElementById('reasonsContainer');
                 container.innerHTML = '';
                 container.appendChild(card);
+                if(window.__BB_EDITOR_MODE && typeof markEditableTargets === 'function'){ setTimeout(markEditableTargets, 0); }
 
                 gsap.from(card, { opacity:0, y:50, duration:0.5, ease:"back.out" });
 
@@ -1895,7 +1924,10 @@
                 letter.classList.add('show');
                 gsap.fromTo(letter, { opacity:0, y:50, scale:0.96 }, { opacity:1, y:0, scale:1, duration:0.7, ease:'power2.out' });
                 gsap.to(scene, { opacity:0, duration:0.5, onComplete:() => scene.classList.add('hidden') });
-                setTimeout(typeLetter, 400);
+                setTimeout(() => {
+                    typeLetter();
+                    if(window.__BB_EDITOR_MODE){ setTimeout(markEditableTargets, 80); }
+                }, 400);
             }, 900);
         };
 
@@ -2392,7 +2424,7 @@
 
   window.addEventListener('message',function(event){
     const data=event.data||{};
-    if(data.type==='BB_CONTENT'){receivedContent=true;applyAll(data.content||{});return;}
+    if(data.type==='BB_CONTENT'){receivedContent=true;applyAll(data.content||{});setTimeout(markEditableTargets,0);return;}
     if(data.type==='BB_CATALOG_MODE'){
       window.__BB_CATALOG_MODE = data.enabled !== false;
       demoStarted = false;
@@ -2422,8 +2454,17 @@
     if(data.type==='BB_EDITOR_MODE'){
       window.__BB_EDITOR_MODE=!!data.enabled;
       document.documentElement.dataset.bbEditor=data.enabled?'1':'0';
-      if(data.enabled){ musicEnabled=false; try{window.pauseBirthdayAudio?.();}catch(_){} try{q('#countdownAudio')?.pause?.();}catch(_){} }
-      else { musicEnabled=true; }
+      if(data.enabled){
+        musicEnabled=false;
+        editorHistoryIndex=0;
+        window.__BB_EDITOR_SCREEN='countdown';
+        try{window.pauseBirthdayAudio?.();}catch(_){ }
+        try{q('#countdownAudio')?.pause?.();}catch(_){ }
+        try{q('#countdownAudio') && (q('#countdownAudio').muted=true);}catch(_){ }
+        showScreen('countdown');
+      } else {
+        musicEnabled=true;
+      }
       markEditableTargets();
       applyCountdown?.();
       postEditorHistoryState?.();
@@ -2443,10 +2484,12 @@
   markEditableTargets();
   function editorSelectionForTarget(target){
     if(!document.documentElement.dataset.bbEditor)return null;
-    const t=target?.closest?.(EDITOR_TARGET_SELECTOR); if(!t)return null;
+    let t=target?.closest?.(EDITOR_TARGET_SELECTOR); if(!t)return null;
+    if(t.matches('img') && t.closest('.photo-card')) t=t.closest('.photo-card');
+    if(t.matches('video') && t.closest('.video-card')) t=t.closest('.video-card');
     if(t.matches('.countdown-title')) return {key:'mb.countdown.title',label:'Countdown title',value:t.innerText,kind:'text'};
     if(t.matches('#countdownMessage')) return {key:'mb.countdown.message',label:'Countdown message',value:t.innerText,kind:'text'};
-    if(t.matches('#countdownBox, .count-item, .count-number')) return {key:'mb.countdown.birthdayDateTime',label:'Birthday date & time',value:'',kind:'datetime'};
+    if(t.matches('.countdown-box, .count-item, .count-number')) return {key:'mb.countdown.birthdayDateTime',label:'Birthday date & time',value:'',kind:'datetime'};
     if(t.matches('#bbCountdownAudioEditor')) return {key:'mb.countdown.audioUrl',label:'Countdown audio',value:'',kind:'audio'};
     if(t.matches('#greetingScreen h1')) return {key:'mb.greeting.heading',label:'Greeting heading',value:t.innerText,kind:'text'};
     if(t.matches('#bbWishingAudioEditor')) return {key:'mb.wishingAudioUrl',label:'Wishing audio',value:'',kind:'audio'};
@@ -2463,6 +2506,7 @@
     if(t.matches('#reasonsScreen h1')) return {key:'mb.reasons.heading',label:'Reasons heading',value:t.innerText,kind:'text'};
     if(t.matches('.bb-reasons-note')) return {key:'mb.reasons.note',label:'Reasons note',value:t.innerText,kind:'text'};
     if(t.matches('.reason-card .reason-text')){const cards=qa('.reason-card .reason-text');return {key:'mb.reasons.items',label:`Reason ${cards.indexOf(t)+1}`,index:cards.indexOf(t),value:t.innerText,kind:'text'};}
+    if(t.matches('#bbReasonEditHandle')) return {key:'mb.reasons.buttonText',label:'Reasons button text',value:q('#reasonsBtn')?.innerText || '',kind:'button'};
     if(t.matches('#reasonsBtn')) return {key:'mb.reasons.buttonText',label:'Reasons button',value:t.innerText,kind:'button'};
     if(t.matches('#photoScreen .photo-header h1')) return {key:'mb.memories.heading',label:'Memory heading',value:t.innerText,kind:'text'};
     if(t.matches('#photoScreen .photo-header p')) return {key:'mb.memories.subtitle',label:'Memory subtitle',value:t.innerText,kind:'text'};
@@ -2479,6 +2523,10 @@
     return null;
   }
 
+  // Editor-mode interaction policy:
+  // - Reasons "Click Here" remains functional so each reason can be revealed.
+  // - Its pencil handle edits only the button label.
+  // - The letter envelope remains functional so the letter paragraphs can be revealed.
   // Canvas editing is direct: click the text/media itself to edit it.
   // All template interactions are intentionally blocked while editing so a
   // button never navigates away before its label can be changed.
@@ -2487,7 +2535,23 @@
   }
   function guardEditorAction(e){
     if(!window.__BB_EDITOR_MODE) return;
-    const sel=editorSelectionForTarget(e.target);
+    const rawTarget=e.target;
+    const reasonEditHandle=rawTarget?.closest?.('#bbReasonEditHandle');
+    const reasonButton=rawTarget?.closest?.('#reasonsBtn');
+    const envelope=rawTarget?.closest?.('#envelopeEl');
+
+    // Two intentional edit-mode exceptions: the reasons button still works so
+    // every reason can be revealed, and the envelope still opens so the letter
+    // content can be edited. The tiny pencil is the only way to edit the
+    // reasons button label itself.
+    if(reasonEditHandle){
+      e.stopImmediatePropagation();
+      if(e.type==='click'){ e.preventDefault(); postEditorSelection(editorSelectionForTarget(reasonEditHandle)); }
+      return;
+    }
+    if(reasonButton || envelope) return;
+
+    const sel=editorSelectionForTarget(rawTarget);
     e.stopImmediatePropagation();
     if(e.type==='click'){
       e.preventDefault();
@@ -2498,10 +2562,25 @@
   document.addEventListener('pointerdown',guardEditorAction,true);
   document.addEventListener('touchstart',guardEditorAction,{capture:true,passive:false});
 
+  // Dynamic photo/video/reason cards are rebuilt when content changes. Re-mark
+  // them after each screen render so the same direct-click editing behavior is
+  // available on every screen.
+  const originalShowScreenForEditor = window.showScreen;
+  window.showScreen = function(screen){
+    const result = originalShowScreenForEditor?.(screen);
+    if(window.__BB_EDITOR_MODE){
+      syncEditorIndexFromScreen(screen);
+      setTimeout(markEditableTargets, 0);
+      postEditorHistoryState?.();
+    }
+    return result;
+  };
+
   // Ensure navigation state is visible to the editor without changing the source flow.
   const pushHistory=window.updateHistory;
   const editorScreenOrder=['countdown','greeting','cake','reasons','photo','video','letter','secret'];
   let editorHistoryIndex=0;
+  window.__BB_EDITOR_SCREEN='countdown';
   function currentEditorScreen(){
     const visible=editorScreenOrder.find(screen=>{
       if(screen==='countdown') return !q('#countdownScreen')?.classList.contains('hide');
@@ -2510,7 +2589,7 @@
     });
     return visible || editorScreenOrder[editorHistoryIndex] || 'countdown';
   }
-  function syncEditorIndexFromScreen(screen){ const i=editorScreenOrder.indexOf(screen); if(i>=0) editorHistoryIndex=i; }
+  function syncEditorIndexFromScreen(screen){ const i=editorScreenOrder.indexOf(screen); if(i>=0){ editorHistoryIndex=i; window.__BB_EDITOR_SCREEN=screen; } }
   function postEditorHistoryState(){ const screen=editorScreenOrder[editorHistoryIndex]||'countdown'; window.parent?.postMessage?.({type:'BB_CANVAS_HISTORY_STATE',canBack:editorHistoryIndex>0,canForward:editorHistoryIndex<editorScreenOrder.length-1,screen},'*'); }
   window.updateHistory=function(screen){
     try{ syncEditorIndexFromScreen(screen); pushHistory?.(screen); }finally{ postEditorHistoryState(); }
@@ -2521,7 +2600,9 @@
     const next=Math.max(0,Math.min(editorScreenOrder.length-1,editorHistoryIndex+delta));
     if(next===editorHistoryIndex){ postEditorHistoryState(); return; }
     editorHistoryIndex=next;
-    showScreen(editorScreenOrder[editorHistoryIndex]);
+    window.__BB_EDITOR_SCREEN=editorScreenOrder[editorHistoryIndex];
+    showScreen(window.__BB_EDITOR_SCREEN);
+    markEditableTargets();
     postEditorHistoryState();
   };
   window.addEventListener('message',e=>{ if(e?.data?.type==='BB_CANVAS_HISTORY'){ window.BB_EDITOR_NAVIGATE?.(e.data.direction==='back'?-1:1); } if(e?.data?.type==='BB_CANVAS_REQUEST_HISTORY_STATE'){ postEditorHistoryState(); } });

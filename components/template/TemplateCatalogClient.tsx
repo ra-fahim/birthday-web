@@ -62,7 +62,6 @@ function DemoModal({ template, onClose }: { template: TemplateDefinition; onClos
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   const syncDemoAudio = (iframe: HTMLIFrameElement, enabled: boolean) => {
-    iframe.contentWindow?.postMessage({ type: 'BB_DEMO_MODE', enabled: true, muted: !enabled }, '*');
     iframe.contentWindow?.postMessage({ type: 'BB_DEMO_AUDIO_ENABLED', enabled }, '*');
   };
 

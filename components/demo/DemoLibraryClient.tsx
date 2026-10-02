@@ -28,7 +28,6 @@ function DemoModal({ template, onClose }: { template: TemplateDefinition; onClos
   const syncAudio = (enabled: boolean) => {
     const frame = iframeRef.current;
     if (!frame) return;
-    frame.contentWindow?.postMessage({ type: 'BB_DEMO_MODE', enabled: true, muted: !enabled }, '*');
     frame.contentWindow?.postMessage({ type: 'BB_DEMO_AUDIO_ENABLED', enabled }, '*');
   };
   return <div className="demo-modal-backdrop" role="dialog" aria-modal="true" aria-label={`${template.name} demo`} onClick={onClose}>

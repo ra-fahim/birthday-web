@@ -36,7 +36,7 @@ export default function MasterBirthdayTemplate({ content, demo = false, websiteS
       frame.contentWindow?.postMessage({ type: 'BB_CANVAS_REQUEST_HISTORY_STATE' }, '*');
       if (demo) {
         frame.contentWindow?.postMessage({ type: 'BB_DEMO_MODE', enabled: true, muted: false }, '*');
-        frame.contentWindow?.postMessage({ type: 'BB_SET_AUDIO_ENABLED', enabled: true }, '*');
+        frame.contentWindow?.postMessage({ type: 'BB_DEMO_AUDIO_ENABLED', enabled: true }, '*');
       }
     };
     frame.addEventListener('load', send);
@@ -56,6 +56,7 @@ export default function MasterBirthdayTemplate({ content, demo = false, websiteS
   }, [onElementSelect, onHistoryState]);
 
   return <iframe
+    key={`${demo ? 'demo' : editorMode ? 'edit' : 'preview'}-${src}`}
     ref={frameRef}
     title="Master Birthday"
     src={src}

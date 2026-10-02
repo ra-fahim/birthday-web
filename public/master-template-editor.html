@@ -738,13 +738,16 @@
             emailjs.init("MV90CKf_ZoIgGoU9w");
         })();
 
-        const BG_MUSIC_SOURCE = "https://youtu.be/73Hlddd4gpaPA";
+        const BG_MUSIC_SOURCE = "https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya";
         const DEFAULT_WISHING_AUDIO_SOURCE = BG_MUSIC_SOURCE;
         const _BB_PARAMS = new URLSearchParams(window.location.search);
         const isEditorMode = _BB_PARAMS.get('edit') === '1' || _BB_PARAMS.get('bbEdit') === '1';
         const isDemoMode = !isEditorMode && (_BB_PARAMS.get('demo') === '1' || _BB_PARAMS.get('bbDemo') === '1');
-        let demoBirthdayTarget = isDemoMode ? new Date(Date.now() + 10000) : null;
-        let demoAudioEnabled = false;
+        const DEMO_DURATION_MS = 10000;
+        const demoStartAt = isDemoMode ? Date.now() : 0;
+        let demoBirthdayTarget = isDemoMode ? new Date(demoStartAt + DEMO_DURATION_MS) : null;
+        let demoAudioEnabled = isDemoMode;
+        window._bbDemoAudioEnabled = demoAudioEnabled;
         let BB_CONTENT = {};
 
         const CONFIG = {
@@ -827,7 +830,7 @@
                         videoId: ytId,
                         playerVars: {
                             autoplay: 0,
-                            loop: 1,
+                            loop: 0,
                             playlist: ytId,
                             controls: 0,
                             disablekb: 1,
@@ -856,7 +859,7 @@
                 const audio = document.createElement('audio');
                 audio.id = 'bgAudio';
                 audio.preload = 'auto';
-                audio.loop = true;
+                audio.loop = false;
                 audio.crossOrigin = 'anonymous';
                 audio.src = source;
                 host.appendChild(audio);
@@ -1010,7 +1013,7 @@
         let countdownFinished = false;
         let birthdayAudioPlayed = false;
         let countdownAudioPlayed = false;
-        let audioAllowed = false;
+        let audioAllowed = isDemoMode;
         let resetTimer = null;
         let charIndex = 0;
         let micActive = false;
@@ -2039,8 +2042,6 @@
         };
 
         window.goToReasonsScreen = function() {
-            pauseBirthdayAudio();
-            birthdayAudioPlayed = false;
             currentReasonIndex = 0;
 
             document.getElementById('reasonsBtn').textContent = (BB_CONTENT.reasons?.buttonText || "Click Here... 💕");
@@ -2147,7 +2148,14 @@
             }
         }
 
-        initBgMusic();
+        if (isDemoMode) {
+            // Create the demo audio player once. Do not rebuild it when the
+            // visitor toggles audio; rebuilding the player used to look like
+            // a page reload and restarted the 10-second demo countdown.
+            try { initBgMusic(false); } catch (e) {}
+        } else {
+            initBgMusic();
+        }
 
         function muteAllMedia() {
             try {
@@ -2161,19 +2169,30 @@
 
         function setDemoAudioEnabled(enabled) {
             if (!isDemoMode) return;
-            demoAudioEnabled = !!enabled;
-            window._bbDemoAudioEnabled = demoAudioEnabled;
-            if (!demoAudioEnabled) {
+            const next = !!enabled;
+            demoAudioEnabled = next;
+            window._bbDemoAudioEnabled = next;
+
+            // Never rebuild the iframe/audio player and never touch the demo
+            // birthday target here. Audio controls must not restart the demo.
+            if (!next) {
                 pauseBirthdayAudio();
-                try { countdownAudio.pause(); countdownAudio.currentTime = 0; } catch(e) {}
-                muteAllMedia();
+                try {
+                    countdownAudio.pause();
+                    countdownAudio.muted = true;
+                } catch(e) {}
                 return;
             }
+
             audioAllowed = true;
-            initBgMusic(true);
-            try { countdownAudio.muted = false; countdownAudio.volume = 1; } catch(e) {}
-            updateCountdown();
-            if (countdownFinished) playBirthdayAudio();
+            try {
+                countdownAudio.muted = false;
+                countdownAudio.volume = 1;
+            } catch(e) {}
+            if (!ytPlayer && !birthdayAudioElement) {
+                initBgMusic(false);
+            }
+            if (countdownFinished && !birthdayAudioPlayed) playBirthdayAudio();
         }
         window.setDemoAudioEnabled = setDemoAudioEnabled;
 
