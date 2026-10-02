@@ -1426,10 +1426,13 @@
             document.getElementById('countdownScreen').classList.remove('hide');
 
             const currentYear = now.getFullYear();
-            let birthday = isDemoMode && demoBirthdayTarget ? demoBirthdayTarget : new Date(currentYear, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
+            let birthday = isDemoMode && demoBirthdayTarget ? demoBirthdayTarget : new Date(
+                Number.isFinite(Number(CONFIG.year)) && Number(CONFIG.year) > 0 ? Number(CONFIG.year) : currentYear,
+                CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0
+            );
 
-            if (now > birthday) {
-                birthday = new Date(currentYear + 1, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
+            if (!isDemoMode && now > birthday) {
+                birthday = new Date(birthday.getFullYear() + 1, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
             }
 
             const diff = birthday - now;
@@ -2234,24 +2237,32 @@
         function applyBBContent(next) {
             BB_CONTENT = next || {};
             const c = BB_CONTENT;
-            const greeting = c.greeting || {};
-            const cake = c.cake || {};
-            const reasonsConfig = c.reasons || {};
-            const memories = c.memories || {};
-            const videos = c.videos || {};
-            const letter = c.letter || {};
-            const secret = c.secret || {};
+            const mb = (c.templateConfig && c.templateConfig.masterBirthday) || {};
+            const greeting = { ...(mb.greeting || {}), ...(c.greeting || {}) };
+            const cake = { ...(mb.cake || {}), ...(c.cake || {}) };
+            const reasonsConfig = { ...(mb.reasons || {}), ...(c.reasons || {}) };
+            const memories = { ...(mb.memories || {}), ...(c.memories || {}) };
+            const videos = { ...(mb.videos || {}), ...(c.videos || {}) };
+            const letter = { ...(mb.letter || {}), ...(c.letter || {}) };
+            const secret = { ...(mb.secret || {}), ...(c.secret || {}) };
 
-            if (c.recipientName) CONFIG.name = String(c.recipientName);
-            if (c.age) CONFIG.age = Number(c.age) || CONFIG.age;
-            if (c.birthdayDate) {
-                const parts = String(c.birthdayDate).split('-').map(Number);
+            const recipient = c.recipientName || c.name || mb.recipientName;
+            if (recipient) CONFIG.name = String(recipient);
+            const ageValue = c.age ?? mb.age ?? cake.ageCandleCount;
+            if (ageValue !== undefined && Number.isFinite(Number(ageValue))) {
+                CONFIG.age = Number(ageValue);
+                totalCandles = Math.max(1, Number(ageValue));
+            }
+            const configuredBirthdayDate = c.birthdayDate || (typeof c.birthday === 'string' ? String(c.birthday).slice(0, 10) : '') || mb.birthdayDate;
+            if (configuredBirthdayDate) {
+                const parts = String(configuredBirthdayDate).split('-').map(Number);
                 if (parts.length >= 3 && parts.every(Number.isFinite)) {
                     CONFIG.year = parts[0]; CONFIG.month = parts[1]-1; CONFIG.day = parts[2];
                 }
             }
-            if (c.birthdayTime) {
-                const [hh, mm] = String(c.birthdayTime).split(':').map(Number);
+            const configuredBirthdayTime = c.birthdayTime || (typeof c.birthday === 'string' && c.birthday.includes('T') ? String(c.birthday).split('T')[1].slice(0, 5) : '') || mb.birthdayTime;
+            if (configuredBirthdayTime) {
+                const [hh, mm] = String(configuredBirthdayTime).split(':').map(Number);
                 if (Number.isFinite(hh)) CONFIG.hour = hh;
                 if (Number.isFinite(mm)) CONFIG.minute = mm;
             }

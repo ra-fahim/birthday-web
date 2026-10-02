@@ -269,14 +269,35 @@ export default function Builder() {
 
   const handleCanvasHistory = useCallback((direction: 'back' | 'forward') => {
     const iframe = document.querySelector<HTMLIFrameElement>('.builder-canvas-stage iframe');
-    const target = iframe?.contentWindow;
-    // Use one navigation channel only. Calling the runtime function and then
-    // posting the same command caused one click to advance two screens.
-    target?.postMessage({ type: 'BB_CANVAS_HISTORY', direction }, '*');
+    const target = iframe?.contentWindow as (Window & { BB_EDITOR_NAVIGATE?: (delta: number) => void }) | null;
+    if (!target) return;
+    const delta = direction === 'back' ? -1 : 1;
+    // Prefer the same-origin runtime API. Only fall back to the message
+    // bridge when the iframe is still booting so one click never advances
+    // twice.
+    try {
+      if (typeof target.BB_EDITOR_NAVIGATE === 'function') {
+        target.BB_EDITOR_NAVIGATE(delta);
+        return;
+      }
+    } catch {}
+    target.postMessage({ type: 'BB_CANVAS_HISTORY', direction }, '*');
   }, []);
   const handleCanvasHistoryState = useCallback((state: { canBack?: boolean; canForward?: boolean }) => {
     setCanvasHistory({ canBack: !!state.canBack, canForward: !!state.canForward });
   }, []);
+
+  useEffect(() => {
+    if (!selectedElement || !editorMode) return;
+    const id = window.setTimeout(() => {
+      const panel = document.querySelector<HTMLElement>('.builder-context-editor');
+      if (!panel) return;
+      const rect = panel.getBoundingClientRect();
+      const fullyVisible = rect.top >= 84 && rect.bottom <= window.innerHeight - 16;
+      if (!fullyVisible) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    }, 30);
+    return () => window.clearTimeout(id);
+  }, [selectedElement, editorMode]);
 
   useEffect(() => {
     const handler = (event: MessageEvent) => {
@@ -440,7 +461,7 @@ export default function Builder() {
           </div>
           <div className="builder-canvas-hint">Editing is always on. Click any editable text or media directly to edit it; website actions are locked while editing. Use the side arrows to move between screens, or Preview to experience the website normally.</div>
           {status === 'published' && publicUrl && <div className="builder-live-link"><div><span>YOUR LIVE LINK</span><strong>{publicUrl}</strong></div><div className="builder-live-link-actions"><button onClick={() => navigator.clipboard?.writeText(publicUrl)}>Copy link</button><a href={publicUrl} target="_blank" rel="noreferrer">Open ↗</a></div></div>}
-          <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}><div className="builder-canvas-nav-overlay" aria-label="Canvas screen navigation">{editorMode && <><button type="button" className="builder-canvas-nav builder-canvas-nav-prev" onClick={() => handleCanvasHistory('back')} disabled={!canvasHistory.canBack} title="Previous screen" aria-label="Previous screen">←</button><button type="button" className="builder-canvas-nav builder-canvas-nav-next" onClick={() => handleCanvasHistory('forward')} disabled={!canvasHistory.canForward} title="Next screen" aria-label="Next screen">→</button></>}</div><div className="builder-canvas-stage">{!loaded || !previewContent ? <div className="builder-template-empty"><div>…</div><h3>Loading website</h3><p>Preparing the selected template…</p></div> : (templateId === 'master' || templateId === 'master-birthday') ? <MasterBirthdayTemplate key={`${templateId}-${previewMode ? 'preview' : 'edit'}`} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId ? <ExperienceTemplate key={`${templateId}-${previewMode ? 'preview' : 'edit'}`} variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div></div>
+          <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}><div className="builder-canvas-nav-overlay" aria-label="Canvas screen navigation">{editorMode && <><button type="button" className="builder-canvas-nav builder-canvas-nav-prev" onClick={() => handleCanvasHistory('back')} disabled={!canvasHistory.canBack} title="Previous screen" aria-label="Previous screen">←</button><button type="button" className="builder-canvas-nav builder-canvas-nav-next" onClick={() => handleCanvasHistory('forward')} disabled={!canvasHistory.canForward} title="Next screen" aria-label="Next screen">→</button></>}</div><div className="builder-canvas-stage">{!loaded || !previewContent ? <div className="builder-template-empty"><div>…</div><h3>Loading website</h3><p>Preparing the selected template…</p></div> : (templateId === 'master' || templateId === 'master-birthday') ? <MasterBirthdayTemplate key={`${templateId}-${previewMode ? 'preview-demo' : 'edit'}`} content={previewContent} demo={previewMode} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div></div>
           {selectedElement && editorMode && (
             <section className="builder-context-editor" aria-label="Selected element editor">
               <div className="builder-context-editor-head">

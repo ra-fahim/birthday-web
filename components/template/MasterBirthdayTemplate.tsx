@@ -18,7 +18,16 @@ type Props = {
 export default function MasterBirthdayTemplate({ content, demo = false, websiteSlug, recipientId, editorMode = false, onElementSelect, onHistoryState }: Props) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const config = useMemo(() => mergeMasterBirthdayConfig(content?.templateConfig && typeof content.templateConfig === 'object' ? (content.templateConfig as any).masterBirthday : undefined), [content?.templateConfig]);
-  const resolvedContent = useMemo(() => ({ ...content, name: config.recipientName || content?.name || masterBirthdayDefaults.recipientName, birthday: `${config.birthdayDate}T${config.birthdayTime}` }), [content, config]);
+  const resolvedContent = useMemo(() => ({
+    ...content,
+    name: config.recipientName || content?.name || masterBirthdayDefaults.recipientName,
+    birthday: `${config.birthdayDate}T${config.birthdayTime}`,
+    recipientName: config.recipientName,
+    age: config.age,
+    birthdayDate: config.birthdayDate,
+    birthdayTime: config.birthdayTime,
+    templateConfig: { ...(content?.templateConfig || {}), masterBirthday: config },
+  }), [content, config]);
   const src = useMemo(() => {
     const params = new URLSearchParams();
     if (demo) { params.set('demo', '1'); params.set('bbDemo', '1'); }
@@ -56,7 +65,6 @@ export default function MasterBirthdayTemplate({ content, demo = false, websiteS
   }, [onElementSelect, onHistoryState]);
 
   return <iframe
-    key={`${demo ? 'demo' : editorMode ? 'edit' : 'preview'}-${src}`}
     ref={frameRef}
     title="Master Birthday"
     src={src}

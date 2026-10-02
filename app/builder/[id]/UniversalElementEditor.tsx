@@ -83,6 +83,13 @@ export default function UniversalElementEditor({ selected, content, templateId, 
         const updateItem=(patch:Record<string,unknown>)=>{const next=items.slice();next[i]={...next[i],...patch};updateMasterBirthdayPath('videos.items',next)};
         return <><div className="universal-editor-media-head"><div className="universal-editor-icon"><Video size={16}/></div><div><b>Video {i+1}</b><span>Upload, public URL, YouTube, caption and poster</span></div></div><SingleMediaUpload kind="video" url={String(item.source||'').match(/^(https?:\/\/.*\.(?:mp4|webm|mov)(?:\?.*)?)$/i)?.[1] || ''} websiteId={websiteId} onChange={url=>updateItem({source:url})}/><Field label="Video source URL"><input type="url" value={String(item.source||'')} onChange={e=>updateItem({source:e.target.value})} placeholder="YouTube or direct video URL"/></Field><Field label="Title"><input autoFocus value={String(item.title||'')} onChange={e=>updateItem({title:e.target.value})}/></Field><Field label="Caption"><textarea rows={3} value={String(item.caption||'')} onChange={e=>updateItem({caption:e.target.value})}/></Field><Field label="Poster / thumbnail"><input value={String(item.poster||'')} onChange={e=>updateItem({poster:e.target.value})}/></Field><Field label="Alt text"><input value={String(item.alt||'')} onChange={e=>updateItem({alt:e.target.value})}/></Field><div className="universal-editor-grid"><button type="button" className="builder-mini-btn" onClick={()=>updateMasterBirthdayPath('videos.items',[...items,{...item,id:`video-${Date.now()}`}])}>Duplicate</button><button type="button" className="builder-mini-btn" onClick={()=>updateMasterBirthdayPath('videos.items',items.filter((_,idx)=>idx!==i))}>Delete</button></div></>;
       }
+      if (path === 'secret.socialUrl') {
+        return <>
+          <div className="universal-editor-media-head"><div className="universal-editor-icon"><Edit3 size={16}/></div><div><b>Secret profile link</b><span>Facebook, Instagram, website or any public profile</span></div></div>
+          <Field label="Profile URL"><input type="url" autoFocus value={String(get(path) || '')} onChange={e => updateMasterBirthdayPath(path, e.target.value)} placeholder="https://instagram.com/..." /></Field>
+          <p className="builder-note">This is the destination opened by the “See Your Friend” button in the live website.</p>
+        </>;
+      }
       if (path === 'letter.paragraphs' && typeof selected.index === 'number') {
         const items = [...(cfg.letter?.paragraphs || [])];
         const i = selected.index;

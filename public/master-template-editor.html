@@ -434,6 +434,13 @@
             .photo-container { grid-template-columns:1fr; }
             .video-grid { grid-template-columns:1fr; }
         }
+        body.bb-editor-active [data-bb-key] { outline:2px dashed rgba(255,105,180,.42); outline-offset:4px; cursor:pointer !important; position:relative; transition:outline-color .18s ease, box-shadow .18s ease, background-color .18s ease; }
+        body.bb-editor-active [data-bb-key]:hover { outline-color:rgba(155,109,255,.9); box-shadow:0 0 0 4px rgba(155,109,255,.12); }
+        body.bb-editor-active [data-bb-key]::after { content:'Click to edit'; position:absolute; left:50%; top:-8px; transform:translate(-50%,-100%); padding:4px 8px; border-radius:999px; background:rgba(20,14,32,.9); color:#fff; font:600 10px 'Quicksand',sans-serif; letter-spacing:.2px; white-space:nowrap; opacity:0; pointer-events:none; z-index:9998; transition:opacity .16s ease, transform .16s ease; }
+        body.bb-editor-active [data-bb-key]:hover::after { opacity:1; transform:translate(-50%,-112%); }
+        body.bb-editor-active .photo-card[data-bb-key], body.bb-editor-active .video-card[data-bb-key] { outline-offset:6px; }
+        .bb-editor-link-edit { display:none; margin-top:12px; padding:8px 12px; border:1px dashed rgba(155,109,255,.65); border-radius:999px; background:rgba(255,255,255,.75); color:#6b4fb3; font:700 11px 'Quicksand',sans-serif; cursor:pointer; }
+        body.bb-editor-active .bb-editor-link-edit { display:inline-flex; align-items:center; justify-content:center; }
         .bb-editor-nav { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:10000; display:none; align-items:center; gap:10px; padding:9px; border-radius:18px; background:rgba(20,14,32,0.82); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,0.22); box-shadow:0 12px 30px rgba(0,0,0,0.28); }
         .bb-editor-nav.show { display:flex; }
         .bb-editor-nav button { border:0; border-radius:12px; padding:10px 14px; color:#fff; background:rgba(255,255,255,0.12); font:600 13px 'Quicksand',sans-serif; cursor:pointer; transition:transform .2s ease, background .2s ease, opacity .2s ease; }
@@ -448,8 +455,6 @@
         }
     </script>
     <style>
-        .bb-edit-mode .countdown-screen { display:none !important; }
-        .bb-edit-mode .greeting-screen { display:flex !important; }
     </style>
 </head>
 <body>
@@ -485,7 +490,7 @@
 
     <div class="countdown-screen" id="countdownScreen">
         <h1 class="countdown-title" id="countdownTitle">Something special is unlocking...⌛</h1>
-        <div class="countdown-box">
+        <div class="countdown-box" id="countdownBox">
             <div class="count-item"><span class="count-number" id="days">00</span><span class="count-label">Days</span></div>
             <div class="count-item"><span class="count-number" id="hours">00</span><span class="count-label">Hours</span></div>
             <div class="count-item"><span class="count-number" id="mins">00</span><span class="count-label">Mins</span></div>
@@ -724,6 +729,7 @@
             <button class="soulmate-btn" id="secretButton" onclick="goToInstagram()">
                 <i class="fab fa-instagram"></i> See Your Friend
             </button>
+            <button type="button" id="secretButtonLink" class="bb-editor-link-edit" data-bb-key="mb.secret.socialUrl" data-bb-label="Secret profile link" onclick="void(0)">Edit profile link ↗</button>
         </div>
     </div>
 
@@ -738,16 +744,13 @@
             emailjs.init("MV90CKf_ZoIgGoU9w");
         })();
 
-        const BG_MUSIC_SOURCE = "https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya";
+        const BG_MUSIC_SOURCE = "https://youtu.be/73Hlddd4gpaPA";
         const DEFAULT_WISHING_AUDIO_SOURCE = BG_MUSIC_SOURCE;
         const _BB_PARAMS = new URLSearchParams(window.location.search);
         const isEditorMode = _BB_PARAMS.get('edit') === '1' || _BB_PARAMS.get('bbEdit') === '1';
         const isDemoMode = !isEditorMode && (_BB_PARAMS.get('demo') === '1' || _BB_PARAMS.get('bbDemo') === '1');
-        const DEMO_DURATION_MS = 10000;
-        const demoStartAt = isDemoMode ? Date.now() : 0;
-        let demoBirthdayTarget = isDemoMode ? new Date(demoStartAt + DEMO_DURATION_MS) : null;
-        let demoAudioEnabled = isDemoMode;
-        window._bbDemoAudioEnabled = demoAudioEnabled;
+        let demoBirthdayTarget = isDemoMode ? new Date(Date.now() + 10000) : null;
+        let demoAudioEnabled = false;
         let BB_CONTENT = {};
 
         const CONFIG = {
@@ -830,7 +833,7 @@
                         videoId: ytId,
                         playerVars: {
                             autoplay: 0,
-                            loop: 0,
+                            loop: 1,
                             playlist: ytId,
                             controls: 0,
                             disablekb: 1,
@@ -859,7 +862,7 @@
                 const audio = document.createElement('audio');
                 audio.id = 'bgAudio';
                 audio.preload = 'auto';
-                audio.loop = false;
+                audio.loop = true;
                 audio.crossOrigin = 'anonymous';
                 audio.src = source;
                 host.appendChild(audio);
@@ -1013,7 +1016,7 @@
         let countdownFinished = false;
         let birthdayAudioPlayed = false;
         let countdownAudioPlayed = false;
-        let audioAllowed = isDemoMode;
+        let audioAllowed = false;
         let resetTimer = null;
         let charIndex = 0;
         let micActive = false;
@@ -1090,9 +1093,9 @@
 
         let currentReasonIndex = 0;
         let isTransitioning = false;
-        let historyStack = [isEditorMode ? 'greeting' : 'countdown'];
-        const editorScreens = ['greeting','cake','reasons','photo','video','letter','secret'];
-        let editorScreen = isEditorMode ? 'greeting' : 'countdown';
+        let historyStack = ['countdown'];
+        const editorScreens = ['countdown','greeting','cake','reasons','photo','video','letter','secret'];
+        let editorScreen = 'countdown';
 
         function updateHistory(screen) {
             historyStack.push(screen);
@@ -1106,7 +1109,7 @@
                 historyStack.pop();
                 showScreen(historyStack[historyStack.length-1]);
             } else {
-                showScreen(isEditorMode ? 'greeting' : 'countdown');
+                showScreen('countdown');
             }
         });
 
@@ -1165,10 +1168,13 @@
             if (!nav || !isEditorMode) return;
             nav.classList.add('show');
             const index = editorScreens.indexOf(editorScreen);
-            const names = {greeting:'Greeting',cake:'Cake',reasons:'Reasons',photo:'Photos',video:'Video',letter:'Letter',secret:'Secret'};
+            const names = {countdown:'Countdown',greeting:'Greeting',cake:'Cake',reasons:'Reasons',photo:'Photos',video:'Video',letter:'Letter',secret:'Secret'};
             if (label) label.textContent = names[editorScreen] || 'Editor';
-            if (prev) prev.disabled = index <= 0;
-            if (next) next.disabled = index < 0 || index >= editorScreens.length - 1;
+            const canBack = index > 0;
+            const canForward = index >= 0 && index < editorScreens.length - 1;
+            if (prev) prev.disabled = !canBack;
+            if (next) next.disabled = !canForward;
+            try { window.parent && window.parent.postMessage({type:'BB_CANVAS_HISTORY_STATE', canBack, canForward, screen: editorScreen}, '*'); } catch(e) {}
         }
 
         function editorShowScreen(screen) {
@@ -1230,6 +1236,10 @@
                 if (lineIndex >= letterLines.length) return;
                 if (!currentP) {
                     currentP = document.createElement('p');
+                    currentP.setAttribute('data-bb-key','mb.letter.paragraphs');
+                    currentP.setAttribute('data-bb-index', String(lineIndex));
+                    currentP.setAttribute('data-bb-label', `Letter paragraph ${lineIndex + 1}`);
+                    currentP.setAttribute('data-bb-type','text');
                     const tilt = (Math.random() - 0.5) * 2.4;
                     const lift = (Math.random() - 0.5) * 6;
                     currentP.style.transform = `rotate(${tilt.toFixed(2)}deg) translateY(${lift.toFixed(1)}px)`;
@@ -1364,8 +1374,8 @@
                 cakeCut = false;
                 candlesBlown = 0;
                 currentReasonIndex = 0;
-                historyStack = [isEditorMode ? 'greeting' : 'countdown'];
-                showScreen(isEditorMode ? 'greeting' : 'countdown');
+                historyStack = ['countdown'];
+                showScreen('countdown');
                 updateCountdown();
             }, 86400000);
         }
@@ -1373,12 +1383,21 @@
         function updateCountdown() {
             const now = new Date();
             if (isEditorMode) {
-                if (!countdownFinished) {
-                    countdownFinished = true;
-                    document.getElementById('countdownScreen').classList.add('hide');
-                    document.getElementById('greetingScreen').classList.add('show');
-                    if (charIndex === 0) typeGreeting();
-                }
+                const currentYear = now.getFullYear();
+                let birthday = new Date(currentYear, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
+                if (now > birthday) birthday = new Date(currentYear + 1, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
+                const diff = birthday - now;
+                const totalSecondsLeft = Math.max(0, Math.ceil(diff / 1000));
+                const days = Math.floor(totalSecondsLeft / (60 * 60 * 24));
+                const hours = Math.floor((totalSecondsLeft / (60 * 60)) % 24);
+                const mins = Math.floor((totalSecondsLeft / 60) % 60);
+                const secs = totalSecondsLeft % 60;
+                document.getElementById('days').textContent = String(days).padStart(2, '0');
+                document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+                document.getElementById('mins').textContent = String(mins).padStart(2, '0');
+                document.getElementById('secs').textContent = String(secs).padStart(2, '0');
+                document.getElementById('countdownMessage').textContent = 'Click the countdown to set the birthday date & time.';
+                countdownFinished = false;
                 updateEditorNav();
                 return;
             }
@@ -1419,10 +1438,13 @@
             document.getElementById('countdownScreen').classList.remove('hide');
 
             const currentYear = now.getFullYear();
-            let birthday = isDemoMode && demoBirthdayTarget ? demoBirthdayTarget : new Date(currentYear, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
+            let birthday = isDemoMode && demoBirthdayTarget ? demoBirthdayTarget : new Date(
+                Number.isFinite(Number(CONFIG.year)) && Number(CONFIG.year) > 0 ? Number(CONFIG.year) : currentYear,
+                CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0
+            );
 
-            if (now > birthday) {
-                birthday = new Date(currentYear + 1, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
+            if (!isDemoMode && now > birthday) {
+                birthday = new Date(birthday.getFullYear() + 1, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
             }
 
             const diff = birthday - now;
@@ -1991,6 +2013,10 @@
         function createReasonCard(reason) {
             const card = document.createElement('div');
             card.className = 'reason-card';
+            card.setAttribute('data-bb-key','mb.reasons.items');
+            card.setAttribute('data-bb-index', String(currentReasonIndex));
+            card.setAttribute('data-bb-label', `Reason ${currentReasonIndex + 1}`);
+            card.setAttribute('data-bb-type','text');
 
             const text = document.createElement('div');
             text.className = 'reason-text';
@@ -2042,6 +2068,8 @@
         };
 
         window.goToReasonsScreen = function() {
+            pauseBirthdayAudio();
+            birthdayAudioPlayed = false;
             currentReasonIndex = 0;
 
             document.getElementById('reasonsBtn').textContent = (BB_CONTENT.reasons?.buttonText || "Click Here... 💕");
@@ -2148,14 +2176,7 @@
             }
         }
 
-        if (isDemoMode) {
-            // Create the demo audio player once. Do not rebuild it when the
-            // visitor toggles audio; rebuilding the player used to look like
-            // a page reload and restarted the 10-second demo countdown.
-            try { initBgMusic(false); } catch (e) {}
-        } else {
-            initBgMusic();
-        }
+        initBgMusic();
 
         function muteAllMedia() {
             try {
@@ -2169,30 +2190,19 @@
 
         function setDemoAudioEnabled(enabled) {
             if (!isDemoMode) return;
-            const next = !!enabled;
-            demoAudioEnabled = next;
-            window._bbDemoAudioEnabled = next;
-
-            // Never rebuild the iframe/audio player and never touch the demo
-            // birthday target here. Audio controls must not restart the demo.
-            if (!next) {
+            demoAudioEnabled = !!enabled;
+            window._bbDemoAudioEnabled = demoAudioEnabled;
+            if (!demoAudioEnabled) {
                 pauseBirthdayAudio();
-                try {
-                    countdownAudio.pause();
-                    countdownAudio.muted = true;
-                } catch(e) {}
+                try { countdownAudio.pause(); countdownAudio.currentTime = 0; } catch(e) {}
+                muteAllMedia();
                 return;
             }
-
             audioAllowed = true;
-            try {
-                countdownAudio.muted = false;
-                countdownAudio.volume = 1;
-            } catch(e) {}
-            if (!ytPlayer && !birthdayAudioElement) {
-                initBgMusic(false);
-            }
-            if (countdownFinished && !birthdayAudioPlayed) playBirthdayAudio();
+            initBgMusic(true);
+            try { countdownAudio.muted = false; countdownAudio.volume = 1; } catch(e) {}
+            updateCountdown();
+            if (countdownFinished) playBirthdayAudio();
         }
         window.setDemoAudioEnabled = setDemoAudioEnabled;
 
@@ -2206,7 +2216,8 @@
             const defaultItems = [
                 { url:'https://picsum.photos/seed/anime1/800/600', title:'A Magical Reflection 💖', caption:'A reflection of pure grace, elegance, and unmatched beauty. 🌹👑', date:'A Magical Reflection 💖', alt:'Anime 1' },
                 { url:'https://picsum.photos/seed/anime2/800/600', title:'Lost in Anime Lore', caption:'May your journey ahead be filled with happiness, success, and endless smiles😊💕', date:'Lost in Anime Lore', alt:'Anime 2' },
-                { url:'https://picsum.photos/seed/anime3/800/600', title:'Her Smile Says It All', caption:"You're truly one of the sweetest girls I know, and I feel lucky to have a person like you❤️", date:'Her Smile Says It All', alt:'Anime 3' }
+                { url:'https://picsum.photos/seed/anime3/800/600', title:'Her Smile Says It All', caption:"You're truly one of the sweetest girls I know, and I feel lucky to have a person like you❤️", date:'Her Smile Says It All', alt:'Anime 3' },
+                { url:'https://picsum.photos/seed/anime4/800/600', title:'One More Beautiful Memory', caption:'A little extra memory to make this story even more special. ✨💖', date:'One More Beautiful Memory', alt:'Anime 4' }
             ];
             const items = Array.isArray(BB_CONTENT?.memories?.items) && BB_CONTENT.memories.items.length ? BB_CONTENT.memories.items : defaultItems;
             container.innerHTML = items.map((item, i) => {
@@ -2225,7 +2236,10 @@
         function renderVideos() {
             const grid = document.getElementById('videoGrid');
             if (!grid) return;
-            const defaultItems = [{ source:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', title:'Happy Birthday Anarkoli ❤️🎂', caption:'', poster:'', alt:'Happy Birthday video' }];
+            const defaultItems = [
+                { source:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', title:'Happy Birthday Anarkoli ❤️🎂', caption:'A little birthday video message just for this special story. 🎥💖', poster:'', alt:'Happy Birthday video' },
+                { source:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4', title:'Another Special Memory 🎬', caption:'A second demo video slot so you can test adding and editing more than one video.', poster:'', alt:'Second demo video' }
+            ];
             const items = Array.isArray(BB_CONTENT?.videos?.items) && BB_CONTENT.videos.items.length ? BB_CONTENT.videos.items : defaultItems;
             grid.innerHTML = items.map((item, i) => {
                 const src = String(item?.source || '').trim();
@@ -2243,24 +2257,32 @@
         function applyBBContent(next) {
             BB_CONTENT = next || {};
             const c = BB_CONTENT;
-            const greeting = c.greeting || {};
-            const cake = c.cake || {};
-            const reasonsConfig = c.reasons || {};
-            const memories = c.memories || {};
-            const videos = c.videos || {};
-            const letter = c.letter || {};
-            const secret = c.secret || {};
+            const mb = (c.templateConfig && c.templateConfig.masterBirthday) || {};
+            const greeting = { ...(mb.greeting || {}), ...(c.greeting || {}) };
+            const cake = { ...(mb.cake || {}), ...(c.cake || {}) };
+            const reasonsConfig = { ...(mb.reasons || {}), ...(c.reasons || {}) };
+            const memories = { ...(mb.memories || {}), ...(c.memories || {}) };
+            const videos = { ...(mb.videos || {}), ...(c.videos || {}) };
+            const letter = { ...(mb.letter || {}), ...(c.letter || {}) };
+            const secret = { ...(mb.secret || {}), ...(c.secret || {}) };
 
-            if (c.recipientName) CONFIG.name = String(c.recipientName);
-            if (c.age) CONFIG.age = Number(c.age) || CONFIG.age;
-            if (c.birthdayDate) {
-                const parts = String(c.birthdayDate).split('-').map(Number);
+            const recipient = c.recipientName || c.name || mb.recipientName;
+            if (recipient) CONFIG.name = String(recipient);
+            const ageValue = c.age ?? mb.age ?? cake.ageCandleCount;
+            if (ageValue !== undefined && Number.isFinite(Number(ageValue))) {
+                CONFIG.age = Number(ageValue);
+                totalCandles = Math.max(1, Number(ageValue));
+            }
+            const configuredBirthdayDate = c.birthdayDate || (typeof c.birthday === 'string' ? String(c.birthday).slice(0, 10) : '') || mb.birthdayDate;
+            if (configuredBirthdayDate) {
+                const parts = String(configuredBirthdayDate).split('-').map(Number);
                 if (parts.length >= 3 && parts.every(Number.isFinite)) {
                     CONFIG.year = parts[0]; CONFIG.month = parts[1]-1; CONFIG.day = parts[2];
                 }
             }
-            if (c.birthdayTime) {
-                const [hh, mm] = String(c.birthdayTime).split(':').map(Number);
+            const configuredBirthdayTime = c.birthdayTime || (typeof c.birthday === 'string' && c.birthday.includes('T') ? String(c.birthday).split('T')[1].slice(0, 5) : '') || mb.birthdayTime;
+            if (configuredBirthdayTime) {
+                const [hh, mm] = String(configuredBirthdayTime).split(':').map(Number);
                 if (Number.isFinite(hh)) CONFIG.hour = hh;
                 if (Number.isFinite(mm)) CONFIG.minute = mm;
             }
@@ -2311,6 +2333,8 @@
             if (cakeCut) renderCake();
             const secretButton = document.getElementById('secretButton');
             if (secretButton) { secretButton.onclick = window.goToInstagram; }
+            const secretLinkEditor = document.getElementById('secretButtonLink');
+            if (secretLinkEditor) secretLinkEditor.title = String(secret.socialUrl || '');
             window._bbFinalReasonText = reasonsConfig.finalButtonText || "You're the BESTEST ! 💖";
             window._bbBirthdayAudioEnabled = c.countdown?.audioEnabled !== false;
             window._bbBirthdayAudioUrl = c.countdown?.audioUrl || '';
@@ -2348,25 +2372,44 @@
     var value=valueFor(el);
     if(el.dataset.bbType==='image') value=el.querySelector('img')?.getAttribute('src')||el.dataset.src||value;
     if(el.dataset.bbType==='video') value=el.querySelector('video source')?.getAttribute('src')||value;
+    if(key==='mb.secret.socialUrl') value=(window.BB_CONTENT?.secret?.socialUrl||'');
     post('BB_ELEMENT_SELECTED',{selection:{key,label,index,value,kind:el.dataset.bbType||'text'}});
   }
   function cleanup(){ cleanups.forEach(function(fn){try{fn()}catch(e){}}); cleanups=[]; }
   function wire(){
     cleanup();
     if(!enabled) return;
-    var selectors=['#greetingTitle','#greetingText','#enterWorldBtn','#cakeHappyText','#cakeBirthdayText','#cakeNameText','#cakeStatus','#cakeNextBtn','#reasonsTitle','#reasonsBtn','#photoTitle','#photoSubtitle','#photoNextBtn','#videoTitle','#videoNextBtn','#letterTitle','#letterContent','#letterReturnBtn','#secretButton'];
+    var selectors=['#countdownTitle','#countdownMessage','#countdownBox','#greetingTitle','#greetingText','#enterWorldBtn','#cakeHappyText','#cakeBirthdayText','#cakeNameText','#cakeStatus','#cakeNextBtn','#reasonsTitle','#reasonsBtn','#photoTitle','#photoSubtitle','#photoNextBtn','#videoTitle','#videoNextBtn','#letterTitle','#letterContent','#letterReturnBtn','#secretButton'];
     selectors.forEach(function(sel){ var el=document.querySelector(sel); if(!el)return; if(!el.getAttribute('data-bb-key')){
-      var map={'#greetingTitle':['mb.greeting.heading','Greeting heading'],'#greetingText':['mb.greeting.text','Greeting text'],'#enterWorldBtn':['mb.greeting.enterButton','Enter button text'],'#cakeHappyText':['mb.cake.cakeText','Cake first line'],'#cakeBirthdayText':['mb.cake.birthdayText','Cake second line'],'#cakeNameText':['mb.cake.recipientName','Cake name'],'#cakeStatus':['mb.cake.cakeStatus','Cake cut message'],'#cakeNextBtn':['mb.cake.nextButton','Cake next button'],'#reasonsTitle':['mb.reasons.heading','Reasons heading'],'#reasonsBtn':['mb.reasons.buttonText','Reasons button'],'#photoTitle':['mb.memories.heading','Gallery heading'],'#photoSubtitle':['mb.memories.subtitle','Gallery subtitle'],'#photoNextBtn':['mb.memories.nextButton','Gallery next button'],'#videoTitle':['mb.videos.title','Video heading'],'#videoNextBtn':['mb.videos.nextButton','Video next button'],'#letterTitle':['mb.letter.title','Letter title'],'#letterContent':['mb.letter.paragraphs','Letter content'],'#letterReturnBtn':['mb.letter.buttonText','Letter button'],'#secretButton':['mb.secret.buttonText','Secret button']};
+      var map={'#countdownTitle':['mb.countdown.title','Countdown title'],'#countdownMessage':['mb.countdown.message','Countdown message'],'#countdownBox':['mb.countdown.birthdayDateTime','Birthday date & time'],'#greetingTitle':['mb.greeting.heading','Greeting heading'],'#greetingText':['mb.greeting.text','Greeting text'],'#enterWorldBtn':['mb.greeting.enterButton','Enter button text'],'#cakeHappyText':['mb.cake.cakeText','Cake first line'],'#cakeBirthdayText':['mb.cake.birthdayText','Cake second line'],'#cakeNameText':['mb.cake.recipientName','Cake name'],'#cakeStatus':['mb.cake.cakeStatus','Cake cut message'],'#cakeNextBtn':['mb.cake.nextButton','Cake next button'],'#reasonsTitle':['mb.reasons.heading','Reasons heading'],'#reasonsBtn':['mb.reasons.buttonText','Reasons button'],'#photoTitle':['mb.memories.heading','Gallery heading'],'#photoSubtitle':['mb.memories.subtitle','Gallery subtitle'],'#photoNextBtn':['mb.memories.nextButton','Gallery next button'],'#videoTitle':['mb.videos.title','Video heading'],'#videoNextBtn':['mb.videos.nextButton','Video next button'],'#letterTitle':['mb.letter.title','Letter title'],'#letterContent':['mb.letter.paragraphs','Letter content'],'#letterReturnBtn':['mb.letter.buttonText','Letter button'],'#secretButton':['mb.secret.buttonText','Secret button'],'#secretButtonLink':['mb.secret.socialUrl','Secret profile link']};
       var m=map[sel]; if(m){el.setAttribute('data-bb-key',m[0]);el.setAttribute('data-bb-label',m[1]);}
     }
-    var h=function(e){e.preventDefault();e.stopPropagation();select(e.currentTarget);}; el.addEventListener('click',h); cleanups.push(function(){el.removeEventListener('click',h);}); });
-    document.querySelectorAll('.reason-card').forEach(function(el){el.setAttribute('data-bb-key','mb.reasons.items');el.setAttribute('data-bb-label','Reason'); var h=function(e){e.preventDefault();e.stopPropagation();select(el)};el.addEventListener('click',h);cleanups.push(function(){el.removeEventListener('click',h)});});
-    document.querySelectorAll('.photo-card[data-bb-key="mb.memories.items"]').forEach(function(el){var h=function(e){e.preventDefault();e.stopPropagation();select(el)};el.addEventListener('click',h);cleanups.push(function(){el.removeEventListener('click',h)});});
-    document.querySelectorAll('.video-card[data-bb-key="mb.videos.items"]').forEach(function(el){var h=function(e){e.preventDefault();e.stopPropagation();select(el)};el.addEventListener('click',h);cleanups.push(function(){el.removeEventListener('click',h)});});
+    var h=function(e){e.preventDefault();e.stopPropagation();select(e.currentTarget);}; el.addEventListener('click',h,true); cleanups.push(function(){el.removeEventListener('click',h,true);}); });
+    document.querySelectorAll('.reason-card').forEach(function(el){el.setAttribute('data-bb-key','mb.reasons.items');el.setAttribute('data-bb-label','Reason'); var h=function(e){e.preventDefault();e.stopPropagation();select(el)};el.addEventListener('click',h,true);cleanups.push(function(){el.removeEventListener('click',h,true)});});
+    document.querySelectorAll('.photo-card[data-bb-key="mb.memories.items"]').forEach(function(el){var h=function(e){e.preventDefault();e.stopPropagation();select(el)};el.addEventListener('click',h,true);cleanups.push(function(){el.removeEventListener('click',h,true)});});
+    document.querySelectorAll('.video-card[data-bb-key="mb.videos.items"]').forEach(function(el){var h=function(e){e.preventDefault();e.stopPropagation();select(el)};el.addEventListener('click',h,true);cleanups.push(function(){el.removeEventListener('click',h,true)});});
   }
+  function isNavTarget(target){ return !!(target && target.closest && target.closest('#bbEditorNav button')); }
+  function isSelectableTarget(target){ return !!(target && target.closest && target.closest('[data-bb-key]')); }
+  function guardEditorInteraction(e){
+    if(!enabled) return;
+    var target=e.target;
+    if(isNavTarget(target)) return;
+    if(isSelectableTarget(target)){
+      var el=target.closest('[data-bb-key]');
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      select(el);
+      return;
+    }
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  }
+  document.addEventListener('click',guardEditorInteraction,true);
+  document.addEventListener('pointerdown',guardEditorInteraction,true);
+  document.addEventListener('touchstart',guardEditorInteraction,{capture:true,passive:false});
   function setEnabled(v){enabled=!!v;wire();}
-  window.addEventListener('message',function(e){var d=e&&e.data;if(!d)return;if(d.type==='BB_EDITOR_MODE'){setEnabled(!!d.enabled);return;}if(d.type==='BB_CONTENT'){setTimeout(wire,0);return;}}
-  );
+  window.addEventListener('message',function(e){var d=e&&e.data;if(!d)return;if(d.type==='BB_EDITOR_MODE'){setEnabled(!!d.enabled);if(enabled){try{document.body.classList.add('bb-editor-active');}catch(_){} updateEditorNav();}return;}if(d.type==='BB_CONTENT'){setTimeout(wire,0);return;}if(d.type==='BB_CANVAS_HISTORY'){if(!enabled)return;if(d.direction==='back'){window.BB_EDITOR_NAVIGATE&&window.BB_EDITOR_NAVIGATE(-1);}if(d.direction==='forward'){window.BB_EDITOR_NAVIGATE&&window.BB_EDITOR_NAVIGATE(1);}}});
   window.addEventListener('DOMContentLoaded',function(){setTimeout(wire,50);});
 })();
 </script>
