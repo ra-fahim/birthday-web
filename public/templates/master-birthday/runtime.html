@@ -1262,11 +1262,149 @@
         }
 
         function updateCountdown() {
-            // The authoritative countdown implementation lives inside the
-            // state bridge below so it can access the current editor content.
-            try {
-                return window.__BB_REALTIME_COUNTDOWN_HANDLER?.();
-            } catch (_) {}
+            // Demo mode owns the countdown completely. The normal annual
+            // birthday clock must never overwrite the demo's 10-second timer.
+            if (window.__BB_FORCE_DEMO) return;
+
+            const now = new Date();
+
+            // Editor Preview follows the real birthday state: if the configured
+            // target has not arrived yet, simulate only the final 10 seconds;
+            // if the target is already active (within the 24h greeting window),
+            // open Greeting immediately; after the window, preview the next cycle.
+            if (window.__BB_PREVIEW_MODE && state?.birthdayDate) {
+                if (window.__BB_PREVIEW_COUNTDOWN_COMPLETED) return;
+                const cycle = getBirthdayCycle(now);
+                const diff = cycle.target - now;
+                if (cycle.inGreetingWindow) {
+                    countdownFinished = true;
+                    countdownAudio.pause();
+                    countdownAudio.currentTime = 0;
+                    showScreen('greeting');
+                        if (!confettiShown) {
+                            confettiShown = true;
+                            confetti({ particleCount: 100, spread: 70 });
+                        }
+                        if (charIndex === 0) typeGreeting();
+                        if (!birthdayAudioPlayed) playBirthdayAudio();
+                    return;
+                }
+                // Future target: use a deterministic 10-second editor preview.
+                if (diff > 0) {
+                    if (countdownFinished) countdownFinished = false;
+                    const previewEndsAt = window.__BB_PREVIEW_COUNTDOWN_END_AT || (window.__BB_PREVIEW_COUNTDOWN_END_AT = Date.now() + 10000);
+                    const left = Math.max(0, previewEndsAt - Date.now());
+                    const total = Math.ceil(left / 1000);
+                    const d = Math.floor(total / 86400);
+                    const h = Math.floor((total / 3600) % 24);
+                    const m = Math.floor((total / 60) % 60);
+                    const sec = total % 60;
+                    const setPreview = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = String(value).padStart(2, '0'); };
+                    setPreview('days', d); setPreview('hours', h); setPreview('mins', m); setPreview('secs', sec);
+                    document.getElementById('greetingScreen')?.classList.remove('show');
+                    document.getElementById('countdownScreen')?.classList.remove('hide');
+                    if (left <= 0) {
+                        countdownFinished = true;
+                        window.__BB_PREVIEW_COUNTDOWN_COMPLETED = true;
+                        showScreen('greeting');
+                        if (!confettiShown) { confettiShown = true; confetti({ particleCount: 100, spread: 70 }); }
+                        if (charIndex === 0) typeGreeting();
+                        if (!birthdayAudioPlayed) playBirthdayAudio();
+                        return;
+                    }
+                    if (!countdownAudioPlayed && state.countdown.audioEnabled && total <= 10) {
+                        countdownAudio.muted = false;
+                        countdownAudio.play().then(() => { countdownAudioPlayed = true; }).catch(() => {});
+                    }
+                    return;
+                }
+                // Defensive fallback: if the anchor is stale and already beyond
+                // the greeting window, the cycle calculation supplies the next year.
+            }
+
+            // Editing canvas should always show the real configured countdown
+            // while keeping navigation/manual screen control in the editor.
+            // Do not derive the target from the older CONFIG snapshot; use the
+            // same timezone-aware cycle state as the published page so a newly
+            // edited birthday date is reflected immediately instead of leaving
+            // the canvas stuck at 00:00:00:00.
+            if (window.__BB_EDITOR_MODE && !window.__BB_PREVIEW_MODE) {
+                const cycle = getBirthdayCycle(now);
+                const editorDiff = Math.max(0, cycle.target - now);
+                const editorTotal = Math.ceil(editorDiff / 1000);
+                const days = Math.floor(editorTotal / (60 * 60 * 24));
+                const hours = Math.floor((editorTotal / (60 * 60)) % 24);
+                const mins = Math.floor((editorTotal / 60) % 60);
+                const secs = editorTotal % 60;
+                const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = String(value).padStart(2, '0'); };
+                set('days', days); set('hours', hours); set('mins', mins); set('secs', secs);
+                const msg = document.getElementById('countdownMessage');
+                if (msg) msg.textContent = cycle.inGreetingWindow ? '🎉 Birthday time is here!' : 'Click the countdown to set the birthday date & time.';
+                countdownFinished = false;
+                return;
+            }
+
+            const cycle = getBirthdayCycle(now);
+            const isBirthdayToday = cycle.inGreetingWindow;
+
+            document.getElementById('countdownMessage').innerHTML =
+                `⏰ Something is coming soon...`;
+
+            if (isBirthdayToday && !window.__BB_CATALOG_MODE) {
+                if (!countdownFinished) {
+                    countdownFinished = true;
+                    countdownAudio.pause();
+                    countdownAudio.currentTime = 0;
+
+                    document.getElementById('countdownScreen').classList.add('hide');
+                    __bbActivateScreen('greetingScreen');
+
+                    if (!confettiShown) {
+                        confettiShown = true;
+                        confetti({ particleCount: 100, spread: 70 });
+                    }
+
+                    if (charIndex === 0) {
+                        typeGreeting();
+                    }
+
+                    if (!birthdayAudioPlayed) {
+                        playBirthdayAudio();
+                    }
+
+                    scheduleAutoReset();
+                }
+                return;
+            }
+
+            countdownFinished = false;
+            document.getElementById('greetingScreen').classList.remove('show');
+            document.getElementById('countdownScreen').classList.remove('hide');
+
+            // Published/live mode uses the active yearly occurrence. The target
+            // remains fixed through the 24-hour greeting window, then advances
+            // to the same month/day/time in the next year.
+            const birthday = cycle.target;
+            const diff = birthday - now;
+            const totalSecondsLeft = Math.max(0, Math.ceil(diff / 1000));
+
+            if (diff > 0) {
+                const days = Math.floor(totalSecondsLeft / (60 * 60 * 24));
+                const hours = Math.floor((totalSecondsLeft / (60 * 60)) % 24);
+                const mins = Math.floor((totalSecondsLeft / 60) % 60);
+                const secs = totalSecondsLeft % 60;
+
+                document.getElementById('days').textContent = String(days).padStart(2, '0');
+                document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+                document.getElementById('mins').textContent = String(mins).padStart(2, '0');
+                document.getElementById('secs').textContent = String(secs).padStart(2, '0');
+            }
+
+            if (!window.__BB_CATALOG_MODE && totalSecondsLeft <= 10 && diff > 0 && !countdownAudioPlayed && (musicEnabled || window.__BB_PREVIEW_MODE)) {
+                countdownAudio.play()
+                    .then(() => { countdownAudioPlayed = true; })
+                    .catch(error => {});
+            }
         }
 
         function parallaxOut(selector, onDone) {
@@ -2021,9 +2159,18 @@
 (function () {
   'use strict';
   const DEFAULT = {"recipientName":"Anarkoli","senderName":"","age":17,"birthdayDate":"2027-08-22","birthdayTime":"00:00","timezone":"Asia/Dhaka","pageTitle":"Something's Coming 💫","browserTitle":"Loading... 💫","ogTitle":"Something's Coming 💫","ogDescription":"Tap to open when the time is right ✨","ogImage":"","customSlug":"","countdown":{"title":"Something special is unlocking...⌛","message":"⏰ Something is coming soon...","audioUrl":"https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3","audioEnabled":true},"wishingAudioUrl":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","greeting":{"heading":"Happy Birthday Anarkoli..❤️🎂💫","text":"Hey You Know What! You're the most adorable human i ever met! 💖","enterButton":"Click to enter your world 💕"},"cake":{"cakeText":"happy","birthdayText":"birthday","recipientName":"Anarkoli","ageCandleCount":24,"wishTitle":"Close your eyes and make a wish...","wishSubtitle":"Then blow out the candles 🕯️","micHint":"🎤 Blow into your mic to blow out the candles, or tap them","cakeStatus":"🎉 Cake cut! Happy Birthday! 🎉","cutInstruction":"🔪 Press and drag anywhere on the cake — cut it your way","nextButton":"Enter your storyline 💫","microphoneEnabled":true,"soundEffects":true,"vibration":true},"reasons":{"heading":"Happy birthday princess 👑","note":"","items":[{"id":"reason-1","text":"You're such a kind and wonderful person, and I feel lucky to share such a good bond with you.","emoji":"🌟"},{"id":"reason-2","text":"May your day be filled with love, laughter, and endless joy.","emoji":"💗"},{"id":"reason-3","text":"Wishing you success, happiness, and everything your heart desires.","emoji":"💕"},{"id":"reason-4","text":"Stay the amazing girl you are—always spreading positivity around. Have the happiest year ahead! 🥳","emoji":"🌟"}],"buttonText":"Click Here... 💕","finalButtonText":"You're the BESTEST ! 💖"},"memories":{"heading":"The Beautiful Moments ","subtitle":"Every moment spent with you has been magical. Let's cherish these precious memories Anarkoli...","nextButton":"Again Your Storylane 🎥","items":[{"id":"memory-1","url":"https://picsum.photos/seed/anime1/800/600","title":"A Magical Reflection 💖","caption":"A reflection of pure grace, elegance, and unmatched beauty. 🌹👑","date":"A Magical Reflection 💖","alt":"Anime 1"},{"id":"memory-2","url":"https://picsum.photos/seed/anime2/800/600","title":"Lost in Anime Lore","caption":"May your journey ahead be filled with happiness, success, and endless smiles😊💕","date":"Lost in Anime Lore","alt":"Anime 2"},{"id":"memory-3","url":"https://picsum.photos/seed/anime3/800/600","title":"Her Smile Says It All","caption":"You're truly one of the sweetest girls I know, and I feel lucky to have a person like you❤️","date":"Her Smile Says It All","alt":"Anime 3"},{"id":"memory-4","url":"https://picsum.photos/seed/anime4/800/600","title":"One More Beautiful Memory","caption":"A little extra memory to make this story even more special. ✨💖","date":"One More Beautiful Memory","alt":"Anime 4"}]},"videos":{"title":"A Special Video Message","nextButton":"See your letter 💌","items":[{"id":"video-1","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4","title":"Happy Birthday Anarkoli ❤️🎂","caption":"A little birthday video message just for this special story. 🎥💖","poster":"","alt":"Happy Birthday video"},{"id":"video-2","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4","title":"Another Special Memory 🎬","caption":"A second demo video slot so you can test adding and editing more than one video.","poster":"","alt":"Second demo video"}]},"soundtrack":{"items":[{"id":"track-1","title":"Birthday wishing audio","artist":"","sourceType":"youtube","url":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","cover":""}]},"letter":{"title":"A Letter for My favourite chapter..  💌","paragraphs":["Every laugh, every chat, and every moment we once shared will always hold a special place in my heart.💫","Even though time and things have changed, I'm still grateful for the bond we had and the beautiful energy you brought into my life.","On your birthday, I sincerely wish you endless happiness, peace, and success in everything you do.🌸","You deserve all the joy in the world—keep shining as you always have.✨","Happy Birthday💝"],"signature":"","buttonText":"Again, Happy Birthday Anarkoli.."},"secret":{"image":"https://picsum.photos/seed/anime4/800/600","imageAlt":"Secret Memory","buttonText":"See Your Friend","buttonIcon":"instagram","socialPlatform":"Instagram","socialUrl":"https://www.instagram.com/rafahimn"},"theme":{"main":"#ff69b4","secondary":"#9b6dff","accent":"#d4145a","button":"#ff69b4","text":"#4a4a4a","glow":"#ffb6d9","overlay":"linear-gradient(135deg, rgba(255,192,203,0.3), rgba(147,112,219,0.3))","backgroundImage":"","backgroundVideo":"https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp4","mode":"light","fontPreset":"original","animationIntensity":"full"},"effects":{"butterflies":true,"flowers":true,"hearts":true,"sparkles":true,"customCursor":true,"confetti":true,"smoke":true,"soundEffects":true,"vibration":true,"microphone":true}};
-  // Reset/default target is controlled by lib/master-birthday.ts (2030-01-08).
-  DEFAULT.birthdayDate = '2030-01-08';
-  DEFAULT.birthdayTime = '00:00';
+  // Keep the standalone/demo default countdown anchored to the original
+  // HTML birthday (August 22) while always rolling forward to the next year.
+  try {
+    const nowForDefault = new Date();
+    let nextBirthdayYear = nowForDefault.getFullYear();
+    let nextBirthday = new Date(nextBirthdayYear, 7, 22, 0, 0, 0);
+    if (nextBirthday <= nowForDefault) {
+      nextBirthdayYear += 1;
+      nextBirthday = new Date(nextBirthdayYear, 7, 22, 0, 0, 0);
+    }
+    DEFAULT.birthdayDate = `${nextBirthdayYear}-${String(nextBirthday.getMonth() + 1).padStart(2, '0')}-${String(nextBirthday.getDate()).padStart(2, '0')}`;
+  } catch (_) {}
   const BB_RUNTIME_PARAMS = new URLSearchParams(location.search);
   window.__BB_CATALOG_MODE = BB_RUNTIME_PARAMS.get('catalog') === '1' || BB_RUNTIME_PARAMS.get('bbCatalog') === '1';
   let state = JSON.parse(JSON.stringify(DEFAULT));
@@ -2552,158 +2699,6 @@
     syncAudioToggle();
     if(demoStarted && !window.__BB_PREVIEW_HOST_MODE) startDemoCountdown();
   }
-
-  // State-aware countdown handler. This must live in the same scope as `state`
-  // and `getBirthdayCycle`; the old implementation was in the first script
-  // block and therefore could not see those lexical variables, which caused
-  // the canvas to remain stuck at 00:00:00:00.
-  window.__BB_REALTIME_COUNTDOWN_HANDLER = function(){
-
-            // Demo mode owns the countdown completely. The normal annual
-            // birthday clock must never overwrite the demo's 10-second timer.
-            if (window.__BB_FORCE_DEMO) return;
-
-            const now = new Date();
-
-            // Editor Preview follows the real birthday state: if the configured
-            // target has not arrived yet, simulate only the final 10 seconds;
-            // if the target is already active (within the 24h greeting window),
-            // open Greeting immediately; after the window, preview the next cycle.
-            if (window.__BB_PREVIEW_MODE && state?.birthdayDate) {
-                if (window.__BB_PREVIEW_COUNTDOWN_COMPLETED) return;
-                const cycle = getBirthdayCycle(now);
-                const diff = cycle.target - now;
-                if (cycle.inGreetingWindow) {
-                    countdownFinished = true;
-                    countdownAudio.pause();
-                    countdownAudio.currentTime = 0;
-                    showScreen('greeting');
-                        if (!confettiShown) {
-                            confettiShown = true;
-                            confetti({ particleCount: 100, spread: 70 });
-                        }
-                        if (charIndex === 0) typeGreeting();
-                        if (!birthdayAudioPlayed) playBirthdayAudio();
-                    return;
-                }
-                // Future target: use a deterministic 10-second editor preview.
-                if (diff > 0) {
-                    if (countdownFinished) countdownFinished = false;
-                    const previewEndsAt = window.__BB_PREVIEW_COUNTDOWN_END_AT || (window.__BB_PREVIEW_COUNTDOWN_END_AT = Date.now() + 10000);
-                    const left = Math.max(0, previewEndsAt - Date.now());
-                    const total = Math.ceil(left / 1000);
-                    const d = Math.floor(total / 86400);
-                    const h = Math.floor((total / 3600) % 24);
-                    const m = Math.floor((total / 60) % 60);
-                    const sec = total % 60;
-                    const setPreview = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = String(value).padStart(2, '0'); };
-                    setPreview('days', d); setPreview('hours', h); setPreview('mins', m); setPreview('secs', sec);
-                    document.getElementById('greetingScreen')?.classList.remove('show');
-                    document.getElementById('countdownScreen')?.classList.remove('hide');
-                    if (left <= 0) {
-                        countdownFinished = true;
-                        window.__BB_PREVIEW_COUNTDOWN_COMPLETED = true;
-                        showScreen('greeting');
-                        if (!confettiShown) { confettiShown = true; confetti({ particleCount: 100, spread: 70 }); }
-                        if (charIndex === 0) typeGreeting();
-                        if (!birthdayAudioPlayed) playBirthdayAudio();
-                        return;
-                    }
-                    if (!countdownAudioPlayed && state.countdown.audioEnabled && total <= 10) {
-                        countdownAudio.muted = false;
-                        countdownAudio.play().then(() => { countdownAudioPlayed = true; }).catch(() => {});
-                    }
-                    return;
-                }
-                // Defensive fallback: if the anchor is stale and already beyond
-                // the greeting window, the cycle calculation supplies the next year.
-            }
-
-            // Editing canvas should always show the real configured countdown
-            // while keeping navigation/manual screen control in the editor.
-            // Do not derive the target from the older CONFIG snapshot; use the
-            // same timezone-aware cycle state as the published page so a newly
-            // edited birthday date is reflected immediately instead of leaving
-            // the canvas stuck at 00:00:00:00.
-            if (window.__BB_EDITOR_MODE && !window.__BB_PREVIEW_MODE) {
-                const cycle = getBirthdayCycle(now);
-                const editorDiff = Math.max(0, cycle.target - now);
-                const editorTotal = Math.ceil(editorDiff / 1000);
-                const days = Math.floor(editorTotal / (60 * 60 * 24));
-                const hours = Math.floor((editorTotal / (60 * 60)) % 24);
-                const mins = Math.floor((editorTotal / 60) % 60);
-                const secs = editorTotal % 60;
-                const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = String(value).padStart(2, '0'); };
-                set('days', days); set('hours', hours); set('mins', mins); set('secs', secs);
-                const msg = document.getElementById('countdownMessage');
-                if (msg) msg.textContent = cycle.inGreetingWindow ? '🎉 Birthday time is here!' : 'Click the countdown to set the birthday date & time.';
-                countdownFinished = false;
-                return;
-            }
-
-            const cycle = getBirthdayCycle(now);
-            const isBirthdayToday = cycle.inGreetingWindow;
-
-            document.getElementById('countdownMessage').innerHTML =
-                `⏰ Something is coming soon...`;
-
-            if (isBirthdayToday && !window.__BB_CATALOG_MODE) {
-                if (!countdownFinished) {
-                    countdownFinished = true;
-                    countdownAudio.pause();
-                    countdownAudio.currentTime = 0;
-
-                    document.getElementById('countdownScreen').classList.add('hide');
-                    __bbActivateScreen('greetingScreen');
-
-                    if (!confettiShown) {
-                        confettiShown = true;
-                        confetti({ particleCount: 100, spread: 70 });
-                    }
-
-                    if (charIndex === 0) {
-                        typeGreeting();
-                    }
-
-                    if (!birthdayAudioPlayed) {
-                        playBirthdayAudio();
-                    }
-
-                    scheduleAutoReset();
-                }
-                return;
-            }
-
-            countdownFinished = false;
-            document.getElementById('greetingScreen').classList.remove('show');
-            document.getElementById('countdownScreen').classList.remove('hide');
-
-            // Published/live mode uses the active yearly occurrence. The target
-            // remains fixed through the 24-hour greeting window, then advances
-            // to the same month/day/time in the next year.
-            const birthday = cycle.target;
-            const diff = birthday - now;
-            const totalSecondsLeft = Math.max(0, Math.ceil(diff / 1000));
-
-            if (diff > 0) {
-                const days = Math.floor(totalSecondsLeft / (60 * 60 * 24));
-                const hours = Math.floor((totalSecondsLeft / (60 * 60)) % 24);
-                const mins = Math.floor((totalSecondsLeft / 60) % 60);
-                const secs = totalSecondsLeft % 60;
-
-                document.getElementById('days').textContent = String(days).padStart(2, '0');
-                document.getElementById('hours').textContent = String(hours).padStart(2, '0');
-                document.getElementById('mins').textContent = String(mins).padStart(2, '0');
-                document.getElementById('secs').textContent = String(secs).padStart(2, '0');
-            }
-
-            if (!window.__BB_CATALOG_MODE && totalSecondsLeft <= 10 && diff > 0 && !countdownAudioPlayed && (musicEnabled || window.__BB_PREVIEW_MODE)) {
-                countdownAudio.play()
-                    .then(() => { countdownAudioPlayed = true; })
-                    .catch(error => {});
-            }
-        
-  };
 
   // Authoritative real-time ticker. The editor canvas and published page both
   // need a continuously updating clock; Demo/Catalog owns its own 250ms timer.

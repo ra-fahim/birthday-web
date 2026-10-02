@@ -32,7 +32,9 @@ type Props = {
 
 function injectBridge(frame: HTMLIFrameElement) {
   const doc = frame.contentDocument;
-  if (!doc || doc.getElementById('bb-generic-editor-bridge')) return;
+  // React can run this effect before the iframe has created <body>.
+  // In that case wait for the iframe load handler to call us again.
+  if (!doc || !doc.body || doc.getElementById('bb-generic-editor-bridge')) return;
   const script = doc.createElement('script');
   script.id = 'bb-generic-editor-bridge';
   script.textContent = `
