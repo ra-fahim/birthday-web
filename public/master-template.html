@@ -2200,7 +2200,8 @@
             const defaultItems = [
                 { url:'https://picsum.photos/seed/anime1/800/600', title:'A Magical Reflection 💖', caption:'A reflection of pure grace, elegance, and unmatched beauty. 🌹👑', date:'A Magical Reflection 💖', alt:'Anime 1' },
                 { url:'https://picsum.photos/seed/anime2/800/600', title:'Lost in Anime Lore', caption:'May your journey ahead be filled with happiness, success, and endless smiles😊💕', date:'Lost in Anime Lore', alt:'Anime 2' },
-                { url:'https://picsum.photos/seed/anime3/800/600', title:'Her Smile Says It All', caption:"You're truly one of the sweetest girls I know, and I feel lucky to have a person like you❤️", date:'Her Smile Says It All', alt:'Anime 3' }
+                { url:'https://picsum.photos/seed/anime3/800/600', title:'Her Smile Says It All', caption:"You're truly one of the sweetest girls I know, and I feel lucky to have a person like you❤️", date:'Her Smile Says It All', alt:'Anime 3' },
+                { url:'https://picsum.photos/seed/anime4/800/600', title:'One More Beautiful Memory', caption:'A little extra memory to make this story even more special. ✨💖', date:'One More Beautiful Memory', alt:'Anime 4' }
             ];
             const items = Array.isArray(BB_CONTENT?.memories?.items) && BB_CONTENT.memories.items.length ? BB_CONTENT.memories.items : defaultItems;
             container.innerHTML = items.map((item, i) => {
@@ -2219,7 +2220,10 @@
         function renderVideos() {
             const grid = document.getElementById('videoGrid');
             if (!grid) return;
-            const defaultItems = [{ source:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', title:'Happy Birthday Anarkoli ❤️🎂', caption:'', poster:'', alt:'Happy Birthday video' }];
+            const defaultItems = [
+                { source:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', title:'Happy Birthday Anarkoli ❤️🎂', caption:'A little birthday video message just for this special story. 🎥💖', poster:'', alt:'Happy Birthday video' },
+                { source:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4', title:'Another Special Memory 🎬', caption:'A second demo video slot so you can test adding and editing more than one video.', poster:'', alt:'Second demo video' }
+            ];
             const items = Array.isArray(BB_CONTENT?.videos?.items) && BB_CONTENT.videos.items.length ? BB_CONTENT.videos.items : defaultItems;
             grid.innerHTML = items.map((item, i) => {
                 const src = String(item?.source || '').trim();
