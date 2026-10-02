@@ -10,6 +10,7 @@ type Props = {
   demo?: boolean;
   preview?: boolean;
   websiteSlug?: string;
+  siteKey?: string;
   recipientId?: string;
   editorMode?: boolean;
   standalone?: boolean;
@@ -17,7 +18,7 @@ type Props = {
   onHistoryState?: (state: { canBack?: boolean; canForward?: boolean; screen?: string }) => void;
 };
 
-export default function MasterBirthdayTemplate({ content, demo = false, preview = false, websiteSlug, recipientId, editorMode = false, standalone = false, onElementSelect, onHistoryState }: Props) {
+export default function MasterBirthdayTemplate({ content, demo = false, preview = false, websiteSlug, siteKey, recipientId, editorMode = false, standalone = false, onElementSelect, onHistoryState }: Props) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const config = useMemo(() => mergeMasterBirthdayConfig(content?.templateConfig && typeof content.templateConfig === 'object' ? (content.templateConfig as any).masterBirthday : undefined), [content?.templateConfig]);
   const resolvedContent = useMemo(() => ({
@@ -43,7 +44,7 @@ export default function MasterBirthdayTemplate({ content, demo = false, preview 
     const frame = frameRef.current;
     if (!frame) return;
     const send = () => {
-      frame.contentWindow?.postMessage({ type: 'BB_CONTENT', content: resolvedContent, websiteSlug: websiteSlug || '', recipientId: recipientId || '' }, '*');
+      frame.contentWindow?.postMessage({ type: 'BB_CONTENT', content: resolvedContent, websiteSlug: websiteSlug || '', siteKey: siteKey || websiteSlug || '', recipientId: recipientId || '' }, '*');
       frame.contentWindow?.postMessage({ type: 'BB_EDITOR_MODE', enabled: !!editorMode }, '*');
       frame.contentWindow?.postMessage({ type: 'BB_PREVIEW_MODE', enabled: !!preview }, '*');
       frame.contentWindow?.postMessage({ type: 'BB_CANVAS_REQUEST_HISTORY_STATE' }, '*');
@@ -55,7 +56,7 @@ export default function MasterBirthdayTemplate({ content, demo = false, preview 
     frame.addEventListener('load', send);
     send();
     return () => frame.removeEventListener('load', send);
-  }, [resolvedContent, websiteSlug, recipientId, editorMode, demo, preview]);
+  }, [resolvedContent, websiteSlug, siteKey, recipientId, editorMode, demo, preview]);
 
   useEffect(() => {
     const handler = (event: MessageEvent) => {

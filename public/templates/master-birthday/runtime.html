@@ -699,7 +699,9 @@
             document.body.classList.add('bb-editor-active');
         }
         window.__BB_PREVIEW_MODE = BB_PREVIEW_MODE;
-        if (BB_FORCE_DEMO || BB_PREVIEW_MODE) window.__BB_FORCE_DEMO = true;
+        // Preview is realtime and must never be treated as the fixed 10-second demo.
+        // Only explicit demo/catalog modes own the accelerated countdown.
+        if (BB_FORCE_DEMO) window.__BB_FORCE_DEMO = true;
         if (urlParams.get('name')) {
             CONFIG.name = decodeURIComponent(urlParams.get('name'));
         }
@@ -758,7 +760,7 @@
         }
 
         function playBirthdayAudio() {
-            if (window.__BB_EDITOR_MODE || (window.__BB_FORCE_DEMO && !musicEnabled) || birthdayAudioPlayed) return;
+            if (window.__BB_EDITOR_MODE || window.__BB_PREVIEW_MODE || window.__BB_CATALOG_MODE || (window.__BB_FORCE_DEMO && !musicEnabled) || birthdayAudioPlayed) return;
             if (!ytApiReady || !ytPlayerReady) {
                 pendingPlay = true;
                 return;
@@ -1122,7 +1124,7 @@
             // In demo mode, soundtrack music is deliberately locked until the
             // 10-second demo countdown finishes. This prevents wishing/track
             // audio from leaking into the countdown screen.
-            if (window.__BB_FORCE_DEMO || window.__BB_CATALOG_MODE) return;
+            if (window.__BB_FORCE_DEMO || window.__BB_PREVIEW_MODE || window.__BB_CATALOG_MODE) return;
 
             const now = new Date();
             const isBirthdayToday = isBirthday(now);
@@ -1135,12 +1137,17 @@
         const BIRTHDAY_GREETING_WINDOW_MS = 24 * 60 * 60 * 1000;
 
         function getConfiguredBirthdayTarget(yearOverride) {
-            const configuredYear = Number(CONFIG.year);
+            const configuredYear = Number(state?.birthdayDate?.slice(0,4));
             const fallbackYear = new Date().getFullYear();
             const year = Number.isFinite(yearOverride) && yearOverride > 0
                 ? yearOverride
                 : (Number.isFinite(configuredYear) && configuredYear > 0 ? configuredYear : fallbackYear);
-            return new Date(year, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
+            const date = String(state?.birthdayDate || '');
+            const month = Number(date.slice(5,7));
+            const day = Number(date.slice(8,10));
+            const time = String(state?.birthdayTime || '00:00');
+            const safeDate = `${year}-${String(month || 1).padStart(2,'0')}-${String(day || 1).padStart(2,'0')}`;
+            return zonedDateTimeToDate(safeDate, time, state?.timezone || 'Asia/Dhaka');
         }
 
         // A published birthday has three states:
@@ -1150,9 +1157,12 @@
         // The first saved year is treated as the anchor; after the 24-hour
         // greeting window, the cycle advances one year at a time.
         function getBirthdayCycle(date = new Date()) {
-            let target = getConfiguredBirthdayTarget();
+            const configuredYear = Number(String(state?.birthdayDate || '').slice(0, 4));
+            let targetYear = Number.isFinite(configuredYear) && configuredYear > 0 ? configuredYear : new Date().getFullYear();
+            let target = getConfiguredBirthdayTarget(targetYear);
             while (date >= new Date(target.getTime() + BIRTHDAY_GREETING_WINDOW_MS)) {
-                target = getConfiguredBirthdayTarget(target.getFullYear() + 1);
+                targetYear += 1;
+                target = getConfiguredBirthdayTarget(targetYear);
             }
             const greetingEndsAt = new Date(target.getTime() + BIRTHDAY_GREETING_WINDOW_MS);
             return { target, greetingEndsAt, inGreetingWindow: date >= target && date < greetingEndsAt };
@@ -1255,15 +1265,15 @@
             // Demo mode owns the countdown completely. The normal annual
             // birthday clock must never overwrite the demo's 10-second timer.
             if (window.__BB_FORCE_DEMO) return;
+            if (window.__BB_PREVIEW_SIMULATION_ACTIVE) return;
 
             const now = new Date();
 
-            // In editor mode the countdown is a content preview, not a live
-            // state machine. Keep its numbers current, but NEVER show/hide
-            // screens here. Navigation is owned by the editor arrows.
-            if (window.__BB_EDITOR_MODE) {
+            // Edit canvas mode keeps navigation manual. Realtime Preview, however,
+            // uses the exact same clock/state machine as the published site.
+            if (window.__BB_EDITOR_MODE && !window.__BB_PREVIEW_MODE) {
                 const currentYear = now.getFullYear();
-                const configuredYear = Number(CONFIG.year);
+                const configuredYear = Number(state?.birthdayDate?.slice(0,4));
                 let editorBirthday = new Date(Number.isFinite(configuredYear) && configuredYear > 0 ? configuredYear : currentYear, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
                 if (!(Number.isFinite(configuredYear) && configuredYear > 0) && now > editorBirthday) editorBirthday = new Date(currentYear + 1, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
                 const editorDiff = Math.max(0, editorBirthday - now);
@@ -1336,7 +1346,7 @@
                 document.getElementById('secs').textContent = String(secs).padStart(2, '0');
             }
 
-            if (!window.__BB_CATALOG_MODE && totalSecondsLeft <= 10 && diff > 0 && !countdownAudioPlayed && audioAllowed) {
+            if (!window.__BB_CATALOG_MODE && !window.__BB_PREVIEW_MODE && totalSecondsLeft <= 10 && diff > 0 && !countdownAudioPlayed && audioAllowed) {
                 countdownAudio.play()
                     .then(() => { countdownAudioPlayed = true; })
                     .catch(error => {});
@@ -1364,7 +1374,7 @@
         function showWishMoment() {
             const now = new Date();
             // Never start soundtrack audio automatically inside a demo/preview.
-            if (!window.__BB_FORCE_DEMO && isBirthday(now) && !birthdayAudioPlayed) {
+            if (!window.__BB_FORCE_DEMO && !window.__BB_PREVIEW_MODE && !window.__BB_CATALOG_MODE && isBirthday(now) && !birthdayAudioPlayed) {
                 playBirthdayAudio();
             }
 
@@ -1398,10 +1408,10 @@
         function loadCakeState() {
             const today = new Date();
             const dateKey = getDateKey(today);
-            cakeCut = localStorage.getItem(`cut_${dateKey}`) === 'true';
-            candlesBlown = parseInt(localStorage.getItem(`blown_${dateKey}`) || '0');
+            cakeCut = localStorage.getItem(getStorageKey('cut', dateKey)) === 'true';
+            candlesBlown = parseInt(localStorage.getItem(getStorageKey('blown', dateKey)) || '0');
             knifePickedUp = false;
-            cutAngle = parseFloat(localStorage.getItem(`cutAngle_${dateKey}`) || '0');
+            cutAngle = parseFloat(localStorage.getItem(getStorageKey('cutAngle', dateKey)) || '0');
 
             if (!isBirthday(today)) {
                 cakeCut = false;
@@ -1410,6 +1420,11 @@
 
             if (cakeCut) applyWedgeAtAngle(cutAngle);
             renderCake();
+        }
+
+        function getStorageKey(prefix, dateKey) {
+            const scope = String(bbSiteKey || window.BB_CONTENT?.websiteSlug || 'standalone').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 120);
+            return `${prefix}_${scope}_${dateKey}`;
         }
 
         function getDateKey(date) {
@@ -1483,7 +1498,7 @@
         function saveState() {
             const today = new Date();
             const dateKey = getDateKey(today);
-            localStorage.setItem(`blown_${dateKey}`, candlesBlown.toString());
+            localStorage.setItem(getStorageKey('blown', dateKey), candlesBlown.toString());
         }
 
         function candleCenters(fromIndex, toIndex) {
@@ -1602,8 +1617,8 @@
             const today = new Date();
             const dateKey = getDateKey(today);
             cakeCut = true;
-            localStorage.setItem(`cut_${dateKey}`, 'true');
-            localStorage.setItem(`cutAngle_${dateKey}`, String(cutAngle));
+            localStorage.setItem(getStorageKey('cut', dateKey), 'true');
+            localStorage.setItem(getStorageKey('cutAngle', dateKey), String(cutAngle));
             stopMicrophone();
 
             applyWedgeAtAngle(cutAngle);
@@ -2086,15 +2101,19 @@
   const BB_RUNTIME_PARAMS = new URLSearchParams(location.search);
   window.__BB_CATALOG_MODE = BB_RUNTIME_PARAMS.get('catalog') === '1' || BB_RUNTIME_PARAMS.get('bbCatalog') === '1';
   let state = JSON.parse(JSON.stringify(DEFAULT));
-  let demoStarted = BB_FORCE_DEMO || BB_PREVIEW_MODE;
+  let demoStarted = BB_FORCE_DEMO;
   let receivedContent = false;
   let demoTimer = null;
   let demoCountdownEndsAt = 0;
+  let previewTimer = null;
+  let previewCountdownEndsAt = 0;
   let currentTrackIndex = 0;
+  let bbSiteKey = '';
   let bgAudio = null;
   // Catalog previews are always silent. Demo mode can opt into audio explicitly;
   // published experiences default to music ON.
   let musicEnabled = !window.__BB_FORCE_DEMO && !window.__BB_EDITOR_MODE && !window.__BB_CATALOG_MODE;
+  if (BB_PREVIEW_MODE) musicEnabled = false;
 
   let spotifyFrame = null;
   let youtubeFrame = null;
@@ -2115,9 +2134,96 @@
   const qa = (selector, root=document) => Array.from(root.querySelectorAll(selector));
   const setText = (selector, value, root=document) => { const el = typeof selector === 'string' ? q(selector, root) : selector; if (el) el.textContent = value == null ? '' : String(value); };
   const setHtml = (selector, value, root=document) => { const el = typeof selector === 'string' ? q(selector, root) : selector; if (el) el.innerHTML = value == null ? '' : String(value); };
+
+  const PREVIEW_SCREENS = ['countdownScreen','greetingScreen','cakeScreen','reasonsScreen','photoScreen','videoScreen','letterScreen','secretScreen'];
+  function setPreviewScreen(activeId){
+    PREVIEW_SCREENS.forEach(id => {
+      const el = q('#' + id);
+      if(!el) return;
+      if(id === activeId){
+        el.style.display = '';
+        el.style.pointerEvents = '';
+        el.classList.remove('hide');
+      }else{
+        el.style.display = 'none';
+        el.style.pointerEvents = 'none';
+        el.classList.remove('show');
+      }
+    });
+  }
+  function stopEditorPreviewSimulation(){
+    if(previewTimer){ clearInterval(previewTimer); previewTimer = null; }
+    previewCountdownEndsAt = 0;
+    window.__BB_PREVIEW_SIMULATION_ACTIVE = false;
+  }
+  function showEditorPreviewGreeting(){
+    stopEditorPreviewSimulation();
+    countdownFinished = true;
+    try{ countdownAudio.pause(); countdownAudio.currentTime = 0; }catch(_){}
+    setPreviewScreen('greetingScreen');
+    q('#greetingScreen')?.classList.add('show');
+    window.__BB_DEMO_UNLOCKED = false;
+    try{ if(typeof typeGreeting === 'function') typeGreeting(); }catch(_){}
+  }
+  function startEditorPreviewSimulation(){
+    stopEditorPreviewSimulation();
+    if(!window.__BB_PREVIEW_MODE) return;
+    window.__BB_PREVIEW_SIMULATION_ACTIVE = true;
+
+    // Preview mirrors the real published state at the moment it is opened:
+    // an active greeting window opens directly to Greeting, while a future
+    // birthday simulates only the final 10 seconds. It never changes the
+    // published/live clock itself.
+    const cycle = getBirthdayCycle(new Date());
+    if(cycle.inGreetingWindow){
+      showEditorPreviewGreeting();
+      return;
+    }
+
+    previewCountdownEndsAt = Date.now() + 10000;
+    setPreviewScreen('countdownScreen');
+    const tick = () => {
+      if(!window.__BB_PREVIEW_MODE){ stopEditorPreviewSimulation(); return; }
+      const left = Math.max(0, previewCountdownEndsAt - Date.now());
+      const totalSeconds = Math.ceil(left / 1000);
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds / 3600) % 24);
+      const mins = Math.floor((totalSeconds / 60) % 60);
+      const secs = totalSeconds % 60;
+      setText('#days', String(days).padStart(2,'0'));
+      setText('#hours', String(hours).padStart(2,'0'));
+      setText('#mins', String(mins).padStart(2,'0'));
+      setText('#secs', String(secs).padStart(2,'0'));
+      if(left <= 0){
+        showEditorPreviewGreeting();
+      }
+    };
+    tick();
+    previewTimer = setInterval(tick, 100);
+  }
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const safeUrl = (value) => { try { const u = new URL(String(value || ''), location.href); return ['http:','https:','blob:'].includes(u.protocol) ? u.href : ''; } catch (_) { return ''; } };
-  const toDate = (date, time) => { const d = new Date(`${date || ''}T${time || '00:00'}`); return Number.isNaN(d.getTime()) ? new Date() : d; };
+  function zonedDateTimeToDate(date, time, timeZone){
+    const [y,m,d] = String(date || '').split('-').map(Number);
+    const [hh,mm] = String(time || '00:00').split(':').map(Number);
+    if(!y || !m || !d || !Number.isFinite(hh) || !Number.isFinite(mm)) return new Date();
+    const zone = String(timeZone || 'Asia/Dhaka');
+    try {
+      let guess = new Date(Date.UTC(y, m - 1, d, hh || 0, mm || 0, 0));
+      const fmt = new Intl.DateTimeFormat('en-US',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
+      for(let i=0;i<3;i++){
+        const parts = Object.fromEntries(fmt.formatToParts(guess).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+        const asUtc = Date.UTC(Number(parts.year),Number(parts.month)-1,Number(parts.day),Number(parts.hour),Number(parts.minute),Number(parts.second));
+        const desired = Date.UTC(y,m-1,d,hh||0,mm||0,0);
+        guess = new Date(guess.getTime() + (desired - asUtc));
+      }
+      return guess;
+    } catch (_) {
+      const local = new Date(`${date || ''}T${time || '00:00'}`);
+      return Number.isNaN(local.getTime()) ? new Date() : local;
+    }
+  }
+  const toDate = (date, time) => zonedDateTimeToDate(date, time, state?.timezone || DEFAULT?.timezone || 'Asia/Dhaka');
   const sourceType = (url, explicit) => {
     const u = String(url || '').trim();
     if (explicit === 'upload') return 'upload';
@@ -2584,6 +2690,7 @@
     applyBasics();applyTheme();applyEffects();applyCountdown();applyGreeting();applyCake();applyReasons();applyMemories();applyVideos();applyLetter();applySecret();applyTrackEngine();markEditableTargets();
     syncAudioToggle();
     if(demoStarted && !window.__BB_PREVIEW_HOST_MODE) startDemoCountdown();
+    if(window.__BB_PREVIEW_MODE && window.__BB_PREVIEW_HOST_MODE) startEditorPreviewSimulation();
   }
 
   function startDemoCountdown(){
@@ -2592,17 +2699,12 @@
     demoTimer=null;
     window.__BB_FORCE_DEMO = true;
 
-    // Builder Preview is intentionally deterministic: regardless of whether
-    // the edited birthday is minutes away, months away, or already passed,
-    // Preview always plays the final 10 seconds and then opens Greeting.
-    // This is separate from the published/live yearly birthday cycle below.
-    if(BB_PREVIEW_MODE){
-      // No date comparison here by design.
-      // The configured date/time is still preserved in the editor state and
-      // will control the real published link.
-    }
+    // Demo/catalog preview is intentionally deterministic: regardless of
+    // any saved birthday date, the demo always plays the final 10 seconds
+    // and then opens Greeting. Editor Preview uses its own realtime simulation
+    // below and is never routed through this demo timer.
     window.__BB_DEMO_UNLOCKED = false;
-    musicEnabled = !window.__BB_EDITOR_MODE && !BB_PREVIEW_MODE;
+    musicEnabled = !window.__BB_EDITOR_MODE && !BB_PREVIEW_MODE && !window.__BB_CATALOG_MODE;
     birthdayAudioPlayed = false;
     pendingPlay = false;
     countdownAudioPlayed = false;
@@ -2661,27 +2763,34 @@
 
   window.addEventListener('message',function(event){
     const data=event.data||{};
-    if(data.type==='BB_CONTENT'){receivedContent=true;window.BB_CONTENT=data.content||{};applyAll(data.content||{});return;}
+    if(data.type==='BB_CONTENT'){receivedContent=true;window.BB_CONTENT=data.content||{};bbSiteKey=String(data.siteKey||data.websiteSlug||'');applyAll(data.content||{});return;}
     if(data.type==='BB_CATALOG_MODE'){
       window.__BB_CATALOG_MODE = data.enabled !== false;
-      demoStarted = false;
+      demoStarted = window.__BB_CATALOG_MODE;
       musicEnabled = false;
       try{window.pauseBirthdayAudio?.();}catch(_){}
       try{q('#countdownAudio')?.pause?.();}catch(_){}
       try{q('#countdownAudio') && (q('#countdownAudio').muted = true);}catch(_){}
       applyCountdown?.();
+      if (window.__BB_CATALOG_MODE) startDemoCountdown();
       return;
     }
     if(data.type==='BB_PREVIEW_MODE'){
       if(data.enabled){
         window.__BB_PREVIEW_HOST_MODE = true;
-        demoStarted = true;
-        window.__BB_FORCE_DEMO = true;
+        demoStarted = false;
+        window.__BB_PREVIEW_MODE = true;
+        // Editor preview is a visitor simulation only: future birthdays use the
+        // final 10 seconds, while an already-active birthday opens at Greeting.
+        window.__BB_FORCE_DEMO = false;
         musicEnabled = false;
-        // Preview must use the currently supplied BB_CONTENT, never template defaults.
-        if(receivedContent){ startDemoCountdown(); }
+        if(receivedContent){ startEditorPreviewSimulation(); }
       } else {
+        stopEditorPreviewSimulation();
         window.__BB_PREVIEW_HOST_MODE = false;
+        window.__BB_PREVIEW_MODE = false;
+        window.__BB_FORCE_DEMO = false;
+        updateCountdown();
       }
       return;
     }
@@ -2689,6 +2798,7 @@
       demoStarted=!!data.enabled;
       if(data.enabled){
         window.__BB_FORCE_DEMO = true;
+        window.__BB_PREVIEW_MODE = false;
         musicEnabled = !window.__BB_EDITOR_MODE && !BB_PREVIEW_MODE;
         try{window.pauseBirthdayAudio?.();}catch(_){}
         try{q('#countdownAudio')?.pause?.();}catch(_){}
@@ -2865,7 +2975,7 @@
   postEditorHistoryState();
 
   // Default standalone behavior for this runtime copy.
-  setTimeout(()=>{try{if(!receivedContent) applyAll(DEFAULT);}catch(e){console.error('Master Birthday init failed',e);} if(!receivedContent && !window.__BB_CATALOG_MODE && (BB_FORCE_DEMO || BB_PREVIEW_MODE)){demoStarted=true;startDemoCountdown();}},0);
+  setTimeout(()=>{try{if(!receivedContent) applyAll(DEFAULT);}catch(e){console.error('Master Birthday init failed',e);} if(!receivedContent && !window.__BB_CATALOG_MODE && BB_FORCE_DEMO){demoStarted=true;startDemoCountdown();}},0);
 })();
 
 </script>
