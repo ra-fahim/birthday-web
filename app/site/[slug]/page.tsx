@@ -11,7 +11,7 @@ export const runtime = 'nodejs';
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const site = await getPublishedSite(params.slug);
   const c:any = site?.content || {};
-  const mb = site?.template_id === 'master-birthday' ? mergeMasterBirthdayConfig(c.templateConfig?.masterBirthday) : null;
+  const mb = (site?.template_id === 'master' || site?.template_id === 'master-birthday') ? mergeMasterBirthdayConfig(c.templateConfig?.masterBirthday) : null;
   const title = mb?.browserTitle || mb?.ogTitle || c.seoTitle || c.greeting || 'Happy Birthday';
   const description = mb?.ogDescription || c.seoDescription || 'A special birthday website.';
   const image = mb?.ogImage || '';
@@ -32,5 +32,5 @@ export default async function PublishedSite({ params, searchParams }: { params: 
   } catch (error) {
     console.error('view increment failed', error);
   }
-  return <main className="min-h-screen bg-black">{(renderTemplateId === 'master' || renderTemplateId === 'master-birthday') ? <MasterBirthdayTemplate content={c} websiteSlug={params.slug} recipientId={searchParams?.recipient || searchParams?.to || ''} /> : <ExperienceTemplate variant={renderTemplateId} content={{...c, templateId:renderTemplateId}} />}</main>;
+  return <main className="min-h-screen bg-black">{(renderTemplateId === 'master' || renderTemplateId === 'master-birthday') ? <MasterBirthdayTemplate content={c} websiteSlug={params.slug} recipientId={searchParams?.recipient || searchParams?.to || ''} standalone /> : <ExperienceTemplate variant={renderTemplateId} content={{...c, templateId:renderTemplateId}} />}</main>;
 }

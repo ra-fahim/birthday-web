@@ -28,13 +28,14 @@ const suppliedMinute = 0;
 const current = new Date();
 const thisYearBirthday = new Date(current.getFullYear(), suppliedMonth, suppliedDay, suppliedHour, suppliedMinute, 0);
 const birthdayYear = current <= thisYearBirthday ? current.getFullYear() : current.getFullYear() + 1;
+const suppliedBirthdayDate = `${birthdayYear}-${String(suppliedMonth + 1).padStart(2,'0')}-${String(suppliedDay).padStart(2,'0')}`;
 const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Dhaka';
 
 export const masterBirthdayDefaults: MasterBirthdayConfig = {
-  recipientName: 'Anarkoli',
+  recipientName: 'Anarkoli..',
   senderName: '',
-  age: 24,
-  birthdayDate: `${birthdayYear}-09-24`,
+  age: 17,
+  birthdayDate: suppliedBirthdayDate,
   birthdayTime: '00:00',
   timezone: localTimezone,
   pageTitle: "Something's Coming 💫",

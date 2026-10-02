@@ -684,7 +684,7 @@
             month: 7,
             day: 22,
             hour: 0,
-            minute: 00,
+            minute: 0,
             age: 17,
             name: "Anarkoli.."
         };
@@ -1132,9 +1132,14 @@
         document.body.addEventListener('click', handleGlobalClick);
         document.body.addEventListener('touchstart', handleGlobalClick);
 
+        function getConfiguredBirthdayTarget() {
+            const configuredYear = Number(CONFIG.year);
+            const year = Number.isFinite(configuredYear) && configuredYear > 0 ? configuredYear : new Date().getFullYear();
+            return new Date(year, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
+        }
+
         function isBirthday(date) {
-            if (date.getMonth() !== CONFIG.month || date.getDate() !== CONFIG.day) return false;
-            const target = new Date(date.getFullYear(), CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
+            const target = getConfiguredBirthdayTarget();
             return date >= target;
         }
 
@@ -1292,13 +1297,10 @@
             document.getElementById('greetingScreen').classList.remove('show');
             document.getElementById('countdownScreen').classList.remove('hide');
 
-            const currentYear = now.getFullYear();
-            let birthday = new Date(currentYear, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
-
-            if (now > birthday) {
-                birthday = new Date(currentYear + 1, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
-            }
-
+            // Published/live mode uses the exact configured birthday date and time.
+            // Once that target passes, the countdown stays finished instead of
+            // rolling forward to next year's birthday.
+            const birthday = getConfiguredBirthdayTarget();
             const diff = birthday - now;
             const totalSecondsLeft = Math.ceil(diff / 1000);
 
@@ -2048,7 +2050,19 @@
 <script>
 (function () {
   'use strict';
-  const DEFAULT = {"recipientName":"Anarkoli","senderName":"","age":24,"birthdayDate":"2027-09-24","birthdayTime":"00:00","timezone":"Asia/Dhaka","pageTitle":"Something's Coming 💫","browserTitle":"Loading... 💫","ogTitle":"Something's Coming 💫","ogDescription":"Tap to open when the time is right ✨","ogImage":"","customSlug":"","countdown":{"title":"Something special is unlocking...⌛","message":"⏰ Something is coming soon...","audioUrl":"https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3","audioEnabled":true},"wishingAudioUrl":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","greeting":{"heading":"Happy Birthday Anarkoli..❤️🎂💫","text":"Hey You Know What! You're the most adorable human i ever met! 💖","enterButton":"Click to enter your world 💕"},"cake":{"cakeText":"happy","birthdayText":"birthday","recipientName":"Anarkoli","ageCandleCount":24,"wishTitle":"Close your eyes and make a wish...","wishSubtitle":"Then blow out the candles 🕯️","micHint":"🎤 Blow into your mic to blow out the candles, or tap them","cakeStatus":"🎉 Cake cut! Happy Birthday! 🎉","cutInstruction":"🔪 Press and drag anywhere on the cake — cut it your way","nextButton":"Enter your storyline 💫","microphoneEnabled":true,"soundEffects":true,"vibration":true},"reasons":{"heading":"Happy birthday princess 👑","note":"","items":[{"id":"reason-1","text":"You're such a kind and wonderful person, and I feel lucky to share such a good bond with you.","emoji":"🌟"},{"id":"reason-2","text":"May your day be filled with love, laughter, and endless joy.","emoji":"💗"},{"id":"reason-3","text":"Wishing you success, happiness, and everything your heart desires.","emoji":"💕"},{"id":"reason-4","text":"Stay the amazing girl you are—always spreading positivity around. Have the happiest year ahead! 🥳","emoji":"🌟"}],"buttonText":"Click Here... 💕","finalButtonText":"You're the BESTEST ! 💖"},"memories":{"heading":"The Beautiful Moments ","subtitle":"Every moment spent with you has been magical. Let's cherish these precious memories Anarkoli...","nextButton":"Again Your Storylane 🎥","items":[{"id":"memory-1","url":"https://picsum.photos/seed/anime1/800/600","title":"A Magical Reflection 💖","caption":"A reflection of pure grace, elegance, and unmatched beauty. 🌹👑","date":"A Magical Reflection 💖","alt":"Anime 1"},{"id":"memory-2","url":"https://picsum.photos/seed/anime2/800/600","title":"Lost in Anime Lore","caption":"May your journey ahead be filled with happiness, success, and endless smiles😊💕","date":"Lost in Anime Lore","alt":"Anime 2"},{"id":"memory-3","url":"https://picsum.photos/seed/anime3/800/600","title":"Her Smile Says It All","caption":"You're truly one of the sweetest girls I know, and I feel lucky to have a person like you❤️","date":"Her Smile Says It All","alt":"Anime 3"},{"id":"memory-4","url":"https://picsum.photos/seed/anime4/800/600","title":"One More Beautiful Memory","caption":"A little extra memory to make this story even more special. ✨💖","date":"One More Beautiful Memory","alt":"Anime 4"}]},"videos":{"title":"A Special Video Message","nextButton":"See your letter 💌","items":[{"id":"video-1","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4","title":"Happy Birthday Anarkoli ❤️🎂","caption":"A little birthday video message just for this special story. 🎥💖","poster":"","alt":"Happy Birthday video"},{"id":"video-2","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4","title":"Another Special Memory 🎬","caption":"A second demo video slot so you can test adding and editing more than one video.","poster":"","alt":"Second demo video"}]},"soundtrack":{"items":[{"id":"track-1","title":"Birthday wishing audio","artist":"","sourceType":"youtube","url":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","cover":""}]},"letter":{"title":"A Letter for My favourite chapter..  💌","paragraphs":["Every laugh, every chat, and every moment we once shared will always hold a special place in my heart.💫","Even though time and things have changed, I'm still grateful for the bond we had and the beautiful energy you brought into my life.","On your birthday, I sincerely wish you endless happiness, peace, and success in everything you do.🌸","You deserve all the joy in the world—keep shining as you always have.✨","Happy Birthday💝"],"signature":"","buttonText":"Again, Happy Birthday Anarkoli.."},"secret":{"image":"https://picsum.photos/seed/anime4/800/600","imageAlt":"Secret Memory","buttonText":"See Your Friend","buttonIcon":"instagram","socialPlatform":"Instagram","socialUrl":"https://www.instagram.com/rafahimn"},"theme":{"main":"#ff69b4","secondary":"#9b6dff","accent":"#d4145a","button":"#ff69b4","text":"#4a4a4a","glow":"#ffb6d9","overlay":"linear-gradient(135deg, rgba(255,192,203,0.3), rgba(147,112,219,0.3))","backgroundImage":"","backgroundVideo":"https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp4","mode":"light","fontPreset":"original","animationIntensity":"full"},"effects":{"butterflies":true,"flowers":true,"hearts":true,"sparkles":true,"customCursor":true,"confetti":true,"smoke":true,"soundEffects":true,"vibration":true,"microphone":true}};
+  const DEFAULT = {"recipientName":"Anarkoli","senderName":"","age":17,"birthdayDate":"2027-08-22","birthdayTime":"00:00","timezone":"Asia/Dhaka","pageTitle":"Something's Coming 💫","browserTitle":"Loading... 💫","ogTitle":"Something's Coming 💫","ogDescription":"Tap to open when the time is right ✨","ogImage":"","customSlug":"","countdown":{"title":"Something special is unlocking...⌛","message":"⏰ Something is coming soon...","audioUrl":"https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3","audioEnabled":true},"wishingAudioUrl":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","greeting":{"heading":"Happy Birthday Anarkoli..❤️🎂💫","text":"Hey You Know What! You're the most adorable human i ever met! 💖","enterButton":"Click to enter your world 💕"},"cake":{"cakeText":"happy","birthdayText":"birthday","recipientName":"Anarkoli","ageCandleCount":24,"wishTitle":"Close your eyes and make a wish...","wishSubtitle":"Then blow out the candles 🕯️","micHint":"🎤 Blow into your mic to blow out the candles, or tap them","cakeStatus":"🎉 Cake cut! Happy Birthday! 🎉","cutInstruction":"🔪 Press and drag anywhere on the cake — cut it your way","nextButton":"Enter your storyline 💫","microphoneEnabled":true,"soundEffects":true,"vibration":true},"reasons":{"heading":"Happy birthday princess 👑","note":"","items":[{"id":"reason-1","text":"You're such a kind and wonderful person, and I feel lucky to share such a good bond with you.","emoji":"🌟"},{"id":"reason-2","text":"May your day be filled with love, laughter, and endless joy.","emoji":"💗"},{"id":"reason-3","text":"Wishing you success, happiness, and everything your heart desires.","emoji":"💕"},{"id":"reason-4","text":"Stay the amazing girl you are—always spreading positivity around. Have the happiest year ahead! 🥳","emoji":"🌟"}],"buttonText":"Click Here... 💕","finalButtonText":"You're the BESTEST ! 💖"},"memories":{"heading":"The Beautiful Moments ","subtitle":"Every moment spent with you has been magical. Let's cherish these precious memories Anarkoli...","nextButton":"Again Your Storylane 🎥","items":[{"id":"memory-1","url":"https://picsum.photos/seed/anime1/800/600","title":"A Magical Reflection 💖","caption":"A reflection of pure grace, elegance, and unmatched beauty. 🌹👑","date":"A Magical Reflection 💖","alt":"Anime 1"},{"id":"memory-2","url":"https://picsum.photos/seed/anime2/800/600","title":"Lost in Anime Lore","caption":"May your journey ahead be filled with happiness, success, and endless smiles😊💕","date":"Lost in Anime Lore","alt":"Anime 2"},{"id":"memory-3","url":"https://picsum.photos/seed/anime3/800/600","title":"Her Smile Says It All","caption":"You're truly one of the sweetest girls I know, and I feel lucky to have a person like you❤️","date":"Her Smile Says It All","alt":"Anime 3"},{"id":"memory-4","url":"https://picsum.photos/seed/anime4/800/600","title":"One More Beautiful Memory","caption":"A little extra memory to make this story even more special. ✨💖","date":"One More Beautiful Memory","alt":"Anime 4"}]},"videos":{"title":"A Special Video Message","nextButton":"See your letter 💌","items":[{"id":"video-1","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4","title":"Happy Birthday Anarkoli ❤️🎂","caption":"A little birthday video message just for this special story. 🎥💖","poster":"","alt":"Happy Birthday video"},{"id":"video-2","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4","title":"Another Special Memory 🎬","caption":"A second demo video slot so you can test adding and editing more than one video.","poster":"","alt":"Second demo video"}]},"soundtrack":{"items":[{"id":"track-1","title":"Birthday wishing audio","artist":"","sourceType":"youtube","url":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","cover":""}]},"letter":{"title":"A Letter for My favourite chapter..  💌","paragraphs":["Every laugh, every chat, and every moment we once shared will always hold a special place in my heart.💫","Even though time and things have changed, I'm still grateful for the bond we had and the beautiful energy you brought into my life.","On your birthday, I sincerely wish you endless happiness, peace, and success in everything you do.🌸","You deserve all the joy in the world—keep shining as you always have.✨","Happy Birthday💝"],"signature":"","buttonText":"Again, Happy Birthday Anarkoli.."},"secret":{"image":"https://picsum.photos/seed/anime4/800/600","imageAlt":"Secret Memory","buttonText":"See Your Friend","buttonIcon":"instagram","socialPlatform":"Instagram","socialUrl":"https://www.instagram.com/rafahimn"},"theme":{"main":"#ff69b4","secondary":"#9b6dff","accent":"#d4145a","button":"#ff69b4","text":"#4a4a4a","glow":"#ffb6d9","overlay":"linear-gradient(135deg, rgba(255,192,203,0.3), rgba(147,112,219,0.3))","backgroundImage":"","backgroundVideo":"https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp4","mode":"light","fontPreset":"original","animationIntensity":"full"},"effects":{"butterflies":true,"flowers":true,"hearts":true,"sparkles":true,"customCursor":true,"confetti":true,"smoke":true,"soundEffects":true,"vibration":true,"microphone":true}};
+  // Keep the standalone/demo default countdown anchored to the original
+  // HTML birthday (August 22) while always rolling forward to the next year.
+  try {
+    const nowForDefault = new Date();
+    let nextBirthdayYear = nowForDefault.getFullYear();
+    let nextBirthday = new Date(nextBirthdayYear, 7, 22, 0, 0, 0);
+    if (nextBirthday <= nowForDefault) {
+      nextBirthdayYear += 1;
+      nextBirthday = new Date(nextBirthdayYear, 7, 22, 0, 0, 0);
+    }
+    DEFAULT.birthdayDate = `${nextBirthdayYear}-${String(nextBirthday.getMonth() + 1).padStart(2, '0')}-${String(nextBirthday.getDate()).padStart(2, '0')}`;
+  } catch (_) {}
   const BB_RUNTIME_PARAMS = new URLSearchParams(location.search);
   window.__BB_CATALOG_MODE = BB_RUNTIME_PARAMS.get('catalog') === '1' || BB_RUNTIME_PARAMS.get('bbCatalog') === '1';
   let state = JSON.parse(JSON.stringify(DEFAULT));
@@ -2549,7 +2563,7 @@
     if(incoming.birthday && !cfg.birthdayDate){const d=new Date(incoming.birthday);if(!Number.isNaN(d.getTime())){state.birthdayDate=d.toISOString().slice(0,10);state.birthdayTime=d.toTimeString().slice(0,5);}}
     applyBasics();applyTheme();applyEffects();applyCountdown();applyGreeting();applyCake();applyReasons();applyMemories();applyVideos();applyLetter();applySecret();applyTrackEngine();markEditableTargets();
     syncAudioToggle();
-    if(demoStarted) startDemoCountdown();
+    if(demoStarted && !window.__BB_PREVIEW_HOST_MODE) startDemoCountdown();
   }
 
   function startDemoCountdown(){
@@ -2557,6 +2571,34 @@
     if(demoTimer)clearInterval(demoTimer);
     demoTimer=null;
     window.__BB_FORCE_DEMO = true;
+
+    // Preview simulates only the opening 10-second countdown when the
+    // configured birthday is still in the future. Once the real configured
+    // birthday time has already passed, Preview follows the live experience
+    // and skips the countdown entirely.
+    if(BB_PREVIEW_MODE){
+      const target = (function(){
+        const rawDate = String(state?.birthdayDate || '').trim();
+        const rawTime = String(state?.birthdayTime || '00:00').trim();
+        const parts = rawDate.split('-').map(Number);
+        const tm = rawTime.split(':').map(Number);
+        if(parts.length < 3 || parts.some(n=>!Number.isFinite(n))) return null;
+        const hh = Number.isFinite(tm[0]) ? tm[0] : 0;
+        const mm = Number.isFinite(tm[1]) ? tm[1] : 0;
+        const d = new Date(parts[0], parts[1]-1, parts[2], hh, mm, 0);
+        return Number.isNaN(d.getTime()) ? null : d;
+      })();
+      if(target && Date.now() >= target.getTime()){
+        const screens=['countdownScreen','greetingScreen','cakeScreen','reasonsScreen','photoScreen','videoScreen','letterScreen','secretScreen'];
+        screens.forEach(id=>{ const el=q('#'+id); if(!el)return; el.classList.remove('show','hide'); el.style.display='none'; el.style.pointerEvents='none'; });
+        const greeting=q('#greetingScreen');
+        if(greeting){ greeting.style.display='flex'; greeting.style.pointerEvents='auto'; greeting.classList.add('show'); }
+        window.__BB_DEMO_UNLOCKED = true;
+        try{if(typeof typeGreeting==='function') typeGreeting();}catch(_){}
+        syncAudioToggle();
+        return;
+      }
+    }
     window.__BB_DEMO_UNLOCKED = false;
     musicEnabled = !window.__BB_EDITOR_MODE && !BB_PREVIEW_MODE;
     birthdayAudioPlayed = false;
@@ -2626,6 +2668,19 @@
       try{q('#countdownAudio')?.pause?.();}catch(_){}
       try{q('#countdownAudio') && (q('#countdownAudio').muted = true);}catch(_){}
       applyCountdown?.();
+      return;
+    }
+    if(data.type==='BB_PREVIEW_MODE'){
+      if(data.enabled){
+        window.__BB_PREVIEW_HOST_MODE = true;
+        demoStarted = true;
+        window.__BB_FORCE_DEMO = true;
+        musicEnabled = false;
+        // Preview must use the currently supplied BB_CONTENT, never template defaults.
+        if(receivedContent){ startDemoCountdown(); }
+      } else {
+        window.__BB_PREVIEW_HOST_MODE = false;
+      }
       return;
     }
     if(data.type==='BB_DEMO_MODE'){
