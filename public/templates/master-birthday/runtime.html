@@ -68,8 +68,9 @@
         .bb-audio-toggle.off { opacity:.78; background:rgba(30,30,40,.58); }
         .bb-audio-toggle:active { transform:scale(.97); }
         .bb-editor-audio-control { display:none; margin-top:16px; padding:9px 14px; border:1px solid rgba(255,255,255,.6); border-radius:999px; background:rgba(40,20,60,.18); color:inherit; font:700 12px 'Quicksand',sans-serif; cursor:pointer; box-shadow:0 10px 24px rgba(0,0,0,.08); backdrop-filter:blur(10px); }
-        html[data-bb-editor="1"] .bb-editable-target { cursor:pointer!important; position:relative; outline:1px dashed rgba(236,72,153,.26); outline-offset:6px; transition:outline-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+        html[data-bb-editor="1"] .bb-editable-target { cursor:pointer!important; position:relative; outline:2px dashed rgba(236,72,153,.45); outline-offset:6px; box-shadow:0 0 0 3px rgba(236,72,153,.07); transition:outline-color .15s ease, box-shadow .15s ease, transform .15s ease; }
         html[data-bb-editor="1"] .bb-editable-target:hover { outline-color:rgba(236,72,153,.9); box-shadow:0 0 0 3px rgba(236,72,153,.08); }
+        html[data-bb-editor="1"] #cakeSvg text[data-bb-key^="mb.cake."] { filter:drop-shadow(0 0 4px rgba(236,72,153,.32)); cursor:pointer!important; }
         html[data-bb-editor="1"] .bb-editable-target::after { content:'Click to edit'; position:absolute; top:-27px; left:8px; z-index:12000; display:none; padding:4px 8px; border-radius:999px; background:rgba(24,24,27,.92); color:#fff; font:700 10px 'Quicksand',sans-serif; letter-spacing:.02em; white-space:nowrap; box-shadow:0 8px 20px rgba(0,0,0,.18); pointer-events:none; }
         html[data-bb-editor="1"] .bb-editable-target:hover::after { display:block; }
         html[data-bb-editor="1"] .bb-editable-target.is-media::after { content:'Click to edit media'; }
@@ -510,10 +511,10 @@
                         </g>
                     </g>
 
-                    <text x="270" y="120" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 120)">happy</text>
-                    <text x="270" y="153" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 153)">birthday</text>
+                    <text id="cakeHappyText" data-bb-key="mb.cake.cakeText" data-bb-label="Cake first line" data-bb-type="text" x="270" y="120" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 120)">happy</text>
+                    <text id="cakeBirthdayText" data-bb-key="mb.cake.birthdayText" data-bb-label="Cake second line" data-bb-type="text" x="270" y="153" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 153)">birthday</text>
                     <path d="M266 169 c-4 -6 -14 -2 -8 6 c3 4 8 4 8 4 s5 0 8 -4 c6 -8 -4 -12 -8 -6 z" fill="#fdf8f0" opacity="0.9"/>
-                    <text x="270" y="203" font-family="'Dancing Script', cursive" font-weight="700" font-size="25" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 203)">Anarkoli</text>
+                    <text id="cakeNameText" data-bb-key="mb.cake.recipientName" data-bb-label="Cake recipient name" data-bb-type="text" x="270" y="203" font-family="'Dancing Script', cursive" font-weight="700" font-size="25" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 203)">Anarkoli</text>
 
                     <line id="sliceShadow" x1="45" y1="199" x2="355" y2="199" stroke="#3d2c20" stroke-width="12" stroke-linecap="round" stroke-dasharray="330" stroke-dashoffset="330" opacity="0.5"/>
                     <line id="sliceLine" x1="45" y1="195" x2="355" y2="195" stroke="url(#sliceGrad)" stroke-width="11" stroke-linecap="round" stroke-dasharray="330" stroke-dashoffset="330" opacity="1"/>
@@ -558,7 +559,7 @@
         <div class="reason-counter" id="reasonCounter">Reason 1 of 4</div>
         <div class="reasons-action-wrap">
             <button type="button" class="bb-inline-edit-control" id="reasonsButtonEdit" data-bb-key="mb.reasons.buttonText" data-bb-label="Reasons button text" title="Edit Click Here button text">✎ Edit button text</button>
-            <button class="reasons-btn" id="reasonsBtn" onclick="handleReasonClick()">Click Here... 💕</button>
+            <button class="reasons-btn" id="reasonsBtn">Click Here... 💕</button>
         </div>
     </div>
 
@@ -1823,10 +1824,18 @@
         function createReasonCard(reason) {
             const card = document.createElement('div');
             card.className = 'reason-card';
+            card.setAttribute('data-bb-key','mb.reasons.items');
+            card.setAttribute('data-bb-index', String(currentReasonIndex));
+            card.setAttribute('data-bb-label', `Reason ${currentReasonIndex + 1}`);
+            card.setAttribute('data-bb-type','text');
 
             const text = document.createElement('div');
             text.className = 'reason-text';
-            text.innerHTML = `${reason.emoji} ${reason.text}`;
+            text.setAttribute('data-bb-key','mb.reasons.items');
+            text.setAttribute('data-bb-index', String(currentReasonIndex));
+            text.setAttribute('data-bb-label', `Reason ${currentReasonIndex + 1}`);
+            text.setAttribute('data-bb-type','text');
+            text.textContent = reason.text;
 
             const emoji = document.createElement('div');
             emoji.className = 'reason-emoji';
@@ -2184,9 +2193,49 @@
     if (state.cake.cakeStatus) setText('#cakeStatus', state.cake.cakeStatus);
   }
 
+  function renderReasonAt(index, animate=true) {
+    const container = q('#reasonsContainer');
+    const counter = q('#reasonCounter');
+    const btn = q('#reasonsBtn');
+    if (!container || !btn || index < 0 || index >= reasons.length) return false;
+    const reason = reasons[index];
+    const card = document.createElement('div');
+    card.className = 'reason-card';
+    card.setAttribute('data-bb-key', 'mb.reasons.items');
+    card.setAttribute('data-bb-index', String(index));
+    card.setAttribute('data-bb-label', `Reason ${index + 1}`);
+    card.setAttribute('data-bb-type', 'text');
+    const text = document.createElement('div');
+    text.className = 'reason-text';
+    text.setAttribute('data-bb-key', 'mb.reasons.items');
+    text.setAttribute('data-bb-index', String(index));
+    text.setAttribute('data-bb-label', `Reason ${index + 1}`);
+    text.setAttribute('data-bb-type', 'text');
+    text.textContent = reason.text;
+    const emoji = document.createElement('div');
+    emoji.className = 'reason-emoji';
+    emoji.textContent = reason.emoji;
+    card.append(text, emoji);
+    container.innerHTML = '';
+    container.appendChild(card);
+    if (animate && typeof gsap !== 'undefined') gsap.from(card, { opacity:0, y:50, duration:.5, ease:'back.out' });
+    try { markEditableTargets?.(); } catch (_) {}
+    if (counter) counter.textContent = `Reason ${index + 1} of ${reasons.length}`;
+    if (currentReasonIndex >= reasons.length) {
+      btn.textContent = window._bbFinalReasonText || "You're the BESTEST ! 💖";
+      btn.classList.add('story-mode');
+    } else {
+      btn.textContent = state.reasons.buttonText || 'Click Here... 💕';
+      btn.classList.remove('story-mode');
+    }
+    return true;
+  }
+
   function applyReasons() {
+    const preserveEditorReason = !!window.__BB_EDITOR_MODE && !!q('#reasonsScreen')?.classList.contains('show') && currentReasonIndex > 0;
+    const previousVisibleIndex = preserveEditorReason ? Math.min(Math.max(0, currentReasonIndex - 1), Math.max(0, (state.reasons.items || []).length - 1)) : -1;
     reasons.splice(0, reasons.length, ...(state.reasons.items || []).map(item => ({ text:item.text || '', emoji:item.emoji || '💖' })));
-    currentReasonIndex = 0;
+    currentReasonIndex = preserveEditorReason ? Math.min(previousVisibleIndex + 1, reasons.length) : 0;
     isTransitioning = false;
     const header = q('#reasonsScreen .reasons-header');
     if (header) {
@@ -2196,45 +2245,29 @@
       note.textContent = state.reasons.note || '';
       note.style.display = state.reasons.note ? '' : 'none';
     }
-    setText('#reasonsBtn', state.reasons.buttonText);
     window._bbFinalReasonText = state.reasons.finalButtonText || window._bbFinalReasonText || "You're the BESTEST ! 💖";
-    setText('#reasonCounter', reasons.length ? `Reason 1 of ${reasons.length}` : 'No reasons yet');
-    if (q('#reasonsContainer')) q('#reasonsContainer').innerHTML='';
+    if (q('#reasonsContainer')) q('#reasonsContainer').innerHTML = '';
+    const btn = q('#reasonsBtn');
+    if (btn) btn.classList.remove('story-mode');
+    if (preserveEditorReason && previousVisibleIndex >= 0 && previousVisibleIndex < reasons.length) {
+      renderReasonAt(previousVisibleIndex, false);
+    } else {
+      if (btn) btn.textContent = state.reasons.buttonText || 'Click Here... 💕';
+      setText('#reasonCounter', reasons.length ? `Reason 1 of ${reasons.length}` : 'No reasons yet');
+    }
   }
 
   function bbDisplayReason() {
     if (isTransitioning) return;
-    isTransitioning = true;
-    const container = q('#reasonsContainer');
-    const counter = q('#reasonCounter');
-    const btn = q('#reasonsBtn');
-    if (!container || !btn) return;
-    if (currentReasonIndex < reasons.length) {
-      const reason = reasons[currentReasonIndex];
-      const card = document.createElement('div');
-      card.className='reason-card';
-      card.setAttribute('data-bb-key','mb.reasons.items');
-      card.setAttribute('data-bb-index', String(currentReasonIndex));
-      card.setAttribute('data-bb-label', `Reason ${currentReasonIndex + 1}`);
-      card.setAttribute('data-bb-type','text');
-      const text=document.createElement('div');
-      text.className='reason-text';
-      text.setAttribute('data-bb-key','mb.reasons.items');
-      text.setAttribute('data-bb-index', String(currentReasonIndex));
-      text.setAttribute('data-bb-label', `Reason ${currentReasonIndex + 1}`);
-      text.setAttribute('data-bb-type','text');
-      text.textContent=reason.text;
-      const emoji=document.createElement('div'); emoji.className='reason-emoji'; emoji.textContent=reason.emoji;
-      card.append(text,emoji); container.innerHTML=''; container.appendChild(card);
-      if (typeof gsap !== 'undefined') gsap.from(card,{opacity:0,y:50,duration:.5,ease:'back.out'});
-      try { markEditableTargets?.(); } catch (_) {}
-      currentReasonIndex += 1;
-      if (counter) counter.textContent=`Reason ${currentReasonIndex} of ${reasons.length}`;
-      if (currentReasonIndex >= reasons.length) { btn.textContent = window._bbFinalReasonText || "You're the BESTEST ! 💖"; btn.classList.add('story-mode'); }
-      setTimeout(()=>{isTransitioning=false;},500);
-    } else {
-      if (typeof window.goToPhotoScreen==='function') window.goToPhotoScreen();
+    if (currentReasonIndex >= reasons.length) {
+      if (typeof window.goToPhotoScreen === 'function') window.goToPhotoScreen();
+      return;
     }
+    isTransitioning = true;
+    const index = currentReasonIndex;
+    currentReasonIndex = index + 1;
+    renderReasonAt(index, true);
+    setTimeout(() => { isTransitioning = false; }, 500);
   }
 
   function applyMemories() {
@@ -2253,6 +2286,16 @@
     });
     const header=q('#photoScreen .photo-header'); if(header){ setText('h1',state.memories.heading,header); setText('p',state.memories.subtitle,header); }
     setText('.photo-next-btn',state.memories.nextButton);
+  }
+
+  const reasonsButtonEl = q('#reasonsBtn');
+  if (reasonsButtonEl && !reasonsButtonEl.dataset.bbBound) {
+    reasonsButtonEl.dataset.bbBound = '1';
+    reasonsButtonEl.addEventListener('click', function(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      window.handleReasonClick?.();
+    }, false);
   }
 
   window.openLightbox=function(indexOrUrl){
@@ -2307,13 +2350,34 @@
     setText('#videoScreen h2',state.videos.title); setText('.video-next-btn',state.videos.nextButton);
   }
 
+  function renderEditorLetter(){
+    const container=q('#letterContent');
+    if(!container) return;
+    if(letterTypeTimer){ clearTimeout(letterTypeTimer); letterTypeTimer=null; }
+    letterTyped=true;
+    container.innerHTML='';
+    (letterLines||[]).forEach((line,index)=>{
+      const p=document.createElement('p');
+      p.setAttribute('data-bb-key','mb.letter.paragraphs');
+      p.setAttribute('data-bb-index',String(index));
+      p.setAttribute('data-bb-label',`Letter paragraph ${index+1}`);
+      p.setAttribute('data-bb-type','text');
+      p.textContent=String(line||'');
+      container.appendChild(p);
+    });
+    try { markEditableTargets?.(); } catch (_) {}
+  }
+
   function applyLetter(){
     setText('#letterScreen .letter-container h2',state.letter.title);
     letterLines.splice(0, letterLines.length, ...(state.letter.paragraphs||[]));
     setText('.letter-return-btn',state.letter.buttonText);
     let sig=q('#letterScreen .bb-letter-signature'); if(!sig){sig=document.createElement('div');sig.className='bb-letter-signature';sig.style.cssText='margin-top:16px;font-family:Caveat,cursive;font-size:1.5rem;color:#b0306e;'; q('#letterScreen .letter-container')?.appendChild(sig);} sig.textContent=state.letter.signature||'';sig.style.display=state.letter.signature?'':'none';
+    if(window.__BB_EDITOR_MODE && q('#letterScreen')?.classList.contains('show')) renderEditorLetter();
   }
   window.typeLetter=function(){
+    if(window.__BB_EDITOR_MODE){ renderEditorLetter(); return; }
+
     const container=q('#letterContent'); if(!container||letterTyped)return; letterTyped=true; let li=0,ci=0,p=null;
     const next=()=>{ if(li>=letterLines.length)return; if(!p){p=document.createElement('p');const tilt=(Math.random()-.5)*2.4,lift=(Math.random()-.5)*6;p.style.transform=`rotate(${tilt.toFixed(2)}deg) translateY(${lift.toFixed(1)}px)`;const cursor=document.createElement('span');cursor.className='letter-typing-cursor';p.appendChild(document.createTextNode(''));p.appendChild(cursor);container.appendChild(p);} const line=letterLines[li]; if(ci<line.length){p.firstChild.textContent+=line.charAt(ci);ci++;const cursor=p.querySelector('.letter-typing-cursor');const ch=line.charAt(ci-1);const pause=/[.,!—]/.test(ch)?140:(35+Math.random()*45);letterTypeTimer=setTimeout(next,pause);}else{li++;ci=0;p=null;letterTypeTimer=setTimeout(next,180);} };
     next();
@@ -2564,9 +2628,7 @@
     if(t.matches('#bbWishingAudioEditor')) return {key:'mb.wishingAudioUrl',label:'Wishing audio',value:'',kind:'audio'};
     if(t.matches('#greetingText')) return {key:'mb.greeting.text',label:'Greeting message',value:t.innerText,kind:'text'};
     if(t.matches('.enter-btn')) return {key:'mb.greeting.enterButton',label:'Enter button text',value:t.innerText,kind:'button'};
-    if(t.matches('#cakeSvg text:nth-of-type(1)')) return {key:'mb.cake.cakeText',label:'Cake text',value:t.textContent,kind:'text'};
-    if(t.matches('#cakeSvg text:nth-of-type(2)')) return {key:'mb.cake.birthdayText',label:'Birthday text',value:t.textContent,kind:'text'};
-    if(t.matches('#cakeSvg text:nth-of-type(3)')) return {key:'mb.cake.recipientName',label:'Cake recipient name',value:t.textContent,kind:'text'};
+    if(t.matches('#cakeSvg #cakeHappyText, #cakeSvg #cakeBirthdayText, #cakeSvg #cakeNameText')) return {key:'mb.cake.group',label:'Cake text',value:'',kind:'cake-text-group'};
     if(t.matches('#wishPrompt .wish-prompt-text')) return {key:'mb.cake.wishTitle',label:'Wish title',value:t.innerText,kind:'text'};
     if(t.matches('#wishPrompt .wish-prompt-sub')) return {key:'mb.cake.wishSubtitle',label:'Wish subtitle',value:t.innerText,kind:'text'};
     if(t.matches('#micHint')) return {key:'mb.cake.micHint',label:'Microphone hint',value:t.innerText,kind:'text'};

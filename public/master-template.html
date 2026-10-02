@@ -634,10 +634,10 @@
                         </g>
                     </g>
 
-                    <text id="cakeHappyText" x="270" y="120" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 120)">happy</text>
-                    <text id="cakeBirthdayText" x="270" y="153" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 153)">birthday</text>
+                    <text id="cakeHappyText" data-bb-key="mb.cake.cakeText" data-bb-label="Cake first line" data-bb-type="text" x="270" y="120" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 120)">happy</text>
+                    <text id="cakeBirthdayText" data-bb-key="mb.cake.birthdayText" data-bb-label="Cake second line" data-bb-type="text" x="270" y="153" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 153)">birthday</text>
                     <path d="M266 169 c-4 -6 -14 -2 -8 6 c3 4 8 4 8 4 s5 0 8 -4 c6 -8 -4 -12 -8 -6 z" fill="#fdf8f0" opacity="0.9"/>
-                    <text id="cakeNameText" x="270" y="203" font-family="'Dancing Script', cursive" font-weight="700" font-size="25" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 203)">Anarkoli</text>
+                    <text id="cakeNameText" data-bb-key="mb.cake.recipientName" data-bb-label="Cake recipient name" data-bb-type="text" x="270" y="203" font-family="'Dancing Script', cursive" font-weight="700" font-size="25" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 203)">Anarkoli</text>
 
                     <line id="sliceShadow" x1="45" y1="199" x2="355" y2="199" stroke="#3d2c20" stroke-width="12" stroke-linecap="round" stroke-dasharray="330" stroke-dashoffset="330" opacity="0.5"/>
                     <line id="sliceLine" x1="45" y1="195" x2="355" y2="195" stroke="url(#sliceGrad)" stroke-width="11" stroke-linecap="round" stroke-dasharray="330" stroke-dashoffset="330" opacity="1"/>
@@ -682,7 +682,7 @@
         <div class="reason-counter" id="reasonCounter">Reason 1 of 4</div>
         <div class="reasons-action-wrap">
             <button type="button" class="bb-inline-edit-control" id="reasonsButtonEdit" data-bb-key="mb.reasons.buttonText" data-bb-label="Reasons button text" aria-label="Edit reasons button text" title="Edit Click Here button text">✎ Edit button text</button>
-            <button class="reasons-btn" id="reasonsBtn" onclick="handleReasonClick()">Click Here... 💕</button>
+            <button class="reasons-btn" id="reasonsBtn">Click Here... 💕</button>
         </div>
     </div>
 
@@ -1240,6 +1240,21 @@
 
         function typeLetter() {
             const container = document.getElementById('letterContent');
+            if (isEditorMode) {
+                if (letterTypeTimer) { clearTimeout(letterTypeTimer); letterTypeTimer = null; }
+                letterTyped = true;
+                container.innerHTML = '';
+                (letterLines || []).forEach((line, index) => {
+                    const p = document.createElement('p');
+                    p.setAttribute('data-bb-key','mb.letter.paragraphs');
+                    p.setAttribute('data-bb-index', String(index));
+                    p.setAttribute('data-bb-label', `Letter paragraph ${index + 1}`);
+                    p.setAttribute('data-bb-type','text');
+                    p.textContent = String(line || '');
+                    container.appendChild(p);
+                });
+                return;
+            }
             if (!container || letterTyped) return;
             letterTyped = true;
             let lineIndex = 0;
@@ -2031,10 +2046,18 @@
         function createReasonCard(reason) {
             const card = document.createElement('div');
             card.className = 'reason-card';
+            card.setAttribute('data-bb-key','mb.reasons.items');
+            card.setAttribute('data-bb-index', String(currentReasonIndex));
+            card.setAttribute('data-bb-label', `Reason ${currentReasonIndex + 1}`);
+            card.setAttribute('data-bb-type','text');
 
             const text = document.createElement('div');
             text.className = 'reason-text';
-            text.innerHTML = `${reason.emoji} ${reason.text}`;
+            text.setAttribute('data-bb-key','mb.reasons.items');
+            text.setAttribute('data-bb-index', String(currentReasonIndex));
+            text.setAttribute('data-bb-label', `Reason ${currentReasonIndex + 1}`);
+            text.setAttribute('data-bb-type','text');
+            text.textContent = reason.text;
 
             const emoji = document.createElement('div');
             emoji.className = 'reason-emoji';
@@ -2075,7 +2098,13 @@
             }
         }
 
-        window.handleReasonClick = function() {
+        const reasonsButtonEl = document.getElementById('reasonsBtn');
+        if (reasonsButtonEl && !reasonsButtonEl.dataset.bbBound) {
+            reasonsButtonEl.dataset.bbBound = '1';
+            reasonsButtonEl.addEventListener('click', function(event){ event.preventDefault(); event.stopPropagation(); window.handleReasonClick(); }, false);
+        }
+
+                window.handleReasonClick = function() {
             const btn = document.getElementById('reasonsBtn');
             gsap.to(btn, { scale:0.9, duration:0.1, yoyo:true, repeat:1 });
             displayReason();
@@ -2086,7 +2115,7 @@
             birthdayAudioPlayed = false;
             currentReasonIndex = 0;
 
-            document.getElementById('reasonsBtn').textContent = (BB_CONTENT.reasons?.buttonText || "Click Here... 💕");
+            document.getElementById('reasonsBtn').textContent = (window.BB_CONTENT?.templateConfig?.masterBirthday?.reasons?.buttonText || window.BB_CONTENT?.reasons?.buttonText || "Click Here... 💕");
             document.getElementById('reasonsBtn').classList.remove('story-mode');
             document.getElementById('reasonsContainer').innerHTML = '';
 
@@ -2392,7 +2421,7 @@
     if(!enabled) return;
     var selectors=['#countdownTitle','#countdownMessage','#countdownBox','#greetingTitle','#greetingText','#enterWorldBtn','#cakeHappyText','#cakeBirthdayText','#cakeNameText','#cakeStatus','#cakeNextBtn','#reasonsTitle','#photoTitle','#photoSubtitle','#photoNextBtn','#videoTitle','#videoNextBtn','#letterTitle','#letterContent','#letterReturnBtn','#secretButton'];
     selectors.forEach(function(sel){ var el=document.querySelector(sel); if(!el)return; if(!el.getAttribute('data-bb-key')){
-      var map={'#countdownTitle':['mb.countdown.title','Countdown title'],'#countdownMessage':['mb.countdown.message','Countdown message'],'#countdownBox':['mb.countdown.birthdayDateTime','Birthday date & time'],'#greetingTitle':['mb.greeting.heading','Greeting heading'],'#greetingText':['mb.greeting.text','Greeting text'],'#enterWorldBtn':['mb.greeting.enterButton','Enter button text'],'#cakeHappyText':['mb.cake.cakeText','Cake first line'],'#cakeBirthdayText':['mb.cake.birthdayText','Cake second line'],'#cakeNameText':['mb.cake.recipientName','Cake name'],'#cakeStatus':['mb.cake.cakeStatus','Cake cut message'],'#cakeNextBtn':['mb.cake.nextButton','Cake next button'],'#reasonsTitle':['mb.reasons.heading','Reasons heading'],'#reasonsBtn':['mb.reasons.buttonText','Reasons button'],'#photoTitle':['mb.memories.heading','Gallery heading'],'#photoSubtitle':['mb.memories.subtitle','Gallery subtitle'],'#photoNextBtn':['mb.memories.nextButton','Gallery next button'],'#videoTitle':['mb.videos.title','Video heading'],'#videoNextBtn':['mb.videos.nextButton','Video next button'],'#letterTitle':['mb.letter.title','Letter title'],'#letterContent':['mb.letter.paragraphs','Letter content'],'#letterReturnBtn':['mb.letter.buttonText','Letter button'],'#secretButton':['mb.secret.buttonText','Secret button']};
+      var map={'#countdownTitle':['mb.countdown.title','Countdown title'],'#countdownMessage':['mb.countdown.message','Countdown message'],'#countdownBox':['mb.countdown.birthdayDateTime','Birthday date & time'],'#greetingTitle':['mb.greeting.heading','Greeting heading'],'#greetingText':['mb.greeting.text','Greeting text'],'#enterWorldBtn':['mb.greeting.enterButton','Enter button text'],'#cakeHappyText':['mb.cake.group','Cake text'],'#cakeBirthdayText':['mb.cake.group','Cake text'],'#cakeNameText':['mb.cake.group','Cake text'],'#cakeStatus':['mb.cake.cakeStatus','Cake cut message'],'#cakeNextBtn':['mb.cake.nextButton','Cake next button'],'#reasonsTitle':['mb.reasons.heading','Reasons heading'],'#reasonsBtn':['mb.reasons.buttonText','Reasons button'],'#photoTitle':['mb.memories.heading','Gallery heading'],'#photoSubtitle':['mb.memories.subtitle','Gallery subtitle'],'#photoNextBtn':['mb.memories.nextButton','Gallery next button'],'#videoTitle':['mb.videos.title','Video heading'],'#videoNextBtn':['mb.videos.nextButton','Video next button'],'#letterTitle':['mb.letter.title','Letter title'],'#letterContent':['mb.letter.paragraphs','Letter content'],'#letterReturnBtn':['mb.letter.buttonText','Letter button'],'#secretButton':['mb.secret.buttonText','Secret button']};
       var m=map[sel]; if(m){el.setAttribute('data-bb-key',m[0]);el.setAttribute('data-bb-label',m[1]);}
     }
     var h=function(e){e.preventDefault();e.stopPropagation();select(e.currentTarget);}; el.addEventListener('click',h,true); cleanups.push(function(){el.removeEventListener('click',h,true);}); });

@@ -126,6 +126,16 @@ export default function UniversalElementEditor({ selected, content, templateId, 
           }} /><small className="builder-field-hint">Also updates the cake candle count.</small></Field>
         </>;
       }
+      if (path === 'cake.group') {
+        const cake = cfg.cake || {};
+        return <>
+          <div className="universal-editor-media-head"><div className="universal-editor-icon"><Edit3 size={16}/></div><div><b>Cake text</b><span>Edit all three cake texts together</span></div></div>
+          <Field label="First line"><input autoFocus value={String(cake.cakeText || '')} onChange={e => updateMasterBirthdayPath('cake.cakeText', e.target.value)} /></Field>
+          <Field label="Second line"><input value={String(cake.birthdayText || '')} onChange={e => updateMasterBirthdayPath('cake.birthdayText', e.target.value)} /></Field>
+          <Field label="Name"><input value={String(cake.recipientName || '')} onChange={e => updateMasterBirthdayPath('cake.recipientName', e.target.value)} /></Field>
+          <p className="builder-note">Click any of the three texts on the cake to open this same editor. Changes appear instantly in the canvas.</p>
+        </>;
+      }
       if (path === 'cake.ageCandleCount') {
         return <Field label="Birthday age"><input type="number" min="1" max="120" value={Number(get(path) || 1)} onChange={e=>updateMasterBirthdayPath(path, Math.max(1, Number(e.target.value)||1))} /><small className="builder-field-hint">Sets the number of birthday candles.</small></Field>;
       }

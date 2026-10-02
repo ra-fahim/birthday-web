@@ -312,6 +312,10 @@ export default function Builder() {
       if ((templateId === 'master' || templateId === 'master-birthday') && raw.key.startsWith('mb.')) {
         const current = mergeMasterBirthdayConfig((c.templateConfig as any)?.masterBirthday);
         const next: any = JSON.parse(JSON.stringify(current));
+        if (raw.key === 'mb.cake.group') {
+          setSelectedElement({ key: raw.key, label, index, value });
+          return;
+        }
         const path = raw.key.slice(3).split('.');
         let cursor = next;
         for (let i=0;i<path.length-1;i++) cursor = cursor[path[i]] ?? (cursor[path[i]] = {});
