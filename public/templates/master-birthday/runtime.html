@@ -1132,15 +1132,34 @@
         document.body.addEventListener('click', handleGlobalClick);
         document.body.addEventListener('touchstart', handleGlobalClick);
 
-        function getConfiguredBirthdayTarget() {
+        const BIRTHDAY_GREETING_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+        function getConfiguredBirthdayTarget(yearOverride) {
             const configuredYear = Number(CONFIG.year);
-            const year = Number.isFinite(configuredYear) && configuredYear > 0 ? configuredYear : new Date().getFullYear();
+            const fallbackYear = new Date().getFullYear();
+            const year = Number.isFinite(yearOverride) && yearOverride > 0
+                ? yearOverride
+                : (Number.isFinite(configuredYear) && configuredYear > 0 ? configuredYear : fallbackYear);
             return new Date(year, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
         }
 
+        // A published birthday has three states:
+        // 1) countdown until the configured target,
+        // 2) greeting for exactly 24 hours after the target,
+        // 3) the next year's countdown after that 24-hour window ends.
+        // The first saved year is treated as the anchor; after the 24-hour
+        // greeting window, the cycle advances one year at a time.
+        function getBirthdayCycle(date = new Date()) {
+            let target = getConfiguredBirthdayTarget();
+            while (date >= new Date(target.getTime() + BIRTHDAY_GREETING_WINDOW_MS)) {
+                target = getConfiguredBirthdayTarget(target.getFullYear() + 1);
+            }
+            const greetingEndsAt = new Date(target.getTime() + BIRTHDAY_GREETING_WINDOW_MS);
+            return { target, greetingEndsAt, inGreetingWindow: date >= target && date < greetingEndsAt };
+        }
+
         function isBirthday(date) {
-            const target = getConfiguredBirthdayTarget();
-            return date >= target;
+            return getBirthdayCycle(date).inGreetingWindow;
         }
 
         const photoAlbum = Array.from(document.querySelectorAll('.photo-card img')).map(img => img.getAttribute('src'));
@@ -1261,7 +1280,8 @@
                 return;
             }
 
-            const isBirthdayToday = isBirthday(now);
+            const cycle = getBirthdayCycle(now);
+            const isBirthdayToday = cycle.inGreetingWindow;
 
             document.getElementById('countdownMessage').innerHTML =
                 `⏰ Something is coming soon...`;
@@ -1297,12 +1317,12 @@
             document.getElementById('greetingScreen').classList.remove('show');
             document.getElementById('countdownScreen').classList.remove('hide');
 
-            // Published/live mode uses the exact configured birthday date and time.
-            // Once that target passes, the countdown stays finished instead of
-            // rolling forward to next year's birthday.
-            const birthday = getConfiguredBirthdayTarget();
+            // Published/live mode uses the active yearly occurrence. The target
+            // remains fixed through the 24-hour greeting window, then advances
+            // to the same month/day/time in the next year.
+            const birthday = cycle.target;
             const diff = birthday - now;
-            const totalSecondsLeft = Math.ceil(diff / 1000);
+            const totalSecondsLeft = Math.max(0, Math.ceil(diff / 1000));
 
             if (diff > 0) {
                 const days = Math.floor(totalSecondsLeft / (60 * 60 * 24));
@@ -2572,32 +2592,14 @@
     demoTimer=null;
     window.__BB_FORCE_DEMO = true;
 
-    // Preview simulates only the opening 10-second countdown when the
-    // configured birthday is still in the future. Once the real configured
-    // birthday time has already passed, Preview follows the live experience
-    // and skips the countdown entirely.
+    // Builder Preview is intentionally deterministic: regardless of whether
+    // the edited birthday is minutes away, months away, or already passed,
+    // Preview always plays the final 10 seconds and then opens Greeting.
+    // This is separate from the published/live yearly birthday cycle below.
     if(BB_PREVIEW_MODE){
-      const target = (function(){
-        const rawDate = String(state?.birthdayDate || '').trim();
-        const rawTime = String(state?.birthdayTime || '00:00').trim();
-        const parts = rawDate.split('-').map(Number);
-        const tm = rawTime.split(':').map(Number);
-        if(parts.length < 3 || parts.some(n=>!Number.isFinite(n))) return null;
-        const hh = Number.isFinite(tm[0]) ? tm[0] : 0;
-        const mm = Number.isFinite(tm[1]) ? tm[1] : 0;
-        const d = new Date(parts[0], parts[1]-1, parts[2], hh, mm, 0);
-        return Number.isNaN(d.getTime()) ? null : d;
-      })();
-      if(target && Date.now() >= target.getTime()){
-        const screens=['countdownScreen','greetingScreen','cakeScreen','reasonsScreen','photoScreen','videoScreen','letterScreen','secretScreen'];
-        screens.forEach(id=>{ const el=q('#'+id); if(!el)return; el.classList.remove('show','hide'); el.style.display='none'; el.style.pointerEvents='none'; });
-        const greeting=q('#greetingScreen');
-        if(greeting){ greeting.style.display='flex'; greeting.style.pointerEvents='auto'; greeting.classList.add('show'); }
-        window.__BB_DEMO_UNLOCKED = true;
-        try{if(typeof typeGreeting==='function') typeGreeting();}catch(_){}
-        syncAudioToggle();
-        return;
-      }
+      // No date comparison here by design.
+      // The configured date/time is still preserved in the editor state and
+      // will control the real published link.
     }
     window.__BB_DEMO_UNLOCKED = false;
     musicEnabled = !window.__BB_EDITOR_MODE && !BB_PREVIEW_MODE;
