@@ -760,7 +760,7 @@
         }
 
         function playBirthdayAudio() {
-            if (window.__BB_EDITOR_MODE || window.__BB_PREVIEW_MODE || window.__BB_CATALOG_MODE || (window.__BB_FORCE_DEMO && !musicEnabled) || birthdayAudioPlayed) return;
+            if ((window.__BB_EDITOR_MODE && !window.__BB_PREVIEW_MODE) || window.__BB_CATALOG_MODE || (window.__BB_FORCE_DEMO && !musicEnabled) || birthdayAudioPlayed) return;
             if (!ytApiReady || !ytPlayerReady) {
                 pendingPlay = true;
                 return;
@@ -1124,7 +1124,7 @@
             // In demo mode, soundtrack music is deliberately locked until the
             // 10-second demo countdown finishes. This prevents wishing/track
             // audio from leaking into the countdown screen.
-            if (window.__BB_FORCE_DEMO || window.__BB_PREVIEW_MODE || window.__BB_CATALOG_MODE) return;
+            if (window.__BB_FORCE_DEMO || window.__BB_CATALOG_MODE) return;
 
             const now = new Date();
             const isBirthdayToday = isBirthday(now);
@@ -1265,18 +1265,72 @@
             // Demo mode owns the countdown completely. The normal annual
             // birthday clock must never overwrite the demo's 10-second timer.
             if (window.__BB_FORCE_DEMO) return;
-            if (window.__BB_PREVIEW_SIMULATION_ACTIVE) return;
 
             const now = new Date();
 
-            // Edit canvas mode keeps navigation manual. Realtime Preview, however,
-            // uses the exact same clock/state machine as the published site.
+            // Editor Preview follows the real birthday state: if the configured
+            // target has not arrived yet, simulate only the final 10 seconds;
+            // if the target is already active (within the 24h greeting window),
+            // open Greeting immediately; after the window, preview the next cycle.
+            if (window.__BB_PREVIEW_MODE && state?.birthdayDate) {
+                if (window.__BB_PREVIEW_COUNTDOWN_COMPLETED) return;
+                const cycle = getBirthdayCycle(now);
+                const diff = cycle.target - now;
+                if (cycle.inGreetingWindow) {
+                    countdownFinished = true;
+                    countdownAudio.pause();
+                    countdownAudio.currentTime = 0;
+                    showScreen('greeting');
+                        if (!confettiShown) {
+                            confettiShown = true;
+                            confetti({ particleCount: 100, spread: 70 });
+                        }
+                        if (charIndex === 0) typeGreeting();
+                        if (!birthdayAudioPlayed) playBirthdayAudio();
+                    return;
+                }
+                // Future target: use a deterministic 10-second editor preview.
+                if (diff > 0) {
+                    if (countdownFinished) countdownFinished = false;
+                    const previewEndsAt = window.__BB_PREVIEW_COUNTDOWN_END_AT || (window.__BB_PREVIEW_COUNTDOWN_END_AT = Date.now() + 10000);
+                    const left = Math.max(0, previewEndsAt - Date.now());
+                    const total = Math.ceil(left / 1000);
+                    const d = Math.floor(total / 86400);
+                    const h = Math.floor((total / 3600) % 24);
+                    const m = Math.floor((total / 60) % 60);
+                    const sec = total % 60;
+                    const setPreview = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = String(value).padStart(2, '0'); };
+                    setPreview('days', d); setPreview('hours', h); setPreview('mins', m); setPreview('secs', sec);
+                    document.getElementById('greetingScreen')?.classList.remove('show');
+                    document.getElementById('countdownScreen')?.classList.remove('hide');
+                    if (left <= 0) {
+                        countdownFinished = true;
+                        window.__BB_PREVIEW_COUNTDOWN_COMPLETED = true;
+                        showScreen('greeting');
+                        if (!confettiShown) { confettiShown = true; confetti({ particleCount: 100, spread: 70 }); }
+                        if (charIndex === 0) typeGreeting();
+                        if (!birthdayAudioPlayed) playBirthdayAudio();
+                        return;
+                    }
+                    if (!countdownAudioPlayed && state.countdown.audioEnabled && total <= 10) {
+                        countdownAudio.muted = false;
+                        countdownAudio.play().then(() => { countdownAudioPlayed = true; }).catch(() => {});
+                    }
+                    return;
+                }
+                // Defensive fallback: if the anchor is stale and already beyond
+                // the greeting window, the cycle calculation supplies the next year.
+            }
+
+            // Editing canvas should always show the real configured countdown
+            // while keeping navigation/manual screen control in the editor.
+            // Do not derive the target from the older CONFIG snapshot; use the
+            // same timezone-aware cycle state as the published page so a newly
+            // edited birthday date is reflected immediately instead of leaving
+            // the canvas stuck at 00:00:00:00.
             if (window.__BB_EDITOR_MODE && !window.__BB_PREVIEW_MODE) {
-                const currentYear = now.getFullYear();
-                const configuredYear = Number(state?.birthdayDate?.slice(0,4));
-                let editorBirthday = new Date(Number.isFinite(configuredYear) && configuredYear > 0 ? configuredYear : currentYear, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
-                if (!(Number.isFinite(configuredYear) && configuredYear > 0) && now > editorBirthday) editorBirthday = new Date(currentYear + 1, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
-                const editorDiff = Math.max(0, editorBirthday - now);
+                const cycle = getBirthdayCycle(now);
+                const editorDiff = Math.max(0, cycle.target - now);
                 const editorTotal = Math.ceil(editorDiff / 1000);
                 const days = Math.floor(editorTotal / (60 * 60 * 24));
                 const hours = Math.floor((editorTotal / (60 * 60)) % 24);
@@ -1285,7 +1339,7 @@
                 const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = String(value).padStart(2, '0'); };
                 set('days', days); set('hours', hours); set('mins', mins); set('secs', secs);
                 const msg = document.getElementById('countdownMessage');
-                if (msg) msg.textContent = 'Click the countdown to set the birthday date & time.';
+                if (msg) msg.textContent = cycle.inGreetingWindow ? '🎉 Birthday time is here!' : 'Click the countdown to set the birthday date & time.';
                 countdownFinished = false;
                 return;
             }
@@ -1346,7 +1400,7 @@
                 document.getElementById('secs').textContent = String(secs).padStart(2, '0');
             }
 
-            if (!window.__BB_CATALOG_MODE && !window.__BB_PREVIEW_MODE && totalSecondsLeft <= 10 && diff > 0 && !countdownAudioPlayed && audioAllowed) {
+            if (!window.__BB_CATALOG_MODE && totalSecondsLeft <= 10 && diff > 0 && !countdownAudioPlayed && (musicEnabled || window.__BB_PREVIEW_MODE)) {
                 countdownAudio.play()
                     .then(() => { countdownAudioPlayed = true; })
                     .catch(error => {});
@@ -1408,6 +1462,19 @@
         function loadCakeState() {
             const today = new Date();
             const dateKey = getDateKey(today);
+
+            // Template demos are always fresh interactive showcases. Never
+            // inherit candle/cake state from a previous demo session or from
+            // another standalone render in the same browser.
+            if (window.__BB_FORCE_DEMO) {
+                cakeCut = false;
+                candlesBlown = 0;
+                knifePickedUp = false;
+                cutAngle = 0;
+                renderCake();
+                return;
+            }
+
             cakeCut = localStorage.getItem(getStorageKey('cut', dateKey)) === 'true';
             candlesBlown = parseInt(localStorage.getItem(getStorageKey('blown', dateKey)) || '0');
             knifePickedUp = false;
@@ -1496,6 +1563,8 @@
         }
 
         function saveState() {
+            // Demo state intentionally stays in-memory so every demo opens fresh.
+            if (window.__BB_FORCE_DEMO) return;
             const today = new Date();
             const dateKey = getDateKey(today);
             localStorage.setItem(getStorageKey('blown', dateKey), candlesBlown.toString());
@@ -1617,8 +1686,10 @@
             const today = new Date();
             const dateKey = getDateKey(today);
             cakeCut = true;
-            localStorage.setItem(getStorageKey('cut', dateKey), 'true');
-            localStorage.setItem(getStorageKey('cutAngle', dateKey), String(cutAngle));
+            if (!window.__BB_FORCE_DEMO) {
+                localStorage.setItem(getStorageKey('cut', dateKey), 'true');
+                localStorage.setItem(getStorageKey('cutAngle', dateKey), String(cutAngle));
+            }
             stopMicrophone();
 
             applyWedgeAtAngle(cutAngle);
@@ -2105,8 +2176,6 @@
   let receivedContent = false;
   let demoTimer = null;
   let demoCountdownEndsAt = 0;
-  let previewTimer = null;
-  let previewCountdownEndsAt = 0;
   let currentTrackIndex = 0;
   let bbSiteKey = '';
   let bgAudio = null;
@@ -2134,73 +2203,6 @@
   const qa = (selector, root=document) => Array.from(root.querySelectorAll(selector));
   const setText = (selector, value, root=document) => { const el = typeof selector === 'string' ? q(selector, root) : selector; if (el) el.textContent = value == null ? '' : String(value); };
   const setHtml = (selector, value, root=document) => { const el = typeof selector === 'string' ? q(selector, root) : selector; if (el) el.innerHTML = value == null ? '' : String(value); };
-
-  const PREVIEW_SCREENS = ['countdownScreen','greetingScreen','cakeScreen','reasonsScreen','photoScreen','videoScreen','letterScreen','secretScreen'];
-  function setPreviewScreen(activeId){
-    PREVIEW_SCREENS.forEach(id => {
-      const el = q('#' + id);
-      if(!el) return;
-      if(id === activeId){
-        el.style.display = '';
-        el.style.pointerEvents = '';
-        el.classList.remove('hide');
-      }else{
-        el.style.display = 'none';
-        el.style.pointerEvents = 'none';
-        el.classList.remove('show');
-      }
-    });
-  }
-  function stopEditorPreviewSimulation(){
-    if(previewTimer){ clearInterval(previewTimer); previewTimer = null; }
-    previewCountdownEndsAt = 0;
-    window.__BB_PREVIEW_SIMULATION_ACTIVE = false;
-  }
-  function showEditorPreviewGreeting(){
-    stopEditorPreviewSimulation();
-    countdownFinished = true;
-    try{ countdownAudio.pause(); countdownAudio.currentTime = 0; }catch(_){}
-    setPreviewScreen('greetingScreen');
-    q('#greetingScreen')?.classList.add('show');
-    window.__BB_DEMO_UNLOCKED = false;
-    try{ if(typeof typeGreeting === 'function') typeGreeting(); }catch(_){}
-  }
-  function startEditorPreviewSimulation(){
-    stopEditorPreviewSimulation();
-    if(!window.__BB_PREVIEW_MODE) return;
-    window.__BB_PREVIEW_SIMULATION_ACTIVE = true;
-
-    // Preview mirrors the real published state at the moment it is opened:
-    // an active greeting window opens directly to Greeting, while a future
-    // birthday simulates only the final 10 seconds. It never changes the
-    // published/live clock itself.
-    const cycle = getBirthdayCycle(new Date());
-    if(cycle.inGreetingWindow){
-      showEditorPreviewGreeting();
-      return;
-    }
-
-    previewCountdownEndsAt = Date.now() + 10000;
-    setPreviewScreen('countdownScreen');
-    const tick = () => {
-      if(!window.__BB_PREVIEW_MODE){ stopEditorPreviewSimulation(); return; }
-      const left = Math.max(0, previewCountdownEndsAt - Date.now());
-      const totalSeconds = Math.ceil(left / 1000);
-      const days = Math.floor(totalSeconds / 86400);
-      const hours = Math.floor((totalSeconds / 3600) % 24);
-      const mins = Math.floor((totalSeconds / 60) % 60);
-      const secs = totalSeconds % 60;
-      setText('#days', String(days).padStart(2,'0'));
-      setText('#hours', String(hours).padStart(2,'0'));
-      setText('#mins', String(mins).padStart(2,'0'));
-      setText('#secs', String(secs).padStart(2,'0'));
-      if(left <= 0){
-        showEditorPreviewGreeting();
-      }
-    };
-    tick();
-    previewTimer = setInterval(tick, 100);
-  }
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const safeUrl = (value) => { try { const u = new URL(String(value || ''), location.href); return ['http:','https:','blob:'].includes(u.protocol) ? u.href : ''; } catch (_) { return ''; } };
   function zonedDateTimeToDate(date, time, timeZone){
@@ -2336,7 +2338,7 @@
     const ca = q('#countdownAudio');
     // Countdown audio follows the configured setting on the live site, but is
     // forcibly muted in demo/preview mode so opening a template never creates sound.
-    if (ca) ca.muted = !state.countdown.audioEnabled || !!window.__BB_CATALOG_MODE || (!!window.__BB_FORCE_DEMO && !musicEnabled) || !!window.__BB_EDITOR_MODE;
+    if (ca) ca.muted = !state.countdown.audioEnabled || !!window.__BB_CATALOG_MODE || (!!window.__BB_FORCE_DEMO && !musicEnabled) || (!!window.__BB_EDITOR_MODE && !window.__BB_PREVIEW_MODE);
   }
 
   function applyCake() {
@@ -2349,8 +2351,12 @@
     setText('#micHint', state.cake.micHint);
     setText('#cutHint', state.cake.cutInstruction);
     setText('#cakeNextBtn', state.cake.nextButton);
-    const mic = q('#micHint'); if (mic) mic.style.display = state.cake.microphoneEnabled ? '' : 'none';
-    const microphoneAllowed = !!state.cake.microphoneEnabled && !!state.effects.microphone;
+    const mic = q('#micHint');
+    if (mic) {
+      mic.style.display = state.cake.microphoneEnabled ? '' : 'none';
+      if (window.__BB_FORCE_DEMO) mic.textContent = '🕯️ Tap the candles to blow them out';
+    }
+    const microphoneAllowed = !window.__BB_FORCE_DEMO && !!state.cake.microphoneEnabled && !!state.effects.microphone;
     const soundEffectsAllowed = !!state.cake.soundEffects && !!state.effects.soundEffects;
     const vibrationAllowed = !!state.cake.vibration && !!state.effects.vibration;
     window.startMicrophone = microphoneAllowed && typeof originalStartMicrophone === 'function' ? originalStartMicrophone : function(){};
@@ -2587,7 +2593,7 @@
     btn.firstChild && (btn.firstChild.textContent = musicEnabled ? '🔊 ' : '🔇 ');
   }
   function setMusicEnabled(enabled){
-    if(window.__BB_EDITOR_MODE){ musicEnabled=false; syncAudioToggle(); return; }
+    if(window.__BB_EDITOR_MODE && !window.__BB_PREVIEW_MODE){ musicEnabled=false; syncAudioToggle(); return; }
     musicEnabled = !!enabled;
     if(!musicEnabled) {
       // Explicitly clearing these guards lets a later user ON action resume
@@ -2640,7 +2646,7 @@
     }
   }
   window.playBirthdayAudio=function(){
-    if(window.__BB_EDITOR_MODE || window.__BB_CATALOG_MODE || !musicEnabled || birthdayAudioPlayed) return;
+    if((window.__BB_EDITOR_MODE && !window.__BB_PREVIEW_MODE) || window.__BB_CATALOG_MODE || !musicEnabled || birthdayAudioPlayed) return;
     if(window.__BB_FORCE_DEMO && !window.__BB_DEMO_UNLOCKED) return;
     const source=String(state.wishingAudioUrl||DEFAULT.wishingAudioUrl||'').trim();
     const type=sourceType(source);
@@ -2690,7 +2696,6 @@
     applyBasics();applyTheme();applyEffects();applyCountdown();applyGreeting();applyCake();applyReasons();applyMemories();applyVideos();applyLetter();applySecret();applyTrackEngine();markEditableTargets();
     syncAudioToggle();
     if(demoStarted && !window.__BB_PREVIEW_HOST_MODE) startDemoCountdown();
-    if(window.__BB_PREVIEW_MODE && window.__BB_PREVIEW_HOST_MODE) startEditorPreviewSimulation();
   }
 
   function startDemoCountdown(){
@@ -2699,10 +2704,10 @@
     demoTimer=null;
     window.__BB_FORCE_DEMO = true;
 
-    // Demo/catalog preview is intentionally deterministic: regardless of
-    // any saved birthday date, the demo always plays the final 10 seconds
-    // and then opens Greeting. Editor Preview uses its own realtime simulation
-    // below and is never routed through this demo timer.
+    // Builder Preview is intentionally deterministic: regardless of whether
+    // the edited birthday is minutes away, months away, or already passed,
+    // Preview always plays the final 10 seconds and then opens Greeting.
+    // This is separate from the published/live yearly birthday cycle below.
     window.__BB_DEMO_UNLOCKED = false;
     musicEnabled = !window.__BB_EDITOR_MODE && !BB_PREVIEW_MODE && !window.__BB_CATALOG_MODE;
     birthdayAudioPlayed = false;
@@ -2763,7 +2768,28 @@
 
   window.addEventListener('message',function(event){
     const data=event.data||{};
-    if(data.type==='BB_CONTENT'){receivedContent=true;window.BB_CONTENT=data.content||{};bbSiteKey=String(data.siteKey||data.websiteSlug||'');applyAll(data.content||{});return;}
+    if(data.type==='BB_CONTENT'){receivedContent=true;
+      const previousDate=String(state?.birthdayDate||'');
+      const previousTime=String(state?.birthdayTime||'');
+      window.BB_CONTENT=data.content||{};bbSiteKey=String(data.siteKey||data.websiteSlug||'');
+      applyAll(data.content||{});
+      if(window.__BB_PREVIEW_MODE){
+        // Re-start the editor preview simulation whenever new content arrives.
+        // This keeps the preview synced with the latest date/time and edits.
+        const dateChanged=previousDate!==String(state?.birthdayDate||'') || previousTime!==String(state?.birthdayTime||'');
+        if(dateChanged || !window.__BB_PREVIEW_COUNTDOWN_END_AT){
+          window.__BB_PREVIEW_COUNTDOWN_END_AT=null;
+          window.__BB_PREVIEW_COUNTDOWN_COMPLETED=false;
+          countdownFinished=false;
+          birthdayAudioPlayed=false;
+          countdownAudioPlayed=false;
+        }
+        updateCountdown();
+      }else if(!window.__BB_FORCE_DEMO){
+        updateCountdown();
+      }
+      return;
+    }
     if(data.type==='BB_CATALOG_MODE'){
       window.__BB_CATALOG_MODE = data.enabled !== false;
       demoStarted = window.__BB_CATALOG_MODE;
@@ -2780,16 +2806,21 @@
         window.__BB_PREVIEW_HOST_MODE = true;
         demoStarted = false;
         window.__BB_PREVIEW_MODE = true;
-        // Editor preview is a visitor simulation only: future birthdays use the
-        // final 10 seconds, while an already-active birthday opens at Greeting.
+        // Preview must use the currently supplied BB_CONTENT and the realtime clock.
         window.__BB_FORCE_DEMO = false;
-        musicEnabled = false;
-        if(receivedContent){ startEditorPreviewSimulation(); }
+        window.__BB_PREVIEW_COUNTDOWN_END_AT = null;
+        window.__BB_PREVIEW_COUNTDOWN_COMPLETED = false;
+        countdownFinished = false;
+        birthdayAudioPlayed = false;
+        countdownAudioPlayed = false;
+        musicEnabled = true;
+        if(receivedContent){ updateCountdown(); }
       } else {
-        stopEditorPreviewSimulation();
         window.__BB_PREVIEW_HOST_MODE = false;
         window.__BB_PREVIEW_MODE = false;
         window.__BB_FORCE_DEMO = false;
+        window.__BB_PREVIEW_COUNTDOWN_END_AT = null;
+        window.__BB_PREVIEW_COUNTDOWN_COMPLETED = false;
         updateCountdown();
       }
       return;

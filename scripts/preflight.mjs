@@ -35,9 +35,12 @@ for (const marker of masterTemplateMarkers) {
 const runtime = fs.readFileSync(path.join(root, 'public/templates/master-birthday/runtime.html'), 'utf8');
 const demoGuards = [
   'let musicEnabled = !window.__BB_FORCE_DEMO && !window.__BB_EDITOR_MODE && !window.__BB_CATALOG_MODE;',
-  'ca.muted = !state.countdown.audioEnabled || !!window.__BB_CATALOG_MODE || (!!window.__BB_FORCE_DEMO && !musicEnabled) || !!window.__BB_EDITOR_MODE;',
+  'ca.muted = !state.countdown.audioEnabled || !!window.__BB_CATALOG_MODE || (!!window.__BB_FORCE_DEMO && !musicEnabled) || (!!window.__BB_EDITOR_MODE && !window.__BB_PREVIEW_MODE);',
   "if(data.type==='BB_DEMO_AUDIO_ENABLED'){ setMusicEnabled(data.enabled !== false); return; }",
   "if(data.type==='BB_DEMO_PLAY_AUDIO'){ return; }",
+  "if (window.__BB_PREVIEW_MODE && state?.birthdayDate)",
+  "window.__BB_PREVIEW_COUNTDOWN_END_AT",
+  "if(data.type==='BB_CONTENT'){receivedContent=true;",
   'if (window.__BB_FORCE_DEMO || micAutoRequested',
 ];
 for (const marker of demoGuards) {
