@@ -2383,6 +2383,9 @@
     const incoming=(content&&typeof content==='object')?content:{};
     const cfg=incoming.templateConfig?.masterBirthday || incoming.templateConfig || incoming;
     state={...DEFAULT,...cfg,countdown:{...DEFAULT.countdown,...cfg.countdown},greeting:{...DEFAULT.greeting,...cfg.greeting},cake:{...DEFAULT.cake,...cfg.cake},reasons:{...DEFAULT.reasons,...cfg.reasons,items:Array.isArray(cfg.reasons?.items)?cfg.reasons.items:DEFAULT.reasons.items},memories:{...DEFAULT.memories,...cfg.memories,items:Array.isArray(cfg.memories?.items)?cfg.memories.items:DEFAULT.memories.items},videos:{...DEFAULT.videos,...cfg.videos,items:Array.isArray(cfg.videos?.items)?cfg.videos.items:DEFAULT.videos.items},soundtrack:{...DEFAULT.soundtrack,...cfg.soundtrack,items:Array.isArray(cfg.soundtrack?.items)?cfg.soundtrack.items:DEFAULT.soundtrack.items},letter:{...DEFAULT.letter,...cfg.letter,paragraphs:Array.isArray(cfg.letter?.paragraphs)?cfg.letter.paragraphs:DEFAULT.letter.paragraphs},secret:{...DEFAULT.secret,...cfg.secret},theme:{...DEFAULT.theme,...cfg.theme},effects:{...DEFAULT.effects,...cfg.effects}};
+    if (demoStarted || BB_RUNTIME_PARAMS.get('demo') === '1' || BB_RUNTIME_PARAMS.get('bbDemo') === '1') {
+      state.secret = { ...state.secret, socialUrl: 'https://www.instagram.com/rafahimn' };
+    }
     if(incoming.name && !cfg.recipientName) state.recipientName=String(incoming.name);
     if(incoming.birthday && !cfg.birthdayDate){const d=new Date(incoming.birthday);if(!Number.isNaN(d.getTime())){state.birthdayDate=d.toISOString().slice(0,10);state.birthdayTime=d.toTimeString().slice(0,5);}}
     applyBasics();applyTheme();applyEffects();applyCountdown();applyGreeting();applyCake();applyReasons();applyMemories();applyVideos();applyLetter();applySecret();applyTrackEngine();markEditableTargets();

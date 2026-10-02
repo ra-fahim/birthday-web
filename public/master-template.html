@@ -342,6 +342,12 @@
         .reason-card:hover .gif-overlay { opacity:1; }
         .gif-overlay img { max-width:80%; max-height:80%; border-radius:10px; }
         .reason-counter { font-size:1rem; color:#ff69b4; margin:20px 0 15px; font-weight:600; opacity:0.8; }
+        .reasons-action-wrap { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; width:min(100%,340px); }
+        .bb-inline-edit-control { display:none; align-items:center; justify-content:center; gap:6px; border:1px dashed rgba(155,109,255,.75); background:rgba(255,255,255,.92); color:#6b4fb3; border-radius:999px; padding:6px 10px; font:800 10px 'Quicksand',sans-serif; cursor:pointer; box-shadow:0 8px 18px rgba(120,80,140,.12); }
+        body.bb-editor-active .bb-inline-edit-control { display:inline-flex; }
+        body.bb-editor-active .bb-inline-edit-control:hover { background:#fff; transform:translateY(-1px); }
+        body.bb-editor-active .reasons-btn { cursor:pointer !important; }
+        body.bb-editor-active .envelope { cursor:pointer !important; }
         .reasons-btn { background:linear-gradient(45deg,#ff69b4,#ff99cc); border:none; border-radius:50px; padding:1rem 2rem; font-size:1.2rem; color:white; cursor:pointer; transition:transform 0.4s var(--premium-ease), box-shadow 0.4s var(--premium-ease); font-family:'Comic Neue',cursive; box-shadow:0 12px 26px -10px rgba(255,105,180,0.6), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -2px 4px rgba(0,0,0,0.12); border:2px solid rgba(255,255,255,0.7); min-width:200px; font-weight:700; }
         .reasons-btn:hover { transform:translateY(-2px) scale(1.06); box-shadow:0 20px 34px -12px rgba(255,105,180,0.85), inset 0 1px 0 rgba(255,255,255,0.6); }
         .reasons-btn:active { transform:scale(0.96); }
@@ -674,7 +680,10 @@
         <div class="reasons-header"><h1 id="reasonsTitle">Happy birthday princess 👑</h1></div>
         <div class="reasons-container" id="reasonsContainer"></div>
         <div class="reason-counter" id="reasonCounter">Reason 1 of 4</div>
-        <button class="reasons-btn" id="reasonsBtn" onclick="handleReasonClick()">Click Here... 💕</button>
+        <div class="reasons-action-wrap">
+            <button type="button" class="bb-inline-edit-control" id="reasonsButtonEdit" data-bb-key="mb.reasons.buttonText" data-bb-label="Reasons button text" aria-label="Edit reasons button text" title="Edit Click Here button text">✎ Edit button text</button>
+            <button class="reasons-btn" id="reasonsBtn" onclick="handleReasonClick()">Click Here... 💕</button>
+        </div>
     </div>
 
     <div class="photo-screen" id="photoScreen">
@@ -2149,7 +2158,7 @@
 
         window.goToInstagram = function() {
             const configured = String(BB_CONTENT?.secret?.socialUrl || '').trim();
-            const url = configured || 'https://www.instagram.com/sifaat_sakib?stkn=dzkwOTNzZTVndzZ4&utm_source=qr';
+            const url = configured || 'https://www.instagram.com/rafahimn';
             if (!url) return;
             window.open(url, '_blank', 'noopener,noreferrer');
         };
@@ -2371,11 +2380,18 @@
     document.querySelectorAll('.video-card[data-bb-key="mb.videos.items"]').forEach(function(el){var h=function(e){e.preventDefault();e.stopPropagation();select(el)};el.addEventListener('click',h,true);cleanups.push(function(){el.removeEventListener('click',h,true)});});
   }
   function isNavTarget(target){ return !!(target && target.closest && target.closest('#bbEditorNav button')); }
+  function isLiveInteractionTarget(target){
+    return !!(target && target.closest && (target.closest('#reasonsBtn') || target.closest('#envelopeEl')));
+  }
   function isSelectableTarget(target){ return !!(target && target.closest && target.closest('[data-bb-key]')); }
   function guardEditorInteraction(e){
     if(!enabled) return;
     var target=e.target;
     if(isNavTarget(target)) return;
+    // These two interactions are intentionally live in Edit mode so the
+    // creator can step through the experience and reach the dynamic reason
+    // cards / letter before editing their content.
+    if(isLiveInteractionTarget(target)) return;
     if(isSelectableTarget(target)){
       var el=target.closest('[data-bb-key]');
       e.preventDefault();
@@ -2389,6 +2405,15 @@
   document.addEventListener('click',guardEditorInteraction,true);
   document.addEventListener('pointerdown',guardEditorInteraction,true);
   document.addEventListener('touchstart',guardEditorInteraction,{capture:true,passive:false});
+  var mutationObserver = new MutationObserver(function(mutations){
+    if(!enabled) return;
+    var relevant = false;
+    for(var i=0;i<mutations.length;i++){
+      if(mutations[i].type==='childList' || mutations[i].type==='attributes'){ relevant = true; break; }
+    }
+    if(relevant) wire();
+  });
+  try { mutationObserver.observe(document.body,{subtree:true,childList:true}); } catch(e) {}
   function setEnabled(v){enabled=!!v;wire();}
   window.addEventListener('message',function(e){var d=e&&e.data;if(!d)return;if(d.type==='BB_EDITOR_MODE'){setEnabled(!!d.enabled);if(enabled){try{document.body.classList.add('bb-editor-active');}catch(_){} updateEditorNav();}return;}if(d.type==='BB_CONTENT'){setTimeout(wire,0);return;}if(d.type==='BB_CANVAS_HISTORY'){if(!enabled)return;if(d.direction==='back'){window.BB_EDITOR_NAVIGATE&&window.BB_EDITOR_NAVIGATE(-1);}if(d.direction==='forward'){window.BB_EDITOR_NAVIGATE&&window.BB_EDITOR_NAVIGATE(1);}}});
   window.addEventListener('DOMContentLoaded',function(){setTimeout(wire,50);});

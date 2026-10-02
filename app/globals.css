@@ -549,3 +549,22 @@ body.bb-editor-mode .wishly-edit-badge{display:grid!important}
 .builder-canvas-nav:disabled{opacity:.24;cursor:not-allowed;}
 @media(max-width:760px){.builder-canvas-nav-overlay{padding:0 5px;}.builder-canvas-nav{width:38px;height:60px;font-size:25px;background:rgba(15,23,42,.74);}}
 @media(max-width:520px){.builder-canvas-nav-overlay{padding:0 2px;}.builder-canvas-nav{width:34px;height:54px;font-size:22px;}}
+
+/* Master Template responsive edit experience */
+.builder-preview-panel{min-width:0}
+.builder-context-editor{max-width:100%;box-sizing:border-box}
+.builder-context-editor-body{min-width:0;overflow-x:hidden}
+.builder-context-editor-body .builder-field{min-width:0}
+.builder-context-editor-body input,.builder-context-editor-body textarea,.builder-context-editor-body select{width:100%;max-width:100%;box-sizing:border-box}
+@media(max-width:760px){
+  .builder-context-editor{width:calc(100% - 16px)!important;margin:8px auto 16px!important}
+  .builder-context-editor-head{padding:11px 12px}
+  .builder-context-editor-body .universal-editor-card{padding:12px!important}
+  .builder-canvas-hint{font-size:11px;line-height:1.5}
+}
+@media(max-width:520px){
+  .builder-context-editor{width:calc(100% - 10px)!important;border-radius:15px!important}
+  .builder-context-editor-head{gap:8px}
+  .builder-context-editor-head strong{font-size:12px}
+  .builder-context-editor-body .universal-editor-body{padding-bottom:4px}
+}

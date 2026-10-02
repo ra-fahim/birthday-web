@@ -71,7 +71,7 @@ export const masterBirthdayDefaults: MasterBirthdayConfig = {
     'You deserve all the joy in the world—keep shining as you always have.✨',
     'Happy Birthday💝'
   ], signature: '', buttonText: 'Again, Happy Birthday Anarkoli..' },
-  secret: { image:'https://picsum.photos/seed/anime4/800/600', imageAlt:'Secret Memory', buttonText:'See Your Friend', buttonIcon:'instagram', socialPlatform:'Instagram', socialUrl:'https://www.instagram.com/sifaat_sakib?stkn=dzkwOTNzZTVndzZ4&utm_source=qr' },
+  secret: { image:'https://picsum.photos/seed/anime4/800/600', imageAlt:'Secret Memory', buttonText:'See Your Friend', buttonIcon:'instagram', socialPlatform:'Instagram', socialUrl:'https://www.instagram.com/rafahimn' },
   theme: { main:'#ff69b4', secondary:'#9b6dff', accent:'#d4145a', button:'#ff69b4', text:'#4a4a4a', glow:'#ffb6d9', overlay:'linear-gradient(135deg, rgba(255,192,203,0.3), rgba(147,112,219,0.3))', backgroundImage:'', backgroundVideo:'https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp4', mode:'light', fontPreset:'original', animationIntensity:'full' },
   effects: { butterflies:true, flowers:true, hearts:true, sparkles:true, customCursor:true, confetti:true, smoke:true, soundEffects:true, vibration:true, microphone:true },
 };
