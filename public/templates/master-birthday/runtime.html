@@ -145,7 +145,7 @@
 
         .cake-stage { display:flex; align-items:flex-end; justify-content:center; gap:clamp(4px,2.5vw,16px); position:relative; }
 
-        .cake-emoji { display:flex; justify-content:center; align-items:center; position:relative; animation:softBounce 2s infinite; touch-action:none; cursor:pointer; flex-shrink:0; }
+        .cake-emoji { display:flex; justify-content:center; align-items:center; position:relative; animation:softBounce 2s infinite; touch-action:none; cursor:pointer; flex-shrink:0; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; }
         .cake-emoji::after {
             content:'';
             position:absolute;
@@ -218,6 +218,8 @@
         .mic-hint { font-size:13px; color:rgba(255,255,255,0.85); margin-bottom:12px; text-shadow:1px 1px 3px rgba(0,0,0,0.5); padding:8px 14px; border-radius:20px; transition:0.3s; display:inline-block; }
         .mic-hint.listening { color:#fff; background:rgba(255,105,180,0.35); animation:softPulse 1s infinite; font-weight:600; }
         .mic-hint.denied { color:#ffe0e0; }
+        .mic-enable-btn { display:none; margin:0 auto 12px; padding:9px 16px; border:2px solid rgba(255,255,255,.7); border-radius:999px; background:rgba(255,105,180,.35); color:#fff; font:700 13px 'Quicksand',sans-serif; cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,.16); }
+        .mic-enable-btn.show { display:inline-flex; align-items:center; justify-content:center; gap:7px; }
 
         .wish-prompt { position:absolute; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px; background:radial-gradient(circle, rgba(40,20,60,0.55), rgba(20,10,35,0.85)); border-radius:40px; z-index:20; text-align:center; padding:20px; }
         .wish-prompt-emoji { font-size:clamp(2.5rem,10vw,3.5rem); animation:wishTwinkle 1.6s ease-in-out infinite; }
@@ -293,7 +295,7 @@
         /* ── LETTER ── */
         .letter-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#fdfbfb 0%,#ebedee 100%); z-index:500; padding:20px; box-sizing:border-box; overflow-y:auto; }
         .letter-screen.show { display:flex; }
-        .letter-container { width:100%; max-width:600px; box-sizing:border-box; background:linear-gradient(145deg, rgba(255,255,255,0.98), rgba(255,250,252,0.94)); padding:clamp(1.25rem,5vw,2rem); border-radius:30px; box-shadow:0 30px 55px -20px rgba(120,80,140,0.4), inset 0 1px 0 rgba(255,255,255,0.9); text-align:center; margin:auto; display:none; border:1px solid rgba(255,255,255,0.7); }
+        .letter-container { width:100%; max-width:720px; max-height:calc(100svh - 32px); overflow-y:auto; -webkit-overflow-scrolling:touch; box-sizing:border-box; background:linear-gradient(145deg, rgba(255,255,255,0.98), rgba(255,250,252,0.94)); padding:clamp(1.25rem,5vw,2rem); border-radius:30px; box-shadow:0 30px 55px -20px rgba(120,80,140,0.4), inset 0 1px 0 rgba(255,255,255,0.9); text-align:center; margin:auto; display:none; border:1px solid rgba(255,255,255,0.7); }
         html[data-bb-editor="1"] #envelopeScene { display:none !important; }
         html[data-bb-editor="1"] #letterContainer { display:block !important; opacity:1 !important; transform:none !important; }
         .letter-container.show { display:block; }
@@ -310,7 +312,7 @@
         .envelope-hint { font-size:14px; color:#8a6b74; text-shadow:1px 1px 2px rgba(255,255,255,0.6); opacity:0.85; animation:softPulse 1.8s infinite; }
         .envelope-scene.hidden { display:none; }
         .letter-container h2 { font-family:'Dancing Script',cursive; font-size:clamp(1.8rem,7vw,2.5rem); color:#b0306e; margin-bottom:1rem; overflow-wrap:break-word; }
-        .letter-content { font-size:clamp(1rem,4vw,1.2rem); line-height:1.8; color:#2c3e50; font-weight:500; white-space:pre-line; overflow-wrap:break-word; word-break:break-word; }
+        .letter-content { width:100%; max-width:100%; font-size:clamp(1rem,4vw,1.2rem); line-height:1.8; color:#2c3e50; font-weight:500; white-space:pre-line; overflow-wrap:break-word; word-break:break-word; }
         .letter-content p { font-family:'Caveat',cursive; font-size:clamp(1.6rem,6.5vw,2.3rem); font-weight:600; color:#33445c; margin-bottom:0.35em; min-height:1.2em; letter-spacing:0.3px; transform-origin:left center; }
         .letter-typing-cursor { display:inline-block; width:2px; height:0.9em; vertical-align:-0.1em; margin-left:2px; background:#c71585; animation:letterCaretBlink 0.8s step-end infinite; }
         @keyframes letterCaretBlink { 0%,49%{ opacity:1; } 50%,100%{ opacity:0; } }
@@ -318,6 +320,11 @@
         .letter-return-btn:hover { transform:translateY(-2px) scale(1.06); box-shadow:0 20px 34px -12px rgba(255,105,180,0.85); }
         .letter-return-btn:active { transform:scale(0.96); }
 
+        @media (max-width:700px){
+            .letter-container{max-height:calc(100svh - 22px);padding:clamp(16px,5vw,24px);border-radius:22px;}
+            .letter-content{font-size:clamp(.98rem,4.2vw,1.2rem);}
+            .letter-content p{font-size:clamp(1.45rem,6.4vw,2rem);}
+        }
         /* ── SECRET ── */
         .secret-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#ffe6f0,#ffe0f0); z-index:550; padding:20px; box-sizing:border-box; overflow-y:auto; -webkit-overflow-scrolling:touch; }
         .secret-screen.show { display:flex; }
@@ -571,6 +578,7 @@
                 </div>
             </div>
             <div class="mic-hint" id="micHint">🎤 Blow into your mic to blow out the candles, or tap them</div>
+            <button type="button" class="mic-enable-btn" id="micEnableBtn">🎤 Enable microphone</button>
             <div class="candles" id="candles"></div>
             <div class="cake-status" id="cakeStatus"></div>
             <div class="cut-hint" id="cutHint">🔪 Press and drag anywhere on the cake — cut it your way</div>
@@ -1340,10 +1348,22 @@
         }
 
         function requestMicAuto() {
-            // A template demo must never trigger a microphone permission prompt.
+            // Catalog demos stay permission-free, but live/preview birthday sites can request the microphone.
             if (window.__BB_FORCE_DEMO || micAutoRequested || cakeCut || candlesBlown === totalCandles) return;
             micAutoRequested = true;
             startMicrophone();
+        }
+
+        const micEnableBtn = document.getElementById('micEnableBtn');
+        if (micEnableBtn && !micEnableBtn.dataset.bbBound) {
+            micEnableBtn.dataset.bbBound = '1';
+            micEnableBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                micAutoRequested = false;
+                micDenied = false;
+                startMicrophone();
+            });
         }
 
         function loadCakeState() {
@@ -1393,6 +1413,7 @@
             const statusDiv = document.getElementById('cakeStatus');
             const nextBtn = document.getElementById('cakeNextBtn');
             const micHint = document.getElementById('micHint');
+            const micEnableBtn = document.getElementById('micEnableBtn');
             const cutHint = document.getElementById('cutHint');
             const wishPrompt = document.getElementById('wishPrompt');
             const tableKnife = document.getElementById('tableKnife');
@@ -1404,6 +1425,7 @@
                 statusDiv.textContent = '🎉 Cake cut! Happy Birthday! 🎉';
                 nextBtn.style.display = 'inline-block';
                 micHint.style.display = 'none';
+                if (micEnableBtn) micEnableBtn.classList.remove('show');
                 cutHint.style.display = 'none';
                 if (wishPrompt) wishPrompt.style.display = 'none';
                 if (tableKnife) tableKnife.classList.remove('ready');
@@ -1417,6 +1439,7 @@
             if (!knifePickedUp) cakeEmoji.classList.remove('knife-active');
             nextBtn.style.display = 'none';
             micHint.style.display = 'block';
+            if (micEnableBtn) micEnableBtn.classList.toggle('show', micDenied && !window.__BB_FORCE_DEMO);
             cutHint.style.display = 'block';
             cutHint.classList.remove('ready');
             resetSliceLine();
@@ -1430,9 +1453,20 @@
                 const swayNeg = -(2 + Math.random() * 5).toFixed(1);
                 const swayPos = (2 + Math.random() * 5).toFixed(1);
                 const style = `--flicker-dur:${flickerDur}s;--sway-dur:${swayDur}s;--sway-neg:${swayNeg}deg;--sway-pos:${swayPos}deg;animation-delay:-${(Math.random()*2).toFixed(2)}s;`;
-                candlesHtml += `<span class="candle ${blown}" style="${style}" onclick="blowCandle(${i})">🕯️</span>`;
+                candlesHtml += `<span class="candle ${blown}" data-candle-index="${i}" role="button" tabindex="0" style="${style}">🕯️</span>`;
             }
             candlesDiv.innerHTML = candlesHtml;
+            if (!candlesDiv.dataset.bbBound) {
+                candlesDiv.dataset.bbBound = '1';
+                const handleCandleTap = (event) => {
+                    const candle = event.target?.closest?.('.candle');
+                    if (!candle || cakeCut) return;
+                    const index = Number(candle.dataset.candleIndex);
+                    if (Number.isInteger(index)) window.blowCandle(index);
+                };
+                candlesDiv.addEventListener('pointerup', handleCandleTap, { passive: true });
+                candlesDiv.addEventListener('click', handleCandleTap, { passive: true });
+            }
 
             if (candlesBlown === totalCandles) {
                 statusDiv.textContent = knifePickedUp ? '🔪 Now hold and drag across the cake to slice it' : '🎉 All candles blown! Tap the knife';
@@ -1508,12 +1542,15 @@
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(stream => {
                     audioStream = stream;
+                    const enableBtn = document.getElementById('micEnableBtn');
+                    if (enableBtn) enableBtn.classList.remove('show');
                     audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     analyser = audioContext.createAnalyser();
                     const source = audioContext.createMediaStreamSource(stream);
                     source.connect(analyser);
                     analyser.fftSize = 256;
                     const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                    let lastBlowAt = 0;
 
                     micActive = true;
                     micDenied = false;
@@ -1530,9 +1567,13 @@
                         }
                         analyser.getByteFrequencyData(dataArray);
                         let sum = 0;
-                        for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+                        let peak = 0;
+                        for (let i = 0; i < dataArray.length; i++) { sum += dataArray[i]; if (dataArray[i] > peak) peak = dataArray[i]; }
                         const avg = sum / dataArray.length;
-                        if (avg > 50) {
+                        const nowMs = Date.now();
+                        const loudEnough = avg > 24 || peak > 105;
+                        if (loudEnough && nowMs - lastBlowAt > 500) {
+                            lastBlowAt = nowMs;
                             blowMultipleCandles(2 + Math.floor(Math.random() * 2));
                         }
                     }, 150);
@@ -1540,8 +1581,10 @@
                 .catch(() => {
                     micDenied = true;
                     const hint = document.getElementById('micHint');
-                    hint.textContent = "⚠️ Mic permission wasn't granted — just tap to blow out the candles";
+                    const enableBtn = document.getElementById('micEnableBtn');
+                    hint.textContent = "⚠️ Mic permission wasn't granted — tap the candles, or enable the microphone below.";
                     hint.classList.add('denied');
+                    if (enableBtn && !window.__BB_FORCE_DEMO) enableBtn.classList.add('show');
                 });
         }
 
@@ -1660,7 +1703,7 @@
                 .to(slice, { scale: 0.95, duration: 0.12, yoyo: true, repeat: 1 });
         }
 
-        const CUT_DRAG_THRESHOLD = 110;
+        const CUT_DRAG_THRESHOLD = 72;
         const CAKE_CX = 200, CAKE_CY = 195, CAKE_RX = 175, CAKE_RY = 160;
         const WEDGE_HALF_ANGLE = 26 * Math.PI / 180;
         let cutDragActive = false;
@@ -1792,6 +1835,7 @@
                 return;
             }
             if (!knifePickedUp) pickUpKnife();
+            if (!knifePickedUp) return;
             cutDragActive = true;
             cutStartX = e.clientX;
             cutStartY = e.clientY;
@@ -1836,7 +1880,12 @@
         }
 
         function onCutPointerUp() {
-            if (!cutDragActive) return;
+            if (!cutDragActive) {
+                if (!cakeCut && candlesBlown === totalCandles) {
+                    cutCake();
+                }
+                return;
+            }
             cutDragActive = false;
             if (!cakeCut) resetSliceLine();
         }
@@ -2117,7 +2166,7 @@
     if (explicit && ['url','youtube','spotify'].includes(explicit)) return explicit;
     return 'url';
   };
-  const isDirectVideo = (url) => /\.(?:mp4|webm|mov|m4v|ogv)(?:$|[?#])/i.test(String(url || '').trim());
+  const isDirectVideo = (url) => { const u=String(url || '').trim(); return /\.(?:mp4|webm|mov|m4v|ogv)(?:$|[?#])/i.test(u) || /(?:cloudinary\.com\/.*\/video\/upload\/|supabase\.(?:co|in)\/.*(?:video|storage))/i.test(u); };
   const ytId = (url) => String(url || '').match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/i)?.[1] || '';
   const ytPlaylistId = (url) => String(url || '').match(/[?&]list=([A-Za-z0-9_-]+)/i)?.[1] || '';
   const spotifyEmbed = (url) => {
@@ -2512,7 +2561,8 @@
   syncAudioToggle();
 
   function applyTrackEngine(){
-    const tracks=[{url:String(state.wishingAudioUrl||DEFAULT.wishingAudioUrl||'').trim(),sourceType:'youtube'}];
+    const configuredTracks = Array.isArray(state.soundtrack?.items) ? state.soundtrack.items.filter(track => String(track?.url || '').trim()) : [];
+    const tracks = configuredTracks.length ? configuredTracks.map(track => ({ url:String(track.url).trim(), sourceType:track.sourceType || 'url' })) : [{url:String(state.wishingAudioUrl||DEFAULT.wishingAudioUrl||'').trim(),sourceType:'youtube'}];
     currentTrackIndex=Math.min(currentTrackIndex,Math.max(0,tracks.length-1));
     if(!bgAudio){bgAudio=new Audio(); bgAudio.loop=false; bgAudio.preload='auto'; bgAudio.style.display='none'; document.body.appendChild(bgAudio);}
     if(spotifyFrame){spotifyFrame.remove();spotifyFrame=null;} if(youtubeFrame){youtubeFrame.remove();youtubeFrame=null;}
@@ -2531,22 +2581,24 @@
   window.playBirthdayAudio=function(){
     if((window.__BB_EDITOR_MODE && !window.__BB_PREVIEW_MODE) || window.__BB_CATALOG_MODE || !musicEnabled || birthdayAudioPlayed) return;
     if(window.__BB_FORCE_DEMO && !window.__BB_DEMO_UNLOCKED) return;
-    const source=String(state.wishingAudioUrl||DEFAULT.wishingAudioUrl||'').trim();
-    const type=sourceType(source);
+    const configuredTrack = Array.isArray(state.soundtrack?.items) ? state.soundtrack.items.find(track => String(track?.url || '').trim()) : null;
+    const source=String(configuredTrack?.url || state.wishingAudioUrl || DEFAULT.wishingAudioUrl || '').trim();
+    const type=sourceType(source, configuredTrack?.sourceType || '');
     try{
       if(type==='youtube'){
         const id=ytId(source);
         if(!id) return;
-        if(ytPlayer&&ytPlayerReady&&typeof ytPlayer.loadVideoById==='function'){
+        if(id && ytPlayer&&ytPlayerReady&&typeof ytPlayer.loadVideoById==='function'){
           ytPlayer.loadVideoById(id);
           ytPlayer.setLoop?.(false);
           ytPlayer.unMute?.();
           ytPlayer.setVolume?.(100);
           ytPlayer.playVideo?.();
-        } else {
+          return;
+        } else if(id) {
           pendingPlay=true;
+          return;
         }
-        return;
       }
       const direct=safeUrl(source);
       if(!direct) return;
@@ -2591,7 +2643,7 @@
   // the canvas to remain stuck at 00:00:00:00.
   window.__BB_REALTIME_COUNTDOWN_HANDLER = function(){
 
-            if (window.__BB_PARENT_CLOCK_LOCK) return;
+            if (window.__BB_PARENT_CLOCK_LOCK && (window.__BB_EDITOR_MODE || window.__BB_PREVIEW_MODE)) return;
 
             // Demo mode owns the countdown completely. The normal annual
             // birthday clock must never overwrite the demo's 10-second timer.
