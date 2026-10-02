@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { TemplateDefinition } from '@/lib/templates';
 
 const labels: Record<string, string> = {
@@ -10,7 +10,7 @@ const labels: Record<string, string> = {
 };
 
 const demoSrc: Record<string, string> = {
-  master: '/master-template.html?demo=1&bbDemo=1',
+  master: '/templates/master-birthday/runtime.html?demo=1&bbDemo=1',
   'wedding-proposal': '/templates/wedding-proposal-original.html?bbDemo=1',
   'master-proposal': '/templates/master-proposal/index.html?bbDemo=1',
   'miss-you-1': '/templates/miss-you-1/index.html?bbDemo=1',
@@ -43,6 +43,14 @@ function DemoFrame({ template }: { template: TemplateDefinition }) {
 
 function DemoModal({ template, onClose }: { template: TemplateDefinition; onClose: () => void }) {
   const src = demoSrc[template.slug] || template.originalHtml || '';
+  const [audioEnabled, setAudioEnabled] = useState(true);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const syncAudio = (enabled: boolean) => {
+    const frame = iframeRef.current;
+    if (!frame) return;
+    frame.contentWindow?.postMessage({ type: 'BB_DEMO_MODE', enabled: true, muted: !enabled }, '*');
+    frame.contentWindow?.postMessage({ type: 'BB_DEMO_AUDIO_ENABLED', enabled }, '*');
+  };
   return (
     <div className="demo-modal-backdrop" role="dialog" aria-modal="true" aria-label={`${template.name} demo`} onClick={onClose}>
       <div className="demo-modal" onClick={(e) => e.stopPropagation()}>
@@ -52,22 +60,26 @@ function DemoModal({ template, onClose }: { template: TemplateDefinition; onClos
         </div>
         <div className="demo-modal-frame">
           <iframe
+            ref={iframeRef}
             title={`${template.name} demo`}
             src={src}
             allow="autoplay; fullscreen; picture-in-picture"
-            onLoad={(e) => {
-              e.currentTarget.contentWindow?.postMessage({ type: 'BB_DEMO_MODE', enabled: true, muted: true }, '*');
-            }}
+            onLoad={() => syncAudio(audioEnabled)}
           />
         </div>
         <div className="demo-modal-footer">
-          <p>Live preview is muted and touch-free.</p>
-          <Link className="premium-button premium-button-sm" href={`/builder/new?template=${template.slug}`}>Use template →</Link>
+          <div className="demo-audio-control">
+            <button type="button" className="premium-button premium-button-ghost premium-button-sm" aria-pressed={audioEnabled} onClick={() => { const next = !audioEnabled; setAudioEnabled(next); syncAudio(next); }}>{audioEnabled ? '🔊 Audio on' : '🔇 Audio off'}</button>
+            <span>Demo audio is optional. Editor stays silent.</span>
+          </div>
+          <button type="button" className="premium-button premium-button-ghost premium-button-sm" onClick={() => iframeRef.current?.requestFullscreen?.().catch(() => {})}>⛶ Full screen</button>
+          <Link className="premium-button premium-button-sm" href={`/builder/new?template=${encodeURIComponent(template.slug)}`}>Use template →</Link>
         </div>
       </div>
     </div>
   );
 }
+
 
 export default function TemplateLibraryClient({
   templates,

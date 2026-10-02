@@ -68,6 +68,12 @@
         .bb-audio-toggle.off { opacity:.78; background:rgba(30,30,40,.58); }
         .bb-audio-toggle:active { transform:scale(.97); }
         .bb-editor-audio-control { display:none; margin-top:16px; padding:9px 14px; border:1px solid rgba(255,255,255,.6); border-radius:999px; background:rgba(40,20,60,.18); color:inherit; font:700 12px 'Quicksand',sans-serif; cursor:pointer; box-shadow:0 10px 24px rgba(0,0,0,.08); backdrop-filter:blur(10px); }
+        html[data-bb-editor="1"] .bb-editable-target { cursor:pointer!important; position:relative; outline:1px dashed rgba(236,72,153,.26); outline-offset:6px; transition:outline-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+        html[data-bb-editor="1"] .bb-editable-target:hover { outline-color:rgba(236,72,153,.9); box-shadow:0 0 0 3px rgba(236,72,153,.08); }
+        html[data-bb-editor="1"] .bb-editable-target::after { content:'Click to edit'; position:absolute; top:-27px; left:8px; z-index:12000; display:none; padding:4px 8px; border-radius:999px; background:rgba(24,24,27,.92); color:#fff; font:700 10px 'Quicksand',sans-serif; letter-spacing:.02em; white-space:nowrap; box-shadow:0 8px 20px rgba(0,0,0,.18); pointer-events:none; }
+        html[data-bb-editor="1"] .bb-editable-target:hover::after { display:block; }
+        html[data-bb-editor="1"] .bb-editable-target.is-media::after { content:'Click to edit media'; }
+        @media(max-width:700px){ html[data-bb-editor="1"] .bb-editable-target::after { top:auto; bottom:-24px; left:50%; transform:translateX(-50%); } }
         html[data-bb-editor="1"] .bb-editor-audio-control { display:inline-flex; align-items:center; justify-content:center; }
         html[data-bb-editor="1"] #bbAudioToggle { display:none !important; }
 
@@ -946,43 +952,28 @@
                 'reasonsScreen', 'photoScreen', 'videoScreen',
                 'letterScreen', 'secretScreen'
             ];
-
             screens.forEach(id => {
                 const element = document.getElementById(id);
-                if (id === 'countdownScreen') {
-                    element.classList.add('hide');
-                } else {
-                    element.classList.remove('show');
-                }
+                if (!element) return;
+                if (id === 'countdownScreen') element.classList.add('hide');
+                else element.classList.remove('show');
+                element.style.pointerEvents = 'none';
             });
-
-            switch(screen) {
-                case 'countdown':
-                    document.getElementById('countdownScreen').classList.remove('hide');
-                    break;
-                case 'greeting':
-                    document.getElementById('greetingScreen').classList.add('show');
-                    break;
-                case 'cake':
-                    document.getElementById('cakeScreen').classList.add('show');
-                    loadCakeState();
-                    break;
-                case 'reasons':
-                    document.getElementById('reasonsScreen').classList.add('show');
-                    break;
-                case 'photo':
-                    document.getElementById('photoScreen').classList.add('show');
-                    break;
-                case 'video':
-                    document.getElementById('videoScreen').classList.add('show');
-                    break;
-                case 'letter':
-                    document.getElementById('letterScreen').classList.add('show');
-                    break;
-                case 'secret':
-                    document.getElementById('secretScreen').classList.add('show');
-                    break;
+            const showMap = {
+                countdown: 'countdownScreen', greeting: 'greetingScreen', cake: 'cakeScreen',
+                reasons: 'reasonsScreen', photo: 'photoScreen', video: 'videoScreen',
+                letter: 'letterScreen', secret: 'secretScreen'
+            };
+            const targetId = showMap[screen] || 'countdownScreen';
+            const target = document.getElementById(targetId);
+            if (target) {
+                if (targetId === 'countdownScreen') target.classList.remove('hide');
+                else target.classList.add('show');
+                target.style.pointerEvents = 'auto';
             }
+            if (screen === 'cake') loadCakeState();
+            if (screen === 'letter') resetEnvelope();
+            if (screen === 'reasons') displayReason();
         }
 
         const greetingText = "Hey You Know What! You're the most adorable human i ever met! 💖";
@@ -2346,7 +2337,7 @@
     state={...DEFAULT,...cfg,countdown:{...DEFAULT.countdown,...cfg.countdown},greeting:{...DEFAULT.greeting,...cfg.greeting},cake:{...DEFAULT.cake,...cfg.cake},reasons:{...DEFAULT.reasons,...cfg.reasons,items:Array.isArray(cfg.reasons?.items)?cfg.reasons.items:DEFAULT.reasons.items},memories:{...DEFAULT.memories,...cfg.memories,items:Array.isArray(cfg.memories?.items)?cfg.memories.items:DEFAULT.memories.items},videos:{...DEFAULT.videos,...cfg.videos,items:Array.isArray(cfg.videos?.items)?cfg.videos.items:DEFAULT.videos.items},soundtrack:{...DEFAULT.soundtrack,...cfg.soundtrack,items:Array.isArray(cfg.soundtrack?.items)?cfg.soundtrack.items:DEFAULT.soundtrack.items},letter:{...DEFAULT.letter,...cfg.letter,paragraphs:Array.isArray(cfg.letter?.paragraphs)?cfg.letter.paragraphs:DEFAULT.letter.paragraphs},secret:{...DEFAULT.secret,...cfg.secret},theme:{...DEFAULT.theme,...cfg.theme},effects:{...DEFAULT.effects,...cfg.effects}};
     if(incoming.name && !cfg.recipientName) state.recipientName=String(incoming.name);
     if(incoming.birthday && !cfg.birthdayDate){const d=new Date(incoming.birthday);if(!Number.isNaN(d.getTime())){state.birthdayDate=d.toISOString().slice(0,10);state.birthdayTime=d.toTimeString().slice(0,5);}}
-    applyBasics();applyTheme();applyEffects();applyCountdown();applyGreeting();applyCake();applyReasons();applyMemories();applyVideos();applyLetter();applySecret();applyTrackEngine();
+    applyBasics();applyTheme();applyEffects();applyCountdown();applyGreeting();applyCake();applyReasons();applyMemories();applyVideos();applyLetter();applySecret();applyTrackEngine();markEditableTargets();
     syncAudioToggle();
     if(demoStarted) startDemoCountdown();
   }
@@ -2428,11 +2419,28 @@
     if(data.type==='BB_DEMO_PLAY_AUDIO'){ return; }
     if(data.type==='BB_DEMO_AUDIO_ENABLED'){ setMusicEnabled(data.enabled !== false); return; }
     if(data.type==='BB_SET_AUDIO_ENABLED'){ setMusicEnabled(data.enabled !== false); }
-    if(data.type==='BB_EDITOR_MODE'){ window.__BB_EDITOR_MODE=!!data.enabled; document.documentElement.dataset.bbEditor=data.enabled?'1':'0'; if(data.enabled){musicEnabled=false;try{window.pauseBirthdayAudio?.();}catch(_){}try{q('#countdownAudio')?.pause?.();}catch(_){} } else { musicEnabled=true; } applyCountdown?.(); postEditorHistoryState?.(); return;}
+    if(data.type==='BB_EDITOR_MODE'){
+      window.__BB_EDITOR_MODE=!!data.enabled;
+      document.documentElement.dataset.bbEditor=data.enabled?'1':'0';
+      if(data.enabled){ musicEnabled=false; try{window.pauseBirthdayAudio?.();}catch(_){} try{q('#countdownAudio')?.pause?.();}catch(_){} }
+      else { musicEnabled=true; }
+      markEditableTargets();
+      applyCountdown?.();
+      postEditorHistoryState?.();
+      return;
+    }
 
   });
 
   const EDITOR_TARGET_SELECTOR='h1,h2,h3,h4,p,text,button,img,video,.photo-card,.photo-date,.photo-caption,.video-card,.bb-video-caption,.bb-editor-audio-control,.countdown-box,.count-item,.count-number';
+  function markEditableTargets(){
+    qa(EDITOR_TARGET_SELECTOR).forEach(el=>{
+      if(el.closest('#bbAudioToggle') || el.closest('.lightbox') || el.id==='tableKnife') return;
+      el.classList.add('bb-editable-target');
+      if(el.matches('img,video,.photo-card,.video-card,.bb-editor-audio-control')) el.classList.add('is-media');
+    });
+  }
+  markEditableTargets();
   function editorSelectionForTarget(target){
     if(!document.documentElement.dataset.bbEditor)return null;
     const t=target?.closest?.(EDITOR_TARGET_SELECTOR); if(!t)return null;
@@ -2509,13 +2517,14 @@
   };
   window.BB_EDITOR_NAVIGATE=function(direction){
     if(!window.__BB_EDITOR_MODE) return;
-    const next=Math.max(0,Math.min(editorScreenOrder.length-1,editorHistoryIndex+direction));
-    if(next===editorHistoryIndex) return;
+    const delta=direction<0?-1:1;
+    const next=Math.max(0,Math.min(editorScreenOrder.length-1,editorHistoryIndex+delta));
+    if(next===editorHistoryIndex){ postEditorHistoryState(); return; }
     editorHistoryIndex=next;
     showScreen(editorScreenOrder[editorHistoryIndex]);
     postEditorHistoryState();
   };
-  window.addEventListener('message',e=>{ if(e?.data?.type==='BB_CANVAS_HISTORY'){ window.BB_EDITOR_NAVIGATE?.(e.data.direction==='back'?-1:1); } });
+  window.addEventListener('message',e=>{ if(e?.data?.type==='BB_CANVAS_HISTORY'){ window.BB_EDITOR_NAVIGATE?.(e.data.direction==='back'?-1:1); } if(e?.data?.type==='BB_CANVAS_REQUEST_HISTORY_STATE'){ postEditorHistoryState(); } });
   window.addEventListener('hashchange',postEditorHistoryState);
   postEditorHistoryState();
 

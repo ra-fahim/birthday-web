@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { TemplateDefinition } from '@/lib/templates';
 
 const labels: Record<string, string> = {
@@ -59,6 +59,7 @@ function LiveTemplatePreview({ template, compact = false }: { template: Template
 function DemoModal({ template, onClose }: { template: TemplateDefinition; onClose: () => void }) {
   const src = getDemoSrc(template);
   const [audioEnabled, setAudioEnabled] = useState(true);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   const syncDemoAudio = (iframe: HTMLIFrameElement, enabled: boolean) => {
     iframe.contentWindow?.postMessage({ type: 'BB_DEMO_MODE', enabled: true, muted: !enabled }, '*');
@@ -74,6 +75,7 @@ function DemoModal({ template, onClose }: { template: TemplateDefinition; onClos
         </div>
         <div className="demo-modal-frame">
           <iframe
+            ref={iframeRef}
             title={`${template.name} demo`}
             src={src}
             allow="autoplay; fullscreen; picture-in-picture"
@@ -99,7 +101,8 @@ function DemoModal({ template, onClose }: { template: TemplateDefinition; onClos
             </button>
             <span>Demo audio is optional. Editor preview stays silent.</span>
           </div>
-          <Link className="premium-button premium-button-sm" href={`/builder/new?template=${template.slug}`}>Use template <span>→</span></Link>
+          <button type="button" className="premium-button premium-button-ghost premium-button-sm" onClick={() => iframeRef.current?.requestFullscreen?.().catch(() => {})}>⛶ Full screen</button>
+          <Link className="premium-button premium-button-sm" href={`/builder/new?template=${encodeURIComponent(template.slug)}`}>Use template <span>→</span></Link>
         </div>
       </div>
     </div>
@@ -108,8 +111,8 @@ function DemoModal({ template, onClose }: { template: TemplateDefinition; onClos
 
 function TemplateCard({ template, isAuthenticated, onDemo }: { template: TemplateDefinition; isAuthenticated: boolean; onDemo: (template: TemplateDefinition) => void }) {
   const useHref = isAuthenticated
-    ? `/builder/new?template=${template.slug}`
-    : `/signup?next=${encodeURIComponent(`/builder/new?template=${template.slug}`)}`;
+    ? `/builder/new?template=${encodeURIComponent(template.slug)}`
+    : `/signup?next=${encodeURIComponent(`/builder/new?template=${encodeURIComponent(template.slug)}`)}`;
 
   return (
     <article className="catalog-template-card">

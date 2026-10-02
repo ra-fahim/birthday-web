@@ -197,7 +197,7 @@ export default function Builder() {
   const [msg, setMsg] = useState('');
   const [slug, setSlug] = useState('');
   const [status, setStatus] = useState('draft');
-  const [templateId, setTemplateId] = useState('master');
+  const [templateId, setTemplateId] = useState('');
   const [occasion, setOccasion] = useState('birthday');
   const [dirty, setDirty] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
@@ -223,9 +223,12 @@ export default function Builder() {
       }
       if (j.slug) setSlug(j.slug);
       if (j.status) setStatus(j.status);
+      const queryTemplate = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('template') : null;
+      const requestedTemplate = queryTemplate && templateCatalog.some((t) => t.slug === queryTemplate) ? queryTemplate : '';
       const storedOccasion = typeof j.content?.occasion === 'string' ? j.content.occasion : 'birthday';
-      const storedTemplate = typeof j.templateId === 'string' ? j.templateId : 'master';
-      const storedTemplateEntry = templateCatalog.find((t) => t.slug === storedTemplate);
+      const storedTemplate = typeof j.templateId === 'string' ? j.templateId : '';
+      const effectiveRequestedTemplate = requestedTemplate || storedTemplate;
+      const storedTemplateEntry = templateCatalog.find((t) => t.slug === effectiveRequestedTemplate);
       let resolvedTemplate: string;
       let resolvedOccasion: string;
       if (storedTemplateEntry) {
@@ -243,11 +246,12 @@ export default function Builder() {
         // yet, the builder stays explicitly empty instead of showing the
         // wrong template.
         const occasionTemplates = templatesForOccasion(storedOccasion);
-        resolvedTemplate = occasionTemplates[0]?.slug ?? '';
-        resolvedOccasion = storedOccasion;
+        resolvedTemplate = effectiveRequestedTemplate || occasionTemplates[0]?.slug || '';
+        resolvedOccasion = resolvedTemplate ? (templateCatalog.find((t) => t.slug === resolvedTemplate)?.category || storedOccasion) : storedOccasion;
       }
       setTemplateId(resolvedTemplate);
       setOccasion(resolvedOccasion);
+      if (requestedTemplate && requestedTemplate !== storedTemplate) setDirty(true);
       if (resolvedTemplate !== storedTemplate || resolvedOccasion !== storedOccasion) setDirty(true);
       if (j.slug) setPublicUrl(`${window.location.origin}/site/${j.slug}`);
       setLoaded(true);
@@ -265,7 +269,10 @@ export default function Builder() {
 
   const handleCanvasHistory = useCallback((direction: 'back' | 'forward') => {
     const iframe = document.querySelector<HTMLIFrameElement>('.builder-canvas-stage iframe');
-    iframe?.contentWindow?.postMessage({ type: 'BB_CANVAS_HISTORY', direction }, '*');
+    const target = iframe?.contentWindow as (Window & { BB_EDITOR_NAVIGATE?: (delta: number) => void }) | null;
+    const delta = direction === 'back' ? -1 : 1;
+    try { target?.BB_EDITOR_NAVIGATE?.(delta); } catch {}
+    target?.postMessage({ type: 'BB_CANVAS_HISTORY', direction }, '*');
   }, []);
   const handleCanvasHistoryState = useCallback((state: { canBack?: boolean; canForward?: boolean }) => {
     setCanvasHistory({ canBack: !!state.canBack, canForward: !!state.canForward });
