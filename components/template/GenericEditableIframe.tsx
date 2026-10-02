@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { BirthdayContent } from '@/lib/types';
 
 export type GenericEdit = {
@@ -32,9 +32,7 @@ type Props = {
 
 function injectBridge(frame: HTMLIFrameElement) {
   const doc = frame.contentDocument;
-  // React can run this effect before the iframe has created <body>.
-  // In that case wait for the iframe load handler to call us again.
-  if (!doc || !doc.body || doc.getElementById('bb-generic-editor-bridge')) return;
+  if (!doc || doc.getElementById('bb-generic-editor-bridge')) return;
   const script = doc.createElement('script');
   script.id = 'bb-generic-editor-bridge';
   script.textContent = `
@@ -205,6 +203,11 @@ function injectBridge(frame: HTMLIFrameElement) {
 
 export default function GenericEditableIframe({ title, src, srcDoc, content, editorMode = false, genericEdits = {}, minHeight = 720, background = '#0b0b0d', extraMessages = [], onElementSelect, onHistoryState }: Props) {
   const frameRef = useRef<HTMLIFrameElement>(null);
+  const [history, setHistory] = useState<{canBack?: boolean; canForward?: boolean; screen?: string}>({ canBack: false, canForward: false, screen: '' });
+
+  const sendHistory = (direction: 'back' | 'forward') => {
+    frameRef.current?.contentWindow?.postMessage({ type: 'BB_CANVAS_HISTORY', direction }, '*');
+  };
 
   useEffect(() => {
     const frame = frameRef.current;
@@ -225,21 +228,40 @@ export default function GenericEditableIframe({ title, src, srcDoc, content, edi
     const handler = (event: MessageEvent) => {
       if (event.source !== frameRef.current?.contentWindow || !event.data) return;
       if (event.data.type === 'BB_ELEMENT_SELECTED') onElementSelect?.(event.data.selection);
-      if (event.data.type === 'BB_CANVAS_HISTORY_STATE') onHistoryState?.(event.data);
+      if (event.data.type === 'BB_CANVAS_HISTORY_STATE') {
+        const next = { canBack: !!event.data.canBack, canForward: !!event.data.canForward, screen: event.data.screen || '' };
+        setHistory(next);
+        onHistoryState?.(next);
+      }
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
   }, [onElementSelect, onHistoryState]);
 
+  const showEditorNav = editorMode;
+
   return (
-    <iframe
-      ref={frameRef}
-      title={title}
-      src={src}
-      srcDoc={srcDoc}
-      sandbox="allow-forms allow-modals allow-popups allow-same-origin allow-scripts"
-      allow="autoplay; microphone; camera; fullscreen; picture-in-picture"
-      style={{ width: '100%', height: '100%', minHeight, border: 0, display: 'block', background }}
-    />
+    <div style={{ position: 'relative', width: '100%', height: '100%', minHeight, background }}>
+      <iframe
+        ref={frameRef}
+        title={title}
+        src={src}
+        srcDoc={srcDoc}
+        sandbox="allow-forms allow-modals allow-popups allow-same-origin allow-scripts"
+        allow="autoplay; microphone; camera; fullscreen; picture-in-picture"
+        style={{ width: '100%', height: '100%', minHeight, border: 0, display: 'block', background }}
+      />
+      {showEditorNav && (
+        <div
+          aria-label="Editor navigation"
+          data-bb-editor-nav-overlay="1"
+          style={{ position: 'absolute', left: '50%', bottom: 14, transform: 'translateX(-50%)', zIndex: 20, display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 16, background: 'rgba(18,18,24,.84)', border: '1px solid rgba(255,255,255,.18)', boxShadow: '0 10px 28px rgba(0,0,0,.24)', backdropFilter: 'blur(12px)' }}
+        >
+          <button type="button" onClick={() => sendHistory('back')} disabled={!history.canBack} style={{ border: 0, borderRadius: 10, padding: '9px 13px', fontWeight: 700, cursor: history.canBack ? 'pointer' : 'not-allowed', opacity: history.canBack ? 1 : .45 }}>← Previous</button>
+          <span style={{ minWidth: 90, textAlign: 'center', color: 'rgba(255,255,255,.78)', fontSize: 12 }}>{history.screen || 'Editor'}</span>
+          <button type="button" onClick={() => sendHistory('forward')} disabled={!history.canForward} style={{ border: 0, borderRadius: 10, padding: '9px 13px', fontWeight: 700, cursor: history.canForward ? 'pointer' : 'not-allowed', opacity: history.canForward ? 1 : .45 }}>Next →</button>
+        </div>
+      )}
+    </div>
   );
 }

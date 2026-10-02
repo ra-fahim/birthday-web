@@ -58,6 +58,102 @@ export default function MasterBirthdayTemplate({ content, demo = false, preview 
     return () => frame.removeEventListener('load', send);
   }, [resolvedContent, websiteSlug, siteKey, recipientId, editorMode, demo, preview]);
 
+  // The editor canvas must remain a live clock even if the embedded runtime
+  // is briefly between state updates. Keep the DOM display synchronized from
+  // the authoritative React config while editing. Preview/Demo/live runtime
+  // behavior is left to the iframe so their existing simulation/audio flows
+  // are not changed.
+  useEffect(() => {
+    if (!editorMode || preview) return;
+    const frame = frameRef.current;
+    if (!frame) return;
+
+    const toZonedDate = (date: string, time: string, timeZone: string) => {
+      const [y, m, d] = String(date || '').split('-').map(Number);
+      const [hh, mm] = String(time || '00:00').split(':').map(Number);
+      if (![y, m, d, hh, mm].every(Number.isFinite)) return new Date(NaN);
+      let guess = new Date(Date.UTC(y, m - 1, d, hh, mm, 0));
+      try {
+        const fmt = new Intl.DateTimeFormat('en-US', {
+          timeZone: timeZone || 'Asia/Dhaka',
+          year: 'numeric', month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
+        });
+        const desired = Date.UTC(y, m - 1, d, hh, mm, 0);
+        for (let i = 0; i < 3; i += 1) {
+          const parts = Object.fromEntries(fmt.formatToParts(guess).filter(part => part.type !== 'literal').map(part => [part.type, part.value]));
+          const seen = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day), Number(parts.hour), Number(parts.minute), Number(parts.second));
+          guess = new Date(guess.getTime() + (desired - seen));
+        }
+      } catch {
+        return new Date(`${date}T${time || '00:00'}:00`);
+      }
+      return guess;
+    };
+
+    const getCycleTarget = () => {
+      const cfg = (resolvedContent.templateConfig as any)?.masterBirthday || {};
+      const baseDate = String(cfg.birthdayDate || '').slice(0, 10);
+      const time = String(cfg.birthdayTime || '00:00');
+      const zone = String(cfg.timezone || 'Asia/Dhaka');
+      const baseYear = Number(baseDate.slice(0, 4));
+      const monthDay = baseDate.slice(5, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(baseDate) || !/^\d+$/.test(String(baseYear)) || !monthDay) return new Date(NaN);
+      let year = baseYear;
+      let target = toZonedDate(`${year}-${monthDay}`, time, zone);
+      const now = new Date();
+      const greetingEnd = () => new Date(target.getTime() + 24 * 60 * 60 * 1000);
+      while (now >= greetingEnd()) {
+        year += 1;
+        target = toZonedDate(`${year}-${monthDay}`, time, zone);
+      }
+      return target;
+    };
+
+    const syncEditorClock = () => {
+      const doc = frame.contentDocument;
+      if (!doc) return;
+      const target = getCycleTarget();
+      if (Number.isNaN(target.getTime())) return;
+      const now = new Date();
+      const diff = Math.max(0, target.getTime() - now.getTime());
+      const total = Math.ceil(diff / 1000);
+      const days = Math.floor(total / 86400);
+      const hours = Math.floor((total / 3600) % 24);
+      const mins = Math.floor((total / 60) % 60);
+      const secs = total % 60;
+      const set = (id: string, value: number) => {
+        const node = doc.getElementById(id);
+        if (node) node.textContent = String(value).padStart(2, '0');
+      };
+      set('days', days);
+      set('hours', hours);
+      set('mins', mins);
+      set('secs', secs);
+
+      // When the real birthday is active, keep the editor canvas on the
+      // greeting screen instead of displaying a misleading 00:00:00:00.
+      const greeting = doc.getElementById('greetingScreen');
+      const countdown = doc.getElementById('countdownScreen');
+      const inGreeting = now >= target && now < new Date(target.getTime() + 86400000);
+      if (inGreeting) {
+        greeting?.classList.add('show');
+        countdown?.classList.add('hide');
+      } else {
+        greeting?.classList.remove('show');
+        countdown?.classList.remove('hide');
+      }
+    };
+
+    frame.addEventListener('load', syncEditorClock);
+    syncEditorClock();
+    const timer = window.setInterval(syncEditorClock, 250);
+    return () => {
+      frame.removeEventListener('load', syncEditorClock);
+      window.clearInterval(timer);
+    };
+  }, [resolvedContent, editorMode, preview]);
+
   useEffect(() => {
     const handler = (event: MessageEvent) => {
       const frame = frameRef.current;

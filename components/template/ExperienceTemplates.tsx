@@ -197,6 +197,10 @@ function Editable({ editorMode, onSelect, selection, className, children }: { ed
   return <div
     className={`experience-editable ${editorMode ? 'is-editor' : ''} ${className || ''}`}
     data-bb-editor-wrap="1"
+    data-bb-selection-key={selection.key}
+    data-bb-selection-label={selection.label}
+    data-bb-selection-kind={selection.kind || 'text'}
+    data-bb-selection-index={selection.index == null ? '' : String(selection.index)}
     onClick={editorMode ? (e)=>{
       e.preventDefault();
       e.stopPropagation();
@@ -252,13 +256,16 @@ function StandardExperienceTemplate({variant='romantic',content,editorMode,onEle
    else { a.pause(); setMusicPlaying(false); }
  };
  const screenIndexRef = React.useRef(0);
+ const [editorHistory, setEditorHistory] = React.useState({canBack:false, canForward:false, screen:'Section 1'});
  const syncCanvasHistory = React.useCallback(() => {
-   if (!editorMode) { onHistoryState?.({ canBack:false, canForward:false, screen:'experience' }); return; }
+   if (!editorMode) { const next={canBack:false,canForward:false,screen:'experience'}; setEditorHistory(next); onHistoryState?.(next); return; }
    const root = rootRef.current;
    const screens = root ? Array.from(root.querySelectorAll(':scope > section')) as HTMLElement[] : [];
-   if (!screens.length) { onHistoryState?.({ canBack:false, canForward:false, screen:'experience' }); return; }
+   if (!screens.length) { const next={canBack:false,canForward:false,screen:'experience'}; setEditorHistory(next); onHistoryState?.(next); return; }
    screenIndexRef.current = Math.max(0, Math.min(screenIndexRef.current, screens.length - 1));
-   onHistoryState?.({ canBack:screenIndexRef.current > 0, canForward:screenIndexRef.current < screens.length - 1, screen:`section-${screenIndexRef.current + 1}` });
+   const next={canBack:screenIndexRef.current > 0, canForward:screenIndexRef.current < screens.length - 1, screen:`Section ${screenIndexRef.current + 1}`};
+   setEditorHistory(next);
+   onHistoryState?.(next);
  }, [editorMode, onHistoryState]);
  React.useEffect(() => {
    const root = rootRef.current as (HTMLDivElement & { __bbEditorNavigate?: (delta:number)=>void }) | null;
@@ -279,11 +286,29 @@ function StandardExperienceTemplate({variant='romantic',content,editorMode,onEle
  const guardEditInteraction = (e: React.SyntheticEvent) => {
    if (!editorMode) return;
    const target = e.target as HTMLElement | null;
-   if (target?.closest('.experience-editable,.experience-editor-control,[data-bb-editor-nav]')) return;
+   if (!target) return;
+   if (target.closest('[data-bb-editor-nav-overlay],.experience-editor-control')) return;
+   const editable = target.closest('.experience-editable') as HTMLElement | null;
+   const actionable = target.closest('button,a,input,select,textarea,video,audio,summary,[role=button]') as HTMLElement | null;
+   if (actionable) {
+     e.preventDefault();
+     e.stopPropagation();
+     if (editable) {
+       onElementSelect?.({
+         key: editable.getAttribute('data-bb-selection-key') || '',
+         label: editable.getAttribute('data-bb-selection-label') || 'Element',
+         kind: editable.getAttribute('data-bb-selection-kind') || 'text',
+         index: editable.getAttribute('data-bb-selection-index') ? Number(editable.getAttribute('data-bb-selection-index')) : undefined,
+         value: ((editable.querySelector('[data-bb-value]') as HTMLElement | null)?.innerText || editable.innerText || '').trim(),
+       });
+     }
+     return;
+   }
+   if (editable) return;
    e.preventDefault();
    e.stopPropagation();
  };
- return <div ref={rootRef} data-bb-experience-root style={{minHeight:'100%',background:p.surface,color:variant==='minimal'||variant==='elegant'?'#111827':'white',fontFamily:'ui-sans-serif,system-ui'}} onClickCapture={guardEditInteraction} onPointerDownCapture={guardEditInteraction} onTouchStartCapture={guardEditInteraction} onKeyDownCapture={(e)=>{ if(editorMode && (e.key==='Enter'||e.key===' ')){ const target=e.target as HTMLElement|null; if(!target?.closest('.experience-editable,.experience-editor-control,[data-bb-editor-nav]')){ e.preventDefault(); e.stopPropagation(); } } }}>
+ return <div ref={rootRef} data-bb-experience-root style={{position:'relative',minHeight:'100%',background:p.surface,color:variant==='minimal'||variant==='elegant'?'#111827':'white',fontFamily:'ui-sans-serif,system-ui'}} onClickCapture={guardEditInteraction} onPointerDownCapture={guardEditInteraction} onTouchStartCapture={guardEditInteraction} onKeyDownCapture={(e)=>{ if(editorMode && (e.key==='Enter'||e.key===' ')){ const target=e.target as HTMLElement|null; if(target?.closest('[data-bb-editor-nav-overlay],.experience-editor-control')) return; const editable=target?.closest('.experience-editable'); const actionable=target?.closest('button,a,input,select,textarea,video,audio,summary,[role=button]'); if(actionable || !editable){ e.preventDefault(); e.stopPropagation(); } } }}>
   <section style={{padding:'72px 24px',textAlign:'center',background:`radial-gradient(circle at 20% 10%, ${p.accent}55, transparent 35%), ${p.surface}`}}>
    <Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'preset.emoji',label:'Hero emoji'}}><div data-bb-value style={{fontSize:42}}>{String(presetCfg.emoji || p.emoji)}</div></Editable>
    <Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'preset.eyebrow',label:'Hero eyebrow'}}><p data-bb-value style={{letterSpacing:3,textTransform:'uppercase',fontSize:12,color:p.accent,fontWeight:800}}>{String(presetCfg.eyebrow || p.eyebrow)}</p></Editable>
@@ -308,6 +333,11 @@ function StandardExperienceTemplate({variant='romantic',content,editorMode,onEle
   <audio ref={musicRef} src={content.musicUrl || undefined} preload="auto" loop aria-label="Background music" data-bb-background-music style={{display:'none'}} />
   {!editorMode && content.musicUrl && <button type="button" onClick={(e)=>{e.preventDefault();e.stopPropagation();toggleMusic();}} style={{position:'fixed',right:18,bottom:18,zIndex:20,padding:'10px 14px',borderRadius:999,border:`1px solid ${p.accent}55`,background:variant==='minimal'||variant==='elegant'?'rgba(255,255,255,.92)':'rgba(15,15,20,.72)',color:variant==='minimal'||variant==='elegant'?'#111827':'#fff',backdropFilter:'blur(10px)',cursor:'pointer',fontWeight:800}}>{musicPlaying ? '🔊 Music ON' : '🔇 Music OFF'}</button>}
   {editorMode && <button type="button" className="experience-music-chip experience-editor-control" onClick={(e)=>{e.preventDefault();e.stopPropagation();onElementSelect?.({key:'musicUrl',label:'Background music',kind:'audio'});}}>🎵 {content.musicUrl ? 'Edit music' : 'Add background music'}</button>}
+  {editorMode && <div data-bb-editor-nav-overlay="1" aria-label="Editor navigation" style={{position:'absolute',left:'50%',bottom:18,transform:'translateX(-50%)',zIndex:100,display:'flex',alignItems:'center',gap:10,padding:'8px 10px',borderRadius:16,background:'rgba(18,18,24,.84)',border:'1px solid rgba(255,255,255,.18)',boxShadow:'0 10px 28px rgba(0,0,0,.24)',backdropFilter:'blur(12px)'}}>
+    <button type="button" onClick={(e)=>{e.preventDefault();e.stopPropagation();rootRef.current && (rootRef.current as any).__bbEditorNavigate?.(-1);}} disabled={!editorHistory.canBack} style={{border:0,borderRadius:10,padding:'9px 13px',fontWeight:700,cursor:editorHistory.canBack?'pointer':'not-allowed',opacity:editorHistory.canBack?1:.45}}>← Previous</button>
+    <span style={{minWidth:92,textAlign:'center',color:'rgba(255,255,255,.78)',fontSize:12}}>{editorHistory.screen || 'Editor'}</span>
+    <button type="button" onClick={(e)=>{e.preventDefault();e.stopPropagation();rootRef.current && (rootRef.current as any).__bbEditorNavigate?.(1);}} disabled={!editorHistory.canForward} style={{border:0,borderRadius:10,padding:'9px 13px',fontWeight:700,cursor:editorHistory.canForward?'pointer':'not-allowed',opacity:editorHistory.canForward?1:.45}}>Next →</button>
+  </div>}
  </div>
 
 }
