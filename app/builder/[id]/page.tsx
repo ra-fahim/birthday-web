@@ -577,7 +577,7 @@ export default function Builder() {
       <section className="builder-preview-panel">
           <div className="builder-preview-head">
             <div className="builder-preview-title">
-              <div><span>LIVE PREVIEW</span><strong>{templateDisplayName}</strong><em>Live canvas • Auto-sync enabled</em></div>
+              <div><span>LIVE PREVIEW</span><strong>{previewMode ? 'Preview Mode' : templateDisplayName}</strong><em>{previewMode ? 'See your website without waiting for the full countdown.' : 'Live canvas • Auto-sync enabled'}</em>{previewMode && <small className="builder-preview-note">Preview Rule: You can preview the final 10 seconds without waiting for a long countdown. If the birthday time has already passed but the 24-hour birthday window is still active, Preview starts directly from the Greeting Screen.</small>}</div>
             </div>
             <div className="builder-preview-badge">{previewMode ? 'Visitor mode' : 'Edit mode'}</div>
           </div>
