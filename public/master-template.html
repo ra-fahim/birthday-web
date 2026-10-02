@@ -749,20 +749,24 @@
         const DEFAULT_WISHING_AUDIO_SOURCE = BG_MUSIC_SOURCE;
         const _BB_PARAMS = new URLSearchParams(window.location.search);
         const isEditorMode = _BB_PARAMS.get('edit') === '1' || _BB_PARAMS.get('bbEdit') === '1';
+        const isPreviewMode = _BB_PARAMS.get('preview') === '1' || _BB_PARAMS.get('bbPreview') === '1';
         const isDemoMode = !isEditorMode && (_BB_PARAMS.get('demo') === '1' || _BB_PARAMS.get('bbDemo') === '1');
         let demoBirthdayTarget = isDemoMode ? new Date(Date.now() + 10000) : null;
         let demoAudioEnabled = false;
         let BB_CONTENT = {};
 
         const CONFIG = {
-            year: _BB_PARAMS.has('year') && Number.isFinite(Number(_BB_PARAMS.get('year'))) ? Number(_BB_PARAMS.get('year')) : null,
-            month: 8,
-            day: 24,
+            year: 2030,
+            month: 0,
+            day: 8,
             hour: 0,
-            minute: 00,
+            minute: 0,
             age: 24,
             name: "Anarkoli.."
         };
+        if (_BB_PARAMS.has('year') && Number.isFinite(Number(_BB_PARAMS.get('year')))) {
+            CONFIG.year = Number(_BB_PARAMS.get('year'));
+        }
 
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('name')) {
@@ -1333,12 +1337,23 @@
         document.body.addEventListener('click', handleGlobalClick);
         document.body.addEventListener('touchstart', handleGlobalClick);
 
+        function getBirthdayTimeline(now = new Date()) {
+            const baseYear = Number.isFinite(Number(CONFIG.year)) && Number(CONFIG.year) > 0 ? Number(CONFIG.year) : now.getFullYear();
+            const makeTarget = (year) => new Date(year, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0, 0);
+            let occurrence = makeTarget(baseYear);
+            if (now < occurrence) {
+                return { active: false, occurrence: null, next: occurrence };
+            }
+            while (makeTarget(occurrence.getFullYear() + 1) <= now) {
+                occurrence = makeTarget(occurrence.getFullYear() + 1);
+            }
+            const active = now >= occurrence && now < new Date(occurrence.getTime() + 86400000);
+            return { active, occurrence, next: makeTarget(occurrence.getFullYear() + 1) };
+        }
+
         function isBirthday(date) {
-            if (isEditorMode) return true;
             if (isDemoMode) return Boolean(demoBirthdayTarget && date >= demoBirthdayTarget);
-            if (date.getMonth() !== CONFIG.month || date.getDate() !== CONFIG.day) return false;
-            const target = new Date(date.getFullYear(), CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
-            return date >= target;
+            return getBirthdayTimeline(date).active;
         }
 
         let photoAlbum = Array.from(document.querySelectorAll('.photo-card img')).map(img => img.getAttribute('src')).filter(Boolean);
@@ -1432,12 +1447,17 @@
 
         function updateCountdown() {
             const now = new Date();
+            const timeline = isDemoMode
+                ? { active: Boolean(demoBirthdayTarget && now >= demoBirthdayTarget), occurrence: demoBirthdayTarget, next: demoBirthdayTarget }
+                : getBirthdayTimeline(now);
+
             if (isEditorMode) {
-                const currentYear = now.getFullYear();
-                let birthday = new Date(currentYear, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
-                if (now > birthday) birthday = new Date(currentYear + 1, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
-                const diff = birthday - now;
-                const totalSecondsLeft = Math.max(0, Math.ceil(diff / 1000));
+                // Editor canvas always tracks the real configured target. If the
+                // configured birthday has already passed, count down to its next
+                // yearly occurrence instead of getting stuck at 00:00:00:00.
+                const birthday = timeline.next;
+                const diff = Math.max(0, birthday.getTime() - now.getTime());
+                const totalSecondsLeft = Math.ceil(diff / 1000);
                 const days = Math.floor(totalSecondsLeft / (60 * 60 * 24));
                 const hours = Math.floor((totalSecondsLeft / (60 * 60)) % 24);
                 const mins = Math.floor((totalSecondsLeft / 60) % 60);
@@ -1451,7 +1471,7 @@
                 updateEditorNav();
                 return;
             }
-            const isBirthdayToday = isBirthday(now);
+            const isBirthdayToday = timeline.active;
 
             document.getElementById('countdownMessage').innerHTML =
                 `⏰ Something is coming soon...`;
@@ -1491,16 +1511,7 @@
             document.getElementById('greetingScreen').classList.remove('show');
             document.getElementById('countdownScreen').classList.remove('hide');
 
-            const currentYear = now.getFullYear();
-            let birthday = isDemoMode && demoBirthdayTarget ? demoBirthdayTarget : new Date(
-                Number.isFinite(Number(CONFIG.year)) && Number(CONFIG.year) > 0 ? Number(CONFIG.year) : currentYear,
-                CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0
-            );
-
-            if (!isDemoMode && now > birthday) {
-                birthday = new Date(birthday.getFullYear() + 1, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
-            }
-
+            const birthday = isDemoMode && demoBirthdayTarget ? demoBirthdayTarget : timeline.next;
             const diff = birthday - now;
             const totalSecondsLeft = Math.ceil(diff / 1000);
 
@@ -2467,9 +2478,7 @@
     document.querySelectorAll('.video-card[data-bb-key="mb.videos.items"]').forEach(function(el){var h=function(e){e.preventDefault();e.stopPropagation();select(el)};el.addEventListener('click',h,true);cleanups.push(function(){el.removeEventListener('click',h,true)});});
   }
   function isNavTarget(target){ return !!(target && target.closest && target.closest('#bbEditorNav button')); }
-  function isLiveInteractionTarget(target){
-    return !!(target && target.closest && (target.closest('#reasonsBtn') || target.closest('#envelopeEl')));
-  }
+  function isLiveInteractionTarget(target){ return false; }
   function isSelectableTarget(target){ return !!(target && target.closest && target.closest('[data-bb-key]')); }
   function guardEditorInteraction(e){
     if(!enabled) return;

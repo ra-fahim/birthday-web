@@ -208,12 +208,82 @@ function Editable({ editorMode, onSelect, selection, className, children }: { ed
   </div>;
 }
 
-export default function ExperienceTemplate({variant='romantic',content,editorMode,onElementSelect,onHistoryState}:{variant?:string;content:BirthdayContent;editorMode?:boolean;onElementSelect?:(selection:{key:string;label:string;index?:number;value?:string;kind?:string})=>void;onHistoryState?:(state:{canBack?:boolean;canForward?:boolean;screen?:string})=>void}){
- if (variant === 'wedding-proposal') return <WeddingProposalTemplate content={content} editorMode={editorMode} onElementSelect={onElementSelect} />;
+export default function ExperienceTemplate(props:{variant?:string;content:BirthdayContent;editorMode?:boolean;onElementSelect?:(selection:{key:string;label:string;index?:number;value?:string;kind?:string})=>void;onHistoryState?:(state:{canBack?:boolean;canForward?:boolean;screen?:string})=>void}){
+ const {variant='romantic',content,editorMode,onElementSelect,onHistoryState}=props;
+ if (variant === 'wedding-proposal') return <WeddingProposalTemplate content={content} editorMode={editorMode} onElementSelect={onElementSelect} onHistoryState={onHistoryState} />;
  if (variant === 'miss-you-1') return <MissYouTemplate content={content} editorMode={editorMode} onElementSelect={onElementSelect} onHistoryState={onHistoryState} />;
  if (variant === 'master-proposal') return <MasterProposalTemplate content={content} editorMode={editorMode} onElementSelect={onElementSelect} onHistoryState={onHistoryState} />;
+ return <StandardExperienceTemplate variant={variant} content={content} editorMode={editorMode} onElementSelect={onElementSelect} onHistoryState={onHistoryState} />;
+}
+
+function StandardExperienceTemplate({variant='romantic',content,editorMode,onElementSelect,onHistoryState}:{variant?:string;content:BirthdayContent;editorMode?:boolean;onElementSelect?:(selection:{key:string;label:string;index?:number;value?:string;kind?:string})=>void;onHistoryState?:(state:{canBack?:boolean;canForward?:boolean;screen?:string})=>void}){
  const p=presets[variant]||presets.romantic; const gallery=content.gallery||[]; const presetCfg=((content.templateConfig||{}) as any).preset || {};
- return <div style={{minHeight:'100%',background:p.surface,color:variant==='minimal'||variant==='elegant'?'#111827':'white',fontFamily:'ui-sans-serif,system-ui'}}>
+ const rootRef = React.useRef<HTMLDivElement>(null);
+ const musicRef = React.useRef<HTMLAudioElement>(null);
+ const [musicPlaying, setMusicPlaying] = React.useState(false);
+ React.useEffect(() => {
+   const audio = musicRef.current;
+   if (!audio) return;
+   audio.loop = true;
+   audio.volume = 0.45;
+   audio.muted = true;
+   if (editorMode || !content.musicUrl) {
+     try { audio.pause(); audio.currentTime = 0; } catch {}
+     setMusicPlaying(false);
+     return;
+   }
+   let unlocked = false;
+   const start = () => {
+     if (unlocked || !musicRef.current || !content.musicUrl) return;
+     unlocked = true;
+     const a = musicRef.current;
+     a.muted = false;
+     a.volume = 0.45;
+     a.play().then(() => setMusicPlaying(true)).catch(() => { unlocked = false; });
+   };
+   window.addEventListener('pointerdown', start, { once: true, capture: true });
+   window.addEventListener('keydown', start, { once: true, capture: true });
+   return () => { window.removeEventListener('pointerdown', start, true); window.removeEventListener('keydown', start, true); };
+ }, [editorMode, content.musicUrl]);
+ const toggleMusic = () => {
+   const a = musicRef.current;
+   if (!a || !content.musicUrl || editorMode) return;
+   if (a.paused) { a.muted = false; a.volume = 0.45; a.play().then(() => setMusicPlaying(true)).catch(() => {}); }
+   else { a.pause(); setMusicPlaying(false); }
+ };
+ const screenIndexRef = React.useRef(0);
+ const syncCanvasHistory = React.useCallback(() => {
+   if (!editorMode) { onHistoryState?.({ canBack:false, canForward:false, screen:'experience' }); return; }
+   const root = rootRef.current;
+   const screens = root ? Array.from(root.querySelectorAll(':scope > section')) as HTMLElement[] : [];
+   if (!screens.length) { onHistoryState?.({ canBack:false, canForward:false, screen:'experience' }); return; }
+   screenIndexRef.current = Math.max(0, Math.min(screenIndexRef.current, screens.length - 1));
+   onHistoryState?.({ canBack:screenIndexRef.current > 0, canForward:screenIndexRef.current < screens.length - 1, screen:`section-${screenIndexRef.current + 1}` });
+ }, [editorMode, onHistoryState]);
+ React.useEffect(() => {
+   const root = rootRef.current as (HTMLDivElement & { __bbEditorNavigate?: (delta:number)=>void }) | null;
+   if (!root) return;
+   const navigate = (delta:number) => {
+     if (!editorMode) return;
+     const screens = Array.from(root.querySelectorAll(':scope > section')) as HTMLElement[];
+     if (!screens.length) return;
+     const next = Math.max(0, Math.min(screenIndexRef.current + (delta < 0 ? -1 : 1), screens.length - 1));
+     screenIndexRef.current = next;
+     screens[next]?.scrollIntoView({ behavior:'smooth', block:'center' });
+     syncCanvasHistory();
+   };
+   root.__bbEditorNavigate = navigate;
+   syncCanvasHistory();
+   return () => { delete root.__bbEditorNavigate; };
+ }, [editorMode, syncCanvasHistory]);
+ const guardEditInteraction = (e: React.SyntheticEvent) => {
+   if (!editorMode) return;
+   const target = e.target as HTMLElement | null;
+   if (target?.closest('.experience-editable,.experience-editor-control,[data-bb-editor-nav]')) return;
+   e.preventDefault();
+   e.stopPropagation();
+ };
+ return <div ref={rootRef} data-bb-experience-root style={{minHeight:'100%',background:p.surface,color:variant==='minimal'||variant==='elegant'?'#111827':'white',fontFamily:'ui-sans-serif,system-ui'}} onClickCapture={guardEditInteraction} onPointerDownCapture={guardEditInteraction} onTouchStartCapture={guardEditInteraction} onKeyDownCapture={(e)=>{ if(editorMode && (e.key==='Enter'||e.key===' ')){ const target=e.target as HTMLElement|null; if(!target?.closest('.experience-editable,.experience-editor-control,[data-bb-editor-nav]')){ e.preventDefault(); e.stopPropagation(); } } }}>
   <section style={{padding:'72px 24px',textAlign:'center',background:`radial-gradient(circle at 20% 10%, ${p.accent}55, transparent 35%), ${p.surface}`}}>
    <Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'preset.emoji',label:'Hero emoji'}}><div data-bb-value style={{fontSize:42}}>{String(presetCfg.emoji || p.emoji)}</div></Editable>
    <Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'preset.eyebrow',label:'Hero eyebrow'}}><p data-bb-value style={{letterSpacing:3,textTransform:'uppercase',fontSize:12,color:p.accent,fontWeight:800}}>{String(presetCfg.eyebrow || p.eyebrow)}</p></Editable>
@@ -231,9 +301,13 @@ export default function ExperienceTemplate({variant='romantic',content,editorMod
     {(content.reasons?.length?content.reasons:['Beautiful memories','Little moments','A whole lot of joy']).map((x,i)=><Editable key={`reason-${i}`} editorMode={editorMode} onSelect={onElementSelect} selection={{key:'reasons',index:i,label:`Reason ${i+1}`}}><article data-bb-value style={{padding:24,borderRadius:24,background:variant==='minimal'||variant==='elegant'?'white':'rgba(255,255,255,.06)',border:`1px solid ${p.accent}33`}}><b style={{color:p.accent}}>0{i+1}</b><p style={{marginTop:10,fontSize:18}}>{x}</p></article></Editable>)}
    </div>
    {gallery.length>0 && <div style={{marginTop:55}}><Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'preset.sectionTitle',label:'Gallery section title'}}><h2 data-bb-value style={{fontSize:30,fontWeight:800,marginBottom:20}}>{String(presetCfg.sectionTitle || 'Moments worth keeping')}</h2></Editable><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:14}}>{gallery.map((g,i)=><Editable key={i} editorMode={editorMode} onSelect={onElementSelect} selection={{key:'gallery',index:i,label:`Photo ${i+1}`,kind:'image'}}><img src={g.url} data-bb-value alt={g.caption||`Memory ${i+1}`} style={{width:'100%',aspectRatio:'1',objectFit:'cover',borderRadius:22}} /></Editable>)}</div></div>}
-   <Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'greeting',label:'Greeting'}}><div style={{marginTop:55,padding:'35px 28px',borderRadius:28,background:`linear-gradient(135deg, ${p.accent}22, transparent)`,border:`1px solid ${p.accent}44`}}><p data-bb-value style={{fontSize:14,textTransform:'uppercase',letterSpacing:2,color:p.accent,fontWeight:800}}>{String(presetCfg.todayLabel || 'Today & always')}</p><p style={{fontSize:24,lineHeight:1.5,marginTop:12}}>{content.greeting || 'Wishing you the very best.'}</p></div></Editable>
-   {editorMode && <button type="button" className="experience-add-media" onClick={()=>onElementSelect?.({key:'gallery',label:'Add photo',index:gallery.length,kind:'image'})}>＋ Add Photo</button>}
+   {content.videoUrl && <Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'videoUrl',label:'Special video',kind:'video'}}><div style={{marginTop:55}}><video data-bb-value src={content.videoUrl} controls playsInline style={{width:'100%',maxHeight:520,borderRadius:24,background:'#000'}}/><p style={{marginTop:12,opacity:.72}}>{content.videoCaption || 'A special moment worth replaying.'}</p></div></Editable>}
+   <div style={{marginTop:55,padding:'35px 28px',borderRadius:28,background:`linear-gradient(135deg, ${p.accent}22, transparent)`,border:`1px solid ${p.accent}44`}}><Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'preset.todayLabel',label:'Greeting eyebrow'}}><p data-bb-value style={{fontSize:14,textTransform:'uppercase',letterSpacing:2,color:p.accent,fontWeight:800}}>{String(presetCfg.todayLabel || 'Today & always')}</p></Editable><Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'greeting',label:'Greeting'}}><p data-bb-value style={{fontSize:24,lineHeight:1.5,marginTop:12}}>{content.greeting || 'Wishing you the very best.'}</p></Editable></div>
+   {editorMode && <div style={{display:'flex',gap:10,justifyContent:'center',flexWrap:'wrap',marginTop:20}}><button type="button" className="experience-add-media experience-editor-control" onClick={()=>onElementSelect?.({key:'gallery',label:'Add photo',index:gallery.length,kind:'image'})}>＋ Add Photo</button><button type="button" className="experience-add-media experience-editor-control" onClick={()=>onElementSelect?.({key:'videoUrl',label:'Special video',kind:'video'})}>＋ Add Video</button></div>}
   </section>
-  {editorMode && <button type="button" className="experience-music-chip" onClick={(e)=>{e.preventDefault();e.stopPropagation();onElementSelect?.({key:'musicUrl',label:'Background music',kind:'audio'});}}>🎵 {content.musicUrl ? 'Edit music' : 'Add background music'}</button>}
+  <audio ref={musicRef} src={content.musicUrl || undefined} preload="auto" loop aria-label="Background music" data-bb-background-music style={{display:'none'}} />
+  {!editorMode && content.musicUrl && <button type="button" onClick={(e)=>{e.preventDefault();e.stopPropagation();toggleMusic();}} style={{position:'fixed',right:18,bottom:18,zIndex:20,padding:'10px 14px',borderRadius:999,border:`1px solid ${p.accent}55`,background:variant==='minimal'||variant==='elegant'?'rgba(255,255,255,.92)':'rgba(15,15,20,.72)',color:variant==='minimal'||variant==='elegant'?'#111827':'#fff',backdropFilter:'blur(10px)',cursor:'pointer',fontWeight:800}}>{musicPlaying ? '🔊 Music ON' : '🔇 Music OFF'}</button>}
+  {editorMode && <button type="button" className="experience-music-chip experience-editor-control" onClick={(e)=>{e.preventDefault();e.stopPropagation();onElementSelect?.({key:'musicUrl',label:'Background music',kind:'audio'});}}>🎵 {content.musicUrl ? 'Edit music' : 'Add background music'}</button>}
  </div>
+
 }

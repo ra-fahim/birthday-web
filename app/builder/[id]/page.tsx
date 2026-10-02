@@ -354,10 +354,15 @@ export default function Builder() {
   }, [editorMode]);
 
   const handleCanvasHistory = useCallback((direction: 'back' | 'forward') => {
+    const delta = direction === 'back' ? -1 : 1;
+    const experienceRoot = document.querySelector<HTMLElement>('.builder-canvas-stage [data-bb-experience-root]') as (HTMLElement & { __bbEditorNavigate?: (delta: number) => void }) | null;
+    if (experienceRoot?.__bbEditorNavigate) {
+      experienceRoot.__bbEditorNavigate(delta);
+      return;
+    }
     const iframe = document.querySelector<HTMLIFrameElement>('.builder-canvas-stage iframe');
     const target = iframe?.contentWindow as (Window & { BB_EDITOR_NAVIGATE?: (delta: number) => void }) | null;
     if (!target) return;
-    const delta = direction === 'back' ? -1 : 1;
     // Prefer the same-origin runtime API. Only fall back to the message
     // bridge when the iframe is still booting so one click never advances
     // twice.

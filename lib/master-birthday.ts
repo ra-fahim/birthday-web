@@ -21,14 +21,9 @@ export type MasterBirthdayConfig = {
   effects: { butterflies: boolean; flowers: boolean; hearts: boolean; sparkles: boolean; customCursor: boolean; confetti: boolean; smoke: boolean; soundEffects: boolean; vibration: boolean; microphone: boolean };
 };
 
-const suppliedMonth = 7; // original JS CONFIG uses 7 (August)
-const suppliedDay = 22;
-const suppliedHour = 0;
-const suppliedMinute = 0;
-const current = new Date();
-const thisYearBirthday = new Date(current.getFullYear(), suppliedMonth, suppliedDay, suppliedHour, suppliedMinute, 0);
-const birthdayYear = current <= thisYearBirthday ? current.getFullYear() : current.getFullYear() + 1;
-const suppliedBirthdayDate = `${birthdayYear}-${String(suppliedMonth + 1).padStart(2,'0')}-${String(suppliedDay).padStart(2,'0')}`;
+// Stable Master Birthday default. Keep the editor reset deterministic so the
+// canvas never falls back to a moving/current-year target.
+const suppliedBirthdayDate = '2030-01-08';
 const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Dhaka';
 
 export const masterBirthdayDefaults: MasterBirthdayConfig = {

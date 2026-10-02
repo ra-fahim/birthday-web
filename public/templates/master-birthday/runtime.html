@@ -2184,7 +2184,7 @@
   // Catalog previews are always silent. Demo mode can opt into audio explicitly;
   // published experiences default to music ON.
   let musicEnabled = !window.__BB_FORCE_DEMO && !window.__BB_EDITOR_MODE && !window.__BB_CATALOG_MODE;
-  if (BB_PREVIEW_MODE) musicEnabled = false;
+  // Editor mode is silent; Preview is interactive and can use the configured audio.
 
   let spotifyFrame = null;
   let youtubeFrame = null;
@@ -2927,13 +2927,12 @@
   function guardEditorAction(e){
     if(!window.__BB_EDITOR_MODE) return;
     const target=e.target;
-    if(target?.closest?.('#reasonsBtn') || target?.closest?.('#envelopeEl')) return;
+    const nav = target?.closest?.('[data-bb-editor-nav]');
+    if(nav) return;
     const sel=editorSelectionForTarget(target);
     e.stopImmediatePropagation();
-    if(e.type==='click'){
-      e.preventDefault();
-      if(sel) postEditorSelection(sel);
-    }
+    e.preventDefault();
+    if(e.type==='click' && sel) postEditorSelection(sel);
   }
   document.addEventListener('click',guardEditorAction,true);
   document.addEventListener('pointerdown',guardEditorAction,true);
