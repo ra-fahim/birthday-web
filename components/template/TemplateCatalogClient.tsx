@@ -127,6 +127,7 @@ function TemplateCard({ template, isAuthenticated, onDemo }: { template: Templat
         <div className="catalog-template-actions">
           <button type="button" className="premium-button premium-button-ghost premium-button-sm" onClick={() => onDemo(template)}>See demo <span>↗</span></button>
           <Link className="premium-button premium-button-sm" href={useHref}>{isAuthenticated ? 'Use template' : 'Create website'} <span>→</span></Link>
+          <Link className="premium-button premium-button-ghost premium-button-sm" href={`/templates/how-to/${encodeURIComponent(template.slug)}`}>How to create this template</Link>
         </div>
       </div>
     </article>

@@ -690,14 +690,16 @@
         };
 
         const urlParams = new URLSearchParams(window.location.search);
-        const BB_FORCE_DEMO = urlParams.get('demo') === '1' || urlParams.get('bbDemo') === '1';
+        const BB_PREVIEW_MODE = urlParams.get('preview') === '1' || urlParams.get('bbPreview') === '1';
+        const BB_FORCE_DEMO = (urlParams.get('demo') === '1' || urlParams.get('bbDemo') === '1') && !BB_PREVIEW_MODE;
         const BB_EDITOR_MODE = urlParams.get('edit') === '1' || urlParams.get('bbEdit') === '1';
         window.__BB_EDITOR_MODE = BB_EDITOR_MODE;
         if (BB_EDITOR_MODE) {
             document.documentElement.dataset.bbEditor = '1';
             document.body.classList.add('bb-editor-active');
         }
-        if (BB_FORCE_DEMO) window.__BB_FORCE_DEMO = true;
+        window.__BB_PREVIEW_MODE = BB_PREVIEW_MODE;
+        if (BB_FORCE_DEMO || BB_PREVIEW_MODE) window.__BB_FORCE_DEMO = true;
         if (urlParams.get('name')) {
             CONFIG.name = decodeURIComponent(urlParams.get('name'));
         }
@@ -1237,8 +1239,9 @@
             // screens here. Navigation is owned by the editor arrows.
             if (window.__BB_EDITOR_MODE) {
                 const currentYear = now.getFullYear();
-                let editorBirthday = new Date(currentYear, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
-                if (now > editorBirthday) editorBirthday = new Date(currentYear + 1, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
+                const configuredYear = Number(CONFIG.year);
+                let editorBirthday = new Date(Number.isFinite(configuredYear) && configuredYear > 0 ? configuredYear : currentYear, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
+                if (!(Number.isFinite(configuredYear) && configuredYear > 0) && now > editorBirthday) editorBirthday = new Date(currentYear + 1, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
                 const editorDiff = Math.max(0, editorBirthday - now);
                 const editorTotal = Math.ceil(editorDiff / 1000);
                 const days = Math.floor(editorTotal / (60 * 60 * 24));
@@ -2045,11 +2048,11 @@
 <script>
 (function () {
   'use strict';
-  const DEFAULT = {"recipientName":"Anarkoli","senderName":"","age":17,"birthdayDate":"2027-08-22","birthdayTime":"00:00","timezone":"Asia/Dhaka","pageTitle":"Something's Coming 💫","browserTitle":"Loading... 💫","ogTitle":"Something's Coming 💫","ogDescription":"Tap to open when the time is right ✨","ogImage":"","customSlug":"","countdown":{"title":"Something special is unlocking...⌛","message":"","audioUrl":"https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3","audioEnabled":true},"greeting":{"heading":"Happy Birthday Pagli❤️🎂💫","text":"Hey You Know What! You're the most adorable human i ever met! 💖","enterButton":"Click to enter your world 💕"},"cake":{"cakeText":"happy","birthdayText":"birthday","recipientName":"Anarkoli","ageCandleCount":17,"wishTitle":"Close your eyes and make a wish...","wishSubtitle":"Then blow out the candles 🕯️","micHint":"🎤 Blow into your mic to blow out the candles, or tap them","cakeStatus":"","cutInstruction":"🔪 Press and drag anywhere on the cake — cut it your way","nextButton":"Enter your storyline 💫","microphoneEnabled":true,"soundEffects":true,"vibration":true},"reasons":{"heading":"Happy Birthday Just Friend.. 💖","note":"","items":[{"id":"reason-1","text":"You're such a kind and wonderful person, and I feel lucky to share such a good bond with you.","emoji":"🌟"},{"id":"reason-2","text":"May your day be filled with love, laughter, and endless joy.","emoji":"💗"},{"id":"reason-3","text":"Wishing you success, happiness, and everything your heart desires.","emoji":"💕"},{"id":"reason-4","text":"Stay the amazing girl you are—always spreading positivity around. Have the happiest year ahead! 🥳","emoji":"🌟"}],"buttonText":"Click Here... 💕"},"memories":{"heading":"The Beautiful Moments ","subtitle":"Every moment spent with you has been magical. Let's cherish these precious memories Anarkoli...","nextButton":"Again Your Storylane 🎥","items":[{"id":"memory-1","url":"https://picsum.photos/seed/anime1/800/600","title":"A Magical Reflection 💖","caption":"A reflection of pure grace, elegance, and unmatched beauty. 🌹👑","date":"A Magical Reflection 💖","alt":"Anime 1"},{"id":"memory-2","url":"https://picsum.photos/seed/anime2/800/600","title":"Lost in Anime Lore","caption":"May your journey ahead be filled with happiness, success, and endless smiles😊💕","date":"Lost in Anime Lore","alt":"Anime 2"},{"id":"memory-3","url":"https://picsum.photos/seed/anime3/800/600","title":"Her Smile Says It All","caption":"You're truly one of the sweetest girls I know, and I feel lucky to have a person like you❤️","date":"Her Smile Says It All","alt":"Anime 3"},{"id":"memory-4","url":"https://picsum.photos/seed/anime4/800/600","title":"One More Beautiful Memory","caption":"A little extra memory to make this story even more special. ✨💖","date":"One More Beautiful Memory","alt":"Anime 4"}]},"videos":{"title":"A Special Video Message","nextButton":"See your letter 💌","items":[{"id":"video-1","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4","title":"Happy Birthday Anarkoli ❤️🎂","caption":"","poster":"","alt":"Happy Birthday video"},{"id":"video-2","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4","title":"Another Special Memory 🎬","caption":"A second demo video slot so you can test adding and editing more than one video.","poster":"","alt":"Second demo video"}]},"soundtrack":{"items":[{"id":"track-1","title":"Birthday wishing audio","artist":"","sourceType":"youtube","url":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","cover":""}]},"letter":{"title":"A Letter for You friend 💌","paragraphs":["Every laugh, every chat, and every moment we've shared has been truly special.💫","I'm so grateful for the bond we have, and for the positivity.","On your birthday, I just wish for endless happiness, love, and success to come your way.🌸","You deserve all the joy in the world—keep shining and spreading your beautiful energy.✨","Again Happy Birthday💝"],"signature":"","buttonText":"Again, Happy Birthday Anarkoli Bury"},"secret":{"image":"https://res.cloudinary.com/dpctt0wao/image/upload/v1786828377/dcdqkuihl9g0ztwpugoar.png","imageAlt":"Secret Memory","buttonText":"See Your Friend","buttonIcon":"instagram","socialPlatform":"Instagram","socialUrl":"https://www.instagram.com/rafahimn"},"theme":{"main":"#ff69b4","secondary":"#9b6dff","accent":"#d4145a","button":"#ff69b4","text":"#4a4a4a","glow":"#ffb6d9","overlay":"linear-gradient(135deg, rgba(255,192,203,0.3), rgba(147,112,219,0.3))","backgroundImage":"","backgroundVideo":"https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp4","mode":"light","fontPreset":"original","animationIntensity":"full"},"effects":{"butterflies":true,"flowers":true,"hearts":true,"sparkles":true,"customCursor":true,"confetti":true,"smoke":true,"soundEffects":true,"vibration":true,"microphone":true},"wishingAudioUrl":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya"};
+  const DEFAULT = {"recipientName":"Anarkoli","senderName":"","age":24,"birthdayDate":"2027-09-24","birthdayTime":"00:00","timezone":"Asia/Dhaka","pageTitle":"Something's Coming 💫","browserTitle":"Loading... 💫","ogTitle":"Something's Coming 💫","ogDescription":"Tap to open when the time is right ✨","ogImage":"","customSlug":"","countdown":{"title":"Something special is unlocking...⌛","message":"⏰ Something is coming soon...","audioUrl":"https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3","audioEnabled":true},"wishingAudioUrl":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","greeting":{"heading":"Happy Birthday Anarkoli..❤️🎂💫","text":"Hey You Know What! You're the most adorable human i ever met! 💖","enterButton":"Click to enter your world 💕"},"cake":{"cakeText":"happy","birthdayText":"birthday","recipientName":"Anarkoli","ageCandleCount":24,"wishTitle":"Close your eyes and make a wish...","wishSubtitle":"Then blow out the candles 🕯️","micHint":"🎤 Blow into your mic to blow out the candles, or tap them","cakeStatus":"🎉 Cake cut! Happy Birthday! 🎉","cutInstruction":"🔪 Press and drag anywhere on the cake — cut it your way","nextButton":"Enter your storyline 💫","microphoneEnabled":true,"soundEffects":true,"vibration":true},"reasons":{"heading":"Happy birthday princess 👑","note":"","items":[{"id":"reason-1","text":"You're such a kind and wonderful person, and I feel lucky to share such a good bond with you.","emoji":"🌟"},{"id":"reason-2","text":"May your day be filled with love, laughter, and endless joy.","emoji":"💗"},{"id":"reason-3","text":"Wishing you success, happiness, and everything your heart desires.","emoji":"💕"},{"id":"reason-4","text":"Stay the amazing girl you are—always spreading positivity around. Have the happiest year ahead! 🥳","emoji":"🌟"}],"buttonText":"Click Here... 💕","finalButtonText":"You're the BESTEST ! 💖"},"memories":{"heading":"The Beautiful Moments ","subtitle":"Every moment spent with you has been magical. Let's cherish these precious memories Anarkoli...","nextButton":"Again Your Storylane 🎥","items":[{"id":"memory-1","url":"https://picsum.photos/seed/anime1/800/600","title":"A Magical Reflection 💖","caption":"A reflection of pure grace, elegance, and unmatched beauty. 🌹👑","date":"A Magical Reflection 💖","alt":"Anime 1"},{"id":"memory-2","url":"https://picsum.photos/seed/anime2/800/600","title":"Lost in Anime Lore","caption":"May your journey ahead be filled with happiness, success, and endless smiles😊💕","date":"Lost in Anime Lore","alt":"Anime 2"},{"id":"memory-3","url":"https://picsum.photos/seed/anime3/800/600","title":"Her Smile Says It All","caption":"You're truly one of the sweetest girls I know, and I feel lucky to have a person like you❤️","date":"Her Smile Says It All","alt":"Anime 3"},{"id":"memory-4","url":"https://picsum.photos/seed/anime4/800/600","title":"One More Beautiful Memory","caption":"A little extra memory to make this story even more special. ✨💖","date":"One More Beautiful Memory","alt":"Anime 4"}]},"videos":{"title":"A Special Video Message","nextButton":"See your letter 💌","items":[{"id":"video-1","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4","title":"Happy Birthday Anarkoli ❤️🎂","caption":"A little birthday video message just for this special story. 🎥💖","poster":"","alt":"Happy Birthday video"},{"id":"video-2","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4","title":"Another Special Memory 🎬","caption":"A second demo video slot so you can test adding and editing more than one video.","poster":"","alt":"Second demo video"}]},"soundtrack":{"items":[{"id":"track-1","title":"Birthday wishing audio","artist":"","sourceType":"youtube","url":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","cover":""}]},"letter":{"title":"A Letter for My favourite chapter..  💌","paragraphs":["Every laugh, every chat, and every moment we once shared will always hold a special place in my heart.💫","Even though time and things have changed, I'm still grateful for the bond we had and the beautiful energy you brought into my life.","On your birthday, I sincerely wish you endless happiness, peace, and success in everything you do.🌸","You deserve all the joy in the world—keep shining as you always have.✨","Happy Birthday💝"],"signature":"","buttonText":"Again, Happy Birthday Anarkoli.."},"secret":{"image":"https://picsum.photos/seed/anime4/800/600","imageAlt":"Secret Memory","buttonText":"See Your Friend","buttonIcon":"instagram","socialPlatform":"Instagram","socialUrl":"https://www.instagram.com/rafahimn"},"theme":{"main":"#ff69b4","secondary":"#9b6dff","accent":"#d4145a","button":"#ff69b4","text":"#4a4a4a","glow":"#ffb6d9","overlay":"linear-gradient(135deg, rgba(255,192,203,0.3), rgba(147,112,219,0.3))","backgroundImage":"","backgroundVideo":"https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp4","mode":"light","fontPreset":"original","animationIntensity":"full"},"effects":{"butterflies":true,"flowers":true,"hearts":true,"sparkles":true,"customCursor":true,"confetti":true,"smoke":true,"soundEffects":true,"vibration":true,"microphone":true}};
   const BB_RUNTIME_PARAMS = new URLSearchParams(location.search);
   window.__BB_CATALOG_MODE = BB_RUNTIME_PARAMS.get('catalog') === '1' || BB_RUNTIME_PARAMS.get('bbCatalog') === '1';
   let state = JSON.parse(JSON.stringify(DEFAULT));
-  let demoStarted = false;
+  let demoStarted = BB_FORCE_DEMO || BB_PREVIEW_MODE;
   let receivedContent = false;
   let demoTimer = null;
   let demoCountdownEndsAt = 0;
@@ -2188,8 +2191,8 @@
   }
 
   function applyCountdown() {
-    setText('#countdownScreen .countdown-title', state.countdown.title);
-    setText('#countdownMessage', state.countdown.message);
+    setText('#countdownScreen .countdown-title', state.countdown.title || DEFAULT.countdown.title);
+    setText('#countdownMessage', state.countdown.message || '⏰ Something is coming soon...');
     const ca = q('#countdownAudio');
     // Countdown audio follows the configured setting on the live site, but is
     // forcibly muted in demo/preview mode so opening a template never creates sound.
@@ -2378,7 +2381,7 @@
   function applyVideos(){
     const grid=q('#videoScreen .video-grid'); if(!grid)return;
     grid.innerHTML='';
-    (state.videos.items||[]).forEach(item=>{
+    (state.videos.items||[]).forEach((item,index)=>{
       const card=document.createElement('div');card.className='video-card bb-editable-target is-media'; card.setAttribute('data-bb-key','mb.videos.items'); card.setAttribute('data-bb-index',String(index)); card.setAttribute('data-bb-label',`Video ${index+1}`); card.setAttribute('data-bb-type','video');
       const h=document.createElement('h3');h.className='bb-editable-target';h.setAttribute('data-bb-key','mb.videos.items');h.setAttribute('data-bb-index',String(index));h.setAttribute('data-bb-label',`Video ${index+1} title`);h.textContent=item.title||'';card.appendChild(h);
       const wrap=document.createElement('div');wrap.className='video-wrapper';
@@ -2429,7 +2432,7 @@
   };
 
   function applySecret(){
-    const img=q('#secretScreen .secret-photo'); if(img){img.src=safeUrl(state.secret.image)||'';img.alt=state.secret.imageAlt||'Secret Memory';}
+    const img=q('#secretScreen .secret-photo'); if(img){const fallback='https://picsum.photos/seed/anime4/800/600'; img.src=safeUrl(state.secret.image)||fallback;img.alt=state.secret.imageAlt||'Secret Memory'; img.onerror=()=>{ if(img.src!==fallback){img.src=fallback;} };}
     const btn=q('#secretScreen .soulmate-btn'); if(btn){btn.innerHTML=`<i class="fab fa-instagram"></i> ${esc(state.secret.buttonText||'See Your Friend')}`;btn.onclick=()=>{const url=state.secret.socialUrl||'';if(url)window.open(url,'_blank','noopener,noreferrer');};}
     const link=q('#secretButtonLink'); if(link){link.title=String(state.secret.socialUrl||'');link.setAttribute('data-bb-value',String(state.secret.socialUrl||''));}
   }
@@ -2535,10 +2538,11 @@
   setTimeout(()=>{ if(typeof ytPlayer !== 'undefined' && ytPlayer && ytPlayerReady) applyTrackEngine(); },0);
 
   function applyAll(content){
-    const incoming=(content&&typeof content==='object')?content:{};
+    const useTemplateDefaultsOnly = !!BB_FORCE_DEMO && !BB_PREVIEW_MODE;
+    const incoming=(useTemplateDefaultsOnly ? {} : ((content&&typeof content==='object')?content:{}));
     const cfg=incoming.templateConfig?.masterBirthday || incoming.templateConfig || incoming;
     state={...DEFAULT,...cfg,countdown:{...DEFAULT.countdown,...cfg.countdown},greeting:{...DEFAULT.greeting,...cfg.greeting},cake:{...DEFAULT.cake,...cfg.cake},reasons:{...DEFAULT.reasons,...cfg.reasons,items:Array.isArray(cfg.reasons?.items)?cfg.reasons.items:DEFAULT.reasons.items},memories:{...DEFAULT.memories,...cfg.memories,items:Array.isArray(cfg.memories?.items)?cfg.memories.items:DEFAULT.memories.items},videos:{...DEFAULT.videos,...cfg.videos,items:Array.isArray(cfg.videos?.items)?cfg.videos.items:DEFAULT.videos.items},soundtrack:{...DEFAULT.soundtrack,...cfg.soundtrack,items:Array.isArray(cfg.soundtrack?.items)?cfg.soundtrack.items:DEFAULT.soundtrack.items},letter:{...DEFAULT.letter,...cfg.letter,paragraphs:Array.isArray(cfg.letter?.paragraphs)?cfg.letter.paragraphs:DEFAULT.letter.paragraphs},secret:{...DEFAULT.secret,...cfg.secret},theme:{...DEFAULT.theme,...cfg.theme},effects:{...DEFAULT.effects,...cfg.effects}};
-    if (demoStarted || BB_RUNTIME_PARAMS.get('demo') === '1' || BB_RUNTIME_PARAMS.get('bbDemo') === '1') {
+    if (BB_FORCE_DEMO && !BB_PREVIEW_MODE) {
       state.secret = { ...state.secret, socialUrl: 'https://www.instagram.com/rafahimn' };
     }
     if(incoming.name && !cfg.recipientName) state.recipientName=String(incoming.name);
@@ -2554,7 +2558,7 @@
     demoTimer=null;
     window.__BB_FORCE_DEMO = true;
     window.__BB_DEMO_UNLOCKED = false;
-    musicEnabled = !window.__BB_EDITOR_MODE;
+    musicEnabled = !window.__BB_EDITOR_MODE && !BB_PREVIEW_MODE;
     birthdayAudioPlayed = false;
     pendingPlay = false;
     countdownAudioPlayed = false;
@@ -2628,7 +2632,7 @@
       demoStarted=!!data.enabled;
       if(data.enabled){
         window.__BB_FORCE_DEMO = true;
-        musicEnabled = !window.__BB_EDITOR_MODE;
+        musicEnabled = !window.__BB_EDITOR_MODE && !BB_PREVIEW_MODE;
         try{window.pauseBirthdayAudio?.();}catch(_){}
         try{q('#countdownAudio')?.pause?.();}catch(_){}
         try{q('#countdownAudio') && (q('#countdownAudio').muted = false);}catch(_){}
@@ -2687,9 +2691,11 @@
     if(t.matches('#reasonsBtn')) return null;
     if(t.matches('#photoScreen .photo-header h1')) return {key:'mb.memories.heading',label:'Memory heading',value:t.innerText,kind:'text'};
     if(t.matches('#photoScreen .photo-header p')) return {key:'mb.memories.subtitle',label:'Memory subtitle',value:t.innerText,kind:'text'};
+    if(t.matches('.photo-card img, .photo-card .photo-date, .photo-card .photo-caption')){const card=t.closest('.photo-card'); const cards=qa('.photo-card'); const idx=card ? cards.indexOf(card) : -1; return idx>=0 ? {key:'mb.memories.items',label:`Memory ${idx+1}`,index:idx,kind:'image'}:null;}
     if(t.matches('.photo-card')){const cards=qa('.photo-card');return {key:'mb.memories.items',label:`Memory ${cards.indexOf(t)+1}`,index:cards.indexOf(t),kind:'image'};}
     if(t.matches('.photo-next-btn')) return {key:'mb.memories.nextButton',label:'Memory next button',value:t.innerText,kind:'button'};
     if(t.matches('#videoScreen h2')) return {key:'mb.videos.title',label:'Video heading',value:t.innerText,kind:'text'};
+    if(t.matches('.video-card h3, .video-card .bb-video-caption, .video-card video')){const card=t.closest('.video-card'); const cards=qa('.video-card'); const idx=card ? cards.indexOf(card) : -1; return idx>=0 ? {key:'mb.videos.items',label:`Video ${idx+1}`,index:idx,kind:'video'}:null;}
     if(t.matches('.video-card')){const cards=qa('.video-card');return {key:'mb.videos.items',label:`Video ${cards.indexOf(t)+1}`,index:cards.indexOf(t),kind:'video'};}
     if(t.matches('.video-next-btn')) return {key:'mb.videos.nextButton',label:'Video next button',value:t.innerText,kind:'button'};
     if(t.matches('#letterScreen .letter-container h2')) return {key:'mb.letter.title',label:'Letter title',value:t.innerText,kind:'text'};
@@ -2802,7 +2808,7 @@
   postEditorHistoryState();
 
   // Default standalone behavior for this runtime copy.
-  setTimeout(()=>{try{if(!receivedContent) applyAll(DEFAULT);}catch(e){console.error('Master Birthday init failed',e);} if(!receivedContent && !window.__BB_CATALOG_MODE && (BB_RUNTIME_PARAMS.get('demo')==='1'||BB_RUNTIME_PARAMS.get('bbDemo')==='1')){demoStarted=true;startDemoCountdown();}},0);
+  setTimeout(()=>{try{if(!receivedContent) applyAll(DEFAULT);}catch(e){console.error('Master Birthday init failed',e);} if(!receivedContent && !window.__BB_CATALOG_MODE && (BB_FORCE_DEMO || BB_PREVIEW_MODE)){demoStarted=true;startDemoCountdown();}},0);
 })();
 
 </script>

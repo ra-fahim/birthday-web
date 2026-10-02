@@ -8,6 +8,7 @@ type Selection = { key: string; label: string; index?: number; value?: string; k
 type Props = {
   content?: BirthdayContent;
   demo?: boolean;
+  preview?: boolean;
   websiteSlug?: string;
   recipientId?: string;
   editorMode?: boolean;
@@ -15,7 +16,7 @@ type Props = {
   onHistoryState?: (state: { canBack?: boolean; canForward?: boolean; screen?: string }) => void;
 };
 
-export default function MasterBirthdayTemplate({ content, demo = false, websiteSlug, recipientId, editorMode = false, onElementSelect, onHistoryState }: Props) {
+export default function MasterBirthdayTemplate({ content, demo = false, preview = false, websiteSlug, recipientId, editorMode = false, onElementSelect, onHistoryState }: Props) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const config = useMemo(() => mergeMasterBirthdayConfig(content?.templateConfig && typeof content.templateConfig === 'object' ? (content.templateConfig as any).masterBirthday : undefined), [content?.templateConfig]);
   const resolvedContent = useMemo(() => ({
@@ -31,6 +32,7 @@ export default function MasterBirthdayTemplate({ content, demo = false, websiteS
   const src = useMemo(() => {
     const params = new URLSearchParams();
     if (demo) { params.set('demo', '1'); params.set('bbDemo', '1'); }
+    if (preview) { params.set('preview', '1'); params.set('bbPreview', '1'); }
     if (editorMode) { params.set('edit', '1'); params.set('bbEdit', '1'); }
     if (recipientId) params.set('recipient', recipientId);
     return `/templates/master-birthday/runtime.html${params.toString() ? `?${params.toString()}` : ''}`;
