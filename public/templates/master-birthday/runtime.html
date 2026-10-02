@@ -74,9 +74,29 @@
         html[data-bb-editor="1"] .bb-editable-target::after { content:'Click to edit'; position:absolute; top:-27px; left:8px; z-index:12000; display:none; padding:4px 8px; border-radius:999px; background:rgba(24,24,27,.92); color:#fff; font:700 10px 'Quicksand',sans-serif; letter-spacing:.02em; white-space:nowrap; box-shadow:0 8px 20px rgba(0,0,0,.18); pointer-events:none; }
         html[data-bb-editor="1"] .bb-editable-target:hover::after { display:block; }
         html[data-bb-editor="1"] .bb-editable-target.is-media::after { content:'Click to edit media'; }
-        html[data-bb-editor="1"] .reason-card.bb-editable-target,html[data-bb-editor="1"] .reason-card .reason-text.bb-editable-target{outline:2px dashed rgba(236,72,153,.72)!important;outline-offset:7px!important;box-shadow:0 0 0 4px rgba(236,72,153,.10),0 12px 34px rgba(236,72,153,.08)!important;}
-        html[data-bb-editor="1"] .reason-card .reason-text.bb-editable-target{cursor:pointer!important;}
-        html[data-bb-editor="1"] .reason-card.bb-editable-target:hover,html[data-bb-editor="1"] .reason-card .reason-text.bb-editable-target:hover{outline-color:rgba(236,72,153,.98)!important;}
+        html[data-bb-editor="1"] .reason-card.bb-editable-target,
+        html[data-bb-editor="1"] .reason-card.bb-editor-reason-highlight,
+        html[data-bb-editor="1"] .reason-card .reason-text.bb-editable-target,
+        html[data-bb-editor="1"] .reason-card .reason-text.bb-editor-reason-highlight{
+            outline:3px dashed rgba(236,72,153,.86)!important;
+            outline-offset:8px!important;
+            box-shadow:0 0 0 5px rgba(236,72,153,.12),0 16px 42px rgba(236,72,153,.12)!important;
+        }
+        html[data-bb-editor="1"] .reason-card.bb-editor-reason-highlight::before{
+            content:'EDITABLE REASON';
+            position:absolute;top:10px;right:12px;z-index:4;
+            padding:5px 9px;border-radius:999px;
+            background:rgba(24,24,27,.9);color:#fff;
+            font:800 9px 'Quicksand',sans-serif;letter-spacing:.08em;
+            box-shadow:0 6px 16px rgba(0,0,0,.15);pointer-events:none;
+        }
+        html[data-bb-editor="1"] .reason-card .reason-text.bb-editable-target,
+        html[data-bb-editor="1"] .reason-card .reason-text.bb-editor-reason-highlight{cursor:pointer!important;}
+        html[data-bb-editor="1"] .reason-card.bb-editable-target:hover,
+        html[data-bb-editor="1"] .reason-card.bb-editor-reason-highlight:hover,
+        html[data-bb-editor="1"] .reason-card .reason-text.bb-editable-target:hover,
+        html[data-bb-editor="1"] .reason-card .reason-text.bb-editor-reason-highlight:hover{outline-color:rgba(236,72,153,1)!important;}
+        html[data-bb-editor="1"] .reason-card.bb-editor-reason-highlight .reason-text{cursor:pointer!important;}
         @media(max-width:700px){ html[data-bb-editor="1"] .bb-editable-target::after { top:auto; bottom:-24px; left:50%; transform:translateX(-50%); } }
         html[data-bb-editor="1"] .bb-editor-audio-control { display:inline-flex; align-items:center; justify-content:center; }
         html[data-bb-editor="1"] #bbAudioToggle { display:none !important; }
@@ -673,6 +693,10 @@
         const BB_FORCE_DEMO = urlParams.get('demo') === '1' || urlParams.get('bbDemo') === '1';
         const BB_EDITOR_MODE = urlParams.get('edit') === '1' || urlParams.get('bbEdit') === '1';
         window.__BB_EDITOR_MODE = BB_EDITOR_MODE;
+        if (BB_EDITOR_MODE) {
+            document.documentElement.dataset.bbEditor = '1';
+            document.body.classList.add('bb-editor-active');
+        }
         if (BB_FORCE_DEMO) window.__BB_FORCE_DEMO = true;
         if (urlParams.get('name')) {
             CONFIG.name = decodeURIComponent(urlParams.get('name'));
@@ -1826,14 +1850,14 @@
 
         function createReasonCard(reason, reasonIndex = currentReasonIndex) {
             const card = document.createElement('div');
-            card.className = 'reason-card';
+            card.className = 'reason-card bb-editor-reason-highlight';
             card.setAttribute('data-bb-key','mb.reasons.items');
             card.setAttribute('data-bb-index', String(reasonIndex));
             card.setAttribute('data-bb-label', `Reason ${reasonIndex + 1}`);
             card.setAttribute('data-bb-type','text');
 
             const text = document.createElement('div');
-            text.className = 'reason-text';
+            text.className = 'reason-text bb-editor-reason-highlight';
             text.setAttribute('data-bb-key','mb.reasons.items');
             text.setAttribute('data-bb-index', String(reasonIndex));
             text.setAttribute('data-bb-label', `Reason ${reasonIndex + 1}`);
@@ -2219,13 +2243,13 @@
     if (!container || !btn || index < 0 || index >= reasons.length) return false;
     const reason = reasons[index];
     const card = document.createElement('div');
-    card.className = 'reason-card';
+    card.className = 'reason-card bb-editor-reason-highlight';
     card.setAttribute('data-bb-key', 'mb.reasons.items');
     card.setAttribute('data-bb-index', String(index));
     card.setAttribute('data-bb-label', `Reason ${index + 1}`);
     card.setAttribute('data-bb-type', 'text');
     const text = document.createElement('div');
-    text.className = 'reason-text';
+    text.className = 'reason-text bb-editor-reason-highlight';
     text.setAttribute('data-bb-key', 'mb.reasons.items');
     text.setAttribute('data-bb-index', String(index));
     text.setAttribute('data-bb-label', `Reason ${index + 1}`);
@@ -2296,13 +2320,14 @@
     photoAlbum.splice(0, photoAlbum.length, ...items.map(x=>safeUrl(x.url)));
     wrap.innerHTML='';
     items.forEach((item,index)=>{
-      const card=document.createElement('div'); card.className='photo-card'; card.dataset.bbMemoryId=item.id||'';
+      const card=document.createElement('div'); card.className='photo-card bb-editable-target is-media'; card.dataset.bbMemoryId=item.id||''; card.setAttribute('data-bb-key','mb.memories.items'); card.setAttribute('data-bb-index',String(index)); card.setAttribute('data-bb-label',`Memory ${index+1}`); card.setAttribute('data-bb-type','image');
       card.addEventListener('click',()=>window.openLightbox?.(index));
-      const img=document.createElement('img'); img.className='photo-img'; const resolvedImage=safeUrl(item.url); img.src=resolvedImage||''; img.alt=item.alt||item.title||`Memory ${index+1}`; img.loading='lazy'; img.addEventListener('error',()=>{ img.style.display='none'; const fallback=document.createElement('a'); fallback.href=safeUrl(item.url)||'#'; fallback.target='_blank'; fallback.rel='noopener noreferrer'; fallback.textContent='Open public image ↗'; fallback.style.cssText='display:grid;place-items:center;min-height:250px;border-radius:15px;background:rgba(0,0,0,.08);color:#b0306e;text-decoration:none;font-weight:700;'; img.parentElement?.appendChild(fallback); });
-      const date=document.createElement('div'); date.className='photo-date'; date.textContent=item.date||item.title||'';
-      const caption=document.createElement('div'); caption.className='photo-caption'; caption.textContent=item.caption||'';
+      const img=document.createElement('img'); img.className='photo-img bb-editable-target is-media'; img.setAttribute('data-bb-key','mb.memories.items'); img.setAttribute('data-bb-index',String(index)); img.setAttribute('data-bb-label',`Memory ${index+1}`); const resolvedImage=safeUrl(item.url); img.src=resolvedImage||''; img.alt=item.alt||item.title||`Memory ${index+1}`; img.loading='lazy'; img.addEventListener('error',()=>{ img.style.display='none'; const fallback=document.createElement('a'); fallback.href=safeUrl(item.url)||'#'; fallback.target='_blank'; fallback.rel='noopener noreferrer'; fallback.textContent='Open public image ↗'; fallback.style.cssText='display:grid;place-items:center;min-height:250px;border-radius:15px;background:rgba(0,0,0,.08);color:#b0306e;text-decoration:none;font-weight:700;'; img.parentElement?.appendChild(fallback); });
+      const date=document.createElement('div'); date.className='photo-date bb-editable-target'; date.setAttribute('data-bb-key','mb.memories.items'); date.setAttribute('data-bb-index',String(index)); date.setAttribute('data-bb-label',`Memory ${index+1} title`); date.textContent=item.date||item.title||'';
+      const caption=document.createElement('div'); caption.className='photo-caption bb-editable-target'; caption.setAttribute('data-bb-key','mb.memories.items'); caption.setAttribute('data-bb-index',String(index)); caption.setAttribute('data-bb-label',`Memory ${index+1} caption`); caption.textContent=item.caption||'';
       card.append(img,date,caption); wrap.appendChild(card);
     });
+    try { markEditableTargets?.(); } catch (_) {}
     const header=q('#photoScreen .photo-header'); if(header){ setText('h1',state.memories.heading,header); setText('p',state.memories.subtitle,header); }
     setText('.photo-next-btn',state.memories.nextButton);
   }
@@ -2354,8 +2379,8 @@
     const grid=q('#videoScreen .video-grid'); if(!grid)return;
     grid.innerHTML='';
     (state.videos.items||[]).forEach(item=>{
-      const card=document.createElement('div');card.className='video-card';
-      const h=document.createElement('h3');h.textContent=item.title||'';card.appendChild(h);
+      const card=document.createElement('div');card.className='video-card bb-editable-target is-media'; card.setAttribute('data-bb-key','mb.videos.items'); card.setAttribute('data-bb-index',String(index)); card.setAttribute('data-bb-label',`Video ${index+1}`); card.setAttribute('data-bb-type','video');
+      const h=document.createElement('h3');h.className='bb-editable-target';h.setAttribute('data-bb-key','mb.videos.items');h.setAttribute('data-bb-index',String(index));h.setAttribute('data-bb-label',`Video ${index+1} title`);h.textContent=item.title||'';card.appendChild(h);
       const wrap=document.createElement('div');wrap.className='video-wrapper';
       wrap.innerHTML=mediaEmbed(item.source||'',item.poster||'',item.title||'Video');
       const vid=wrap.querySelector('video');
@@ -2363,9 +2388,10 @@
         vid.addEventListener('error',()=>{ wrap.innerHTML=`<a href="${esc(safeUrl(item.source)||'#')}" target="_blank" rel="noopener noreferrer" style="display:grid;place-items:center;height:100%;color:#fff;text-decoration:none;padding:20px;text-align:center">This video could not be embedded here. Open the public source ↗</a>`; });
       }
       card.appendChild(wrap);
-      if(item.caption){const cap=document.createElement('p');cap.className='bb-video-caption';cap.textContent=item.caption;cap.style.cssText='margin:12px 2px 0;color:rgba(255,255,255,.88);line-height:1.55;text-align:center;';card.appendChild(cap);}
+      if(item.caption){const cap=document.createElement('p');cap.className='bb-video-caption bb-editable-target';cap.setAttribute('data-bb-key','mb.videos.items');cap.setAttribute('data-bb-index',String(index));cap.setAttribute('data-bb-label',`Video ${index+1} caption`);cap.textContent=item.caption;cap.style.cssText='margin:12px 2px 0;color:rgba(255,255,255,.88);line-height:1.55;text-align:center;';card.appendChild(cap);}
       grid.appendChild(card);
     });
+    try { markEditableTargets?.(); } catch (_) {}
     setText('#videoScreen h2',state.videos.title); setText('.video-next-btn',state.videos.nextButton);
   }
 

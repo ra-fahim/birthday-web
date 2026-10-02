@@ -14,7 +14,6 @@ const links = [
   ['/templates', 'Templates'],
   ['/features', 'Features'],
   ['/pricing', 'Pricing'],
-  ['/demo', 'Demo'],
   ['/about', 'About'],
   ['/how-to-make-website', 'How to make a website'],
 ] as const;

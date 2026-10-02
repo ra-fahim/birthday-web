@@ -21,7 +21,7 @@ export default async function Home(){
     <div className="eyebrow"><span>✦</span> DIGITAL EXPERIENCES FOR REAL FEELINGS</div>
     <h1>Make their moment feel <em>unforgettable.</em></h1>
     <p>Create a beautiful, interactive website for the person, story or celebration that matters. Pick a template, make it yours, share one link.</p>
-    <div className="hero-actions"><Link className="premium-button" href={'/create'}>Create for free <span>→</span></Link><Link className="premium-button premium-button-ghost" href="/demo"><span className="play-dot">▶</span> See the experience</Link></div>
+    <div className="hero-actions"><Link className="premium-button" href={'/create'}>Create for free <span>→</span></Link><Link className="premium-button premium-button-ghost" href="/templates"><span className="play-dot">▶</span> See templates</Link></div>
     <div className="hero-proof"><span><b>⚡</b> Fast to create</span><span><b>📱</b> Mobile first</span><span><b>🔗</b> One shareable link</span></div>
    </div>
    <div className="hero-art">

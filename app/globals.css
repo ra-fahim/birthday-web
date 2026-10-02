@@ -579,3 +579,23 @@ body.bb-editor-mode .wishly-edit-badge{display:grid!important}
   .builder-preview-frame{height:clamp(520px,78vh,720px)!important;min-height:520px!important;width:calc(100% - 12px)!important;}
   .builder-preview-panel{min-width:0!important;overflow-x:hidden!important;}
 }
+
+
+/* Live canvas sync + responsive contextual editor */
+.builder-live-sync{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;padding:5px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);color:#a1a1aa;font-size:9px;font-weight:800;letter-spacing:.02em}.builder-live-sync-updating{color:#fbbf24;border-color:rgba(251,191,36,.22);background:rgba(251,191,36,.06)}.builder-live-sync-saving{color:#60a5fa;border-color:rgba(96,165,250,.22);background:rgba(96,165,250,.06)}.builder-live-sync-saved,.builder-live-sync-synced{color:#4ade80;border-color:rgba(74,222,128,.22);background:rgba(74,222,128,.06)}
+.builder-context-editor{min-height:300px!important}.builder-context-editor-body{min-height:260px}.builder-context-editor-body .universal-editor-card{min-height:240px}.builder-context-editor-body input,.builder-context-editor-body textarea,.builder-context-editor-body select{font-size:12px!important;line-height:1.45!important}.catalog-template-live-iframe{pointer-events:none}
+@media(max-width:760px){.builder-live-sync{order:5;width:100%;justify-content:center}.builder-top-actions{flex-wrap:wrap;justify-content:flex-end}.builder-topbar{height:auto;min-height:74px;padding:9px 12px;gap:8px}.builder-context-editor{min-height:0!important}.builder-context-editor-body{min-height:0}}
+
+/* Canvas editor usability: give the contextual editor enough room to show
+   large template selections on desktop while remaining comfortable on phones. */
+.builder-context-editor { max-height: min(72vh, 760px); }
+.builder-context-editor-body { max-height: min(62vh, 640px); overflow:auto; }
+@media (max-width: 900px) {
+  .builder-context-editor { max-height: 68vh; }
+  .builder-context-editor-body { max-height: 56vh; }
+}
+@media (max-width: 640px) {
+  .builder-context-editor { max-height: 76vh; }
+  .builder-context-editor-body { max-height: 68vh; }
+  .builder-top-actions { flex-wrap: wrap; }
+}

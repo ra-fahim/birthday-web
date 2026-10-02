@@ -16,8 +16,19 @@ export default async function New({ searchParams }: { searchParams?: { template?
   const occasion = searchParams?.occasion && templateBySlug[requestedTemplate]?.category === searchParams.occasion
     ? searchParams.occasion
     : template.category;
+  // Reuse the user's newest unpublished draft for this exact template instead
+  // of creating duplicate drafts every time they press Use Template. Once the
+  // draft is published, a future Use Template can start a fresh website.
+  const existingDraft = await db.website.findFirst({
+    where: { userId: u.id, templateId: template.slug, status: 'draft' },
+    orderBy: { updatedAt: 'desc' },
+  });
+  if (existingDraft) {
+    redirect(`/builder/${existingDraft.id}?template=${encodeURIComponent(template.slug)}`);
+  }
+
   const seed = { ...defaultContent, occasion, templateId: template.slug };
   const label = `${template.name} — ${occasion[0].toUpperCase()}${occasion.slice(1)} `;
-  const s = await db.website.create({ data: { userId: u.id, slug: `celebration-${Date.now()}`, title: label.trim(), templateId: template.slug, content: seed } });
+  const s = await db.website.create({ data: { userId: u.id, slug: `celebration-${Date.now()}`, title: label.trim(), templateId: template.slug, content: seed, status: 'draft' } });
   redirect(`/builder/${s.id}?template=${encodeURIComponent(template.slug)}`);
 }

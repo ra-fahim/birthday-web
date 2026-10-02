@@ -208,6 +208,13 @@ export default function Builder() {
   const [publicUrl, setPublicUrl] = useState('');
   const [canvasHistory, setCanvasHistory] = useState({ canBack: false, canForward: false });
   const [loaded, setLoaded] = useState(false);
+  const [syncState, setSyncState] = useState<'synced'|'updating'|'saving'|'saved'>('synced');
+  const [historyVersion, setHistoryVersion] = useState(0);
+  const historyRef = useRef<{ past: BirthdayContent[]; future: BirthdayContent[] }>({ past: [], future: [] });
+  const latestContentRef = useRef<BirthdayContent>(defaultContent);
+  const historyReadyRef = useRef(false);
+  const saveDraftRef = useRef<((publish?: boolean, silent?: boolean) => Promise<void>) | null>(null);
+  const autoSaveAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     fetch('/api/websites/' + id).then(r => r.json()).then(j => {
@@ -220,6 +227,10 @@ export default function Builder() {
           nextContent.templateConfig = { ...(j.content.templateConfig || {}), masterBirthday: mb };
         }
         setC(nextContent);
+        latestContentRef.current = nextContent;
+        historyRef.current = { past: [], future: [] };
+        historyReadyRef.current = true;
+        setHistoryVersion(v => v + 1);
       }
       if (j.slug) setSlug(j.slug);
       if (j.status) setStatus(j.status);
@@ -255,10 +266,85 @@ export default function Builder() {
       if (resolvedTemplate !== storedTemplate || resolvedOccasion !== storedOccasion) setDirty(true);
       if (j.slug) setPublicUrl(`${window.location.origin}/site/${j.slug}`);
       setLoaded(true);
-    }).catch(() => setLoaded(true));
+      setSyncState('synced');
+    }).catch(() => { setLoaded(true); setSyncState('updating'); });
   }, [id]);
 
-  const update = (patch: Partial<BirthdayContent>) => { setC(prev => ({ ...prev, ...patch })); setDirty(true); };
+  const update = (patch: Partial<BirthdayContent>) => {
+    const current = latestContentRef.current;
+    const next = { ...current, ...patch };
+    latestContentRef.current = next;
+    if (historyReadyRef.current) {
+      const snapshot = JSON.parse(JSON.stringify(current)) as BirthdayContent;
+      const past = historyRef.current.past.concat(snapshot).slice(-50);
+      historyRef.current = { past, future: [] };
+      setHistoryVersion(v => v + 1);
+    }
+    setC(next);
+    setDirty(true);
+    setSyncState('updating');
+  };
+
+  const undoEdit = () => {
+    const { past, future } = historyRef.current;
+    if (!past.length) return;
+    const current = JSON.parse(JSON.stringify(latestContentRef.current)) as BirthdayContent;
+    const previous = past[past.length - 1];
+    historyRef.current = { past: past.slice(0, -1), future: [current, ...future].slice(0, 50) };
+    latestContentRef.current = JSON.parse(JSON.stringify(previous));
+    setC(JSON.parse(JSON.stringify(previous)));
+    setSelectedElement(null);
+    setDirty(true);
+    setSyncState('updating');
+    setHistoryVersion(v => v + 1);
+  };
+
+  const redoEdit = () => {
+    const { past, future } = historyRef.current;
+    if (!future.length) return;
+    const current = JSON.parse(JSON.stringify(latestContentRef.current)) as BirthdayContent;
+    const next = future[0];
+    historyRef.current = { past: [...past, current].slice(-50), future: future.slice(1) };
+    latestContentRef.current = JSON.parse(JSON.stringify(next));
+    setC(JSON.parse(JSON.stringify(next)));
+    setSelectedElement(null);
+    setDirty(true);
+    setSyncState('updating');
+    setHistoryVersion(v => v + 1);
+  };
+
+  const buildTemplateDefaults = useCallback((targetTemplate: string, targetOccasion: string): BirthdayContent => {
+    const base = { ...defaultContent, templateId: targetTemplate, occasion: targetOccasion };
+    if (targetTemplate === 'master' || targetTemplate === 'master-birthday') {
+      const mb = mergeMasterBirthdayConfig(undefined);
+      return {
+        ...base, templateId: 'master', occasion: 'birthday', name: mb.recipientName,
+        birthday: `${mb.birthdayDate}T${mb.birthdayTime}`, greeting: mb.greeting.text,
+        buttonText: mb.greeting.enterButton, countdownTitle: mb.countdown.title, countdownMessage: mb.countdown.message,
+        reasons: mb.reasons.items.map(item => item.text),
+        gallery: mb.memories.items.map(item => ({ url: item.url, caption: item.caption })),
+        videoUrl: mb.videos.items[0]?.source || '', videoCaption: mb.videos.items[0]?.caption || '',
+        letter: mb.letter.paragraphs.slice(), secret: mb.secret.image,
+        social: { ...base.social, instagram: mb.secret.socialUrl },
+        templateConfig: { masterBirthday: mb },
+      };
+    }
+    if (targetTemplate === 'miss-you-1') return { ...base, templateConfig: { ...getMissYouDefaults() } };
+    if (targetTemplate === 'master-proposal') return { ...base, templateConfig: { ...getMasterProposalDefaults() } };
+    return base;
+  }, []);
+
+  const resetEdits = () => {
+    const next = buildTemplateDefaults(templateId || 'master', occasion);
+    historyRef.current = { past: [JSON.parse(JSON.stringify(latestContentRef.current))], future: [] };
+    latestContentRef.current = JSON.parse(JSON.stringify(next));
+    setC(next);
+    setSelectedElement(null);
+    setDirty(true);
+    setSyncState('updating');
+    setMsg('Template defaults restored.');
+    setHistoryVersion(v => v + 1);
+  };
   const updateArray = (key: keyof BirthdayContent, value: unknown) => update({ [key]: value } as Partial<BirthdayContent>);
   const toggleEffect = (key: keyof BirthdayContent, checked: boolean) => update({ [key]: checked } as Partial<BirthdayContent>);
 
@@ -352,9 +438,14 @@ export default function Builder() {
     return () => window.removeEventListener('message', handler);
   }, [c, handleCanvasHistoryState]);
 
-  async function save(publish = false) {
-    if (!templateId) { setMsg(`Add a ${currentOccasion[2]} template before publishing.`); return; }
-    setMsg(publish ? 'Publishing…' : 'Saving…');
+  async function save(publish = false, silent = false) {
+    if (!templateId) { if (!silent) setMsg(`Add a ${currentOccasion[2]} template before publishing.`); return; }
+    if (!silent) setMsg(publish ? 'Publishing…' : 'Saving…');
+    if (silent) {
+      autoSaveAbortRef.current?.abort();
+      autoSaveAbortRef.current = new AbortController();
+      setSyncState('saving');
+    }
     let next: BirthdayContent & { templateConfig?: Record<string, unknown> } = { ...c, occasion, templateId };
     if (templateId === 'master' || templateId === 'master-birthday') {
       const mb = mergeMasterBirthdayConfig((c.templateConfig as any)?.masterBirthday);
@@ -368,12 +459,36 @@ export default function Builder() {
         templateConfig: { ...(c.templateConfig || {}), masterBirthday: mb },
       };
     }
-    const r = await fetch('/api/websites/' + id, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ content: next, templateId, status: publish ? 'published' : 'draft', title: next.name || c.name, seo: { title: next.seoTitle, description: next.seoDescription, shareImage: next.shareImage }, ...((templateId === 'master' || templateId === 'master-birthday') && String((next.templateConfig as any)?.masterBirthday?.customSlug || '').trim() ? { slug: String((next.templateConfig as any).masterBirthday.customSlug).trim() } : {}) }) });
+    const targetStatus = publish || status === 'published' ? 'published' : 'draft';
+    let r: Response;
+    try {
+      r = await fetch('/api/websites/' + id, { method: 'PUT', headers: { 'content-type': 'application/json' }, signal: silent ? autoSaveAbortRef.current?.signal : undefined, body: JSON.stringify({ content: next, templateId, status: targetStatus, title: next.name || c.name, seo: { title: next.seoTitle, description: next.seoDescription, shareImage: next.shareImage }, ...((templateId === 'master' || templateId === 'master-birthday') && String((next.templateConfig as any)?.masterBirthday?.customSlug || '').trim() ? { slug: String((next.templateConfig as any).masterBirthday.customSlug).trim() } : {}) }) });
+    } catch (error) {
+      if ((error as any)?.name === 'AbortError') return;
+      if (silent) setSyncState('updating');
+      else setMsg('Something went wrong');
+      return;
+    }
     const j = await r.json();
-    setMsg(r.ok ? (publish ? 'Published successfully ✨' : 'Draft saved ✓') : (j.error || 'Something went wrong'));
-    if (r.ok) { setStatus(publish ? 'published' : 'draft'); setDirty(false); if (j.slug) setPublicUrl(`${window.location.origin}/site/${j.slug}`); }
+    if (!silent) setMsg(r.ok ? (targetStatus === 'published' ? (publish ? 'Published successfully ✨' : 'Changes saved ✓') : 'Draft saved ✓') : (j.error || 'Something went wrong'));
+    if (r.ok) {
+      setStatus(targetStatus);
+      setDirty(false);
+      setSyncState(silent ? 'saved' : 'synced');
+      if (j.slug) setPublicUrl(`${window.location.origin}/site/${j.slug}`);
+    } else if (silent) {
+      setSyncState('updating');
+    }
     if (publish) { setMsg('Live link ready ✨'); router.refresh(); }
   }
+
+  saveDraftRef.current = save;
+
+  useEffect(() => {
+    if (!loaded || !dirty || previewMode || !templateId) return;
+    const timer = window.setTimeout(() => { void saveDraftRef.current?.(false, true); }, 850);
+    return () => window.clearTimeout(timer);
+  }, [loaded, dirty, c, occasion, templateId, previewMode]);
 
   const currentOccasion = OCCASIONS.find(x => x[0] === occasion) || OCCASIONS[0];
   const occasionTemplates = useMemo(() => templatesForOccasion(occasion), [occasion]);
@@ -438,13 +553,17 @@ export default function Builder() {
       </div>
       <div className="builder-top-actions">
         <div className={`builder-status ${dirty ? 'is-dirty' : ''}`}><i />{dirty ? 'Unsaved changes' : status === 'published' ? 'Published' : 'All changes saved'}</div>
+        <div className={`builder-live-sync builder-live-sync-${syncState}`} aria-live="polite">{syncState === 'updating' ? '● Preview updating' : syncState === 'saving' ? '● Auto-saving' : syncState === 'saved' ? '✓ Saved automatically' : '✓ Preview synced'}</div>
+        <button className="builder-ghost" type="button" onClick={undoEdit} disabled={!historyRef.current.past.length} title="Undo last change">↶ Undo</button>
+        <button className="builder-ghost" type="button" onClick={redoEdit} disabled={!historyRef.current.future.length} title="Redo last undone change">↷ Redo</button>
+        <button className="builder-ghost" type="button" onClick={resetEdits} title="Restore this template default content">Reset</button>
         <button className="builder-ghost" onClick={() => router.push('/dashboard')}>Exit</button>
-        <button className="builder-save" onClick={() => save(false)}>Save draft</button>
+        <button className="builder-save" onClick={() => save(false)}>{status === 'published' ? 'Save changes' : 'Save draft'}</button>
         <button className="builder-publish" onClick={() => save(true)}>Create Live Link ↗</button>
       </div>
     </header>
 
-    <div className="builder-layout builder-canvas-only">
+    <div className="builder-layout builder-canvas-only" data-history-version={historyVersion}>
       <section className="builder-preview-panel">
           <div className="builder-preview-head">
             <div className="builder-preview-title">
@@ -463,7 +582,7 @@ export default function Builder() {
               </button>
             </div>
           </div>
-          <div className="builder-canvas-hint">Editing is always on. Click any editable text or media directly to edit it; website actions are locked while editing. Use the side arrows to move between screens, or Preview to experience the website normally.</div>
+          <div className="builder-canvas-hint">Editing is always on. Editable text and media stay highlighted. Click any highlighted item to edit it; changes appear instantly in this preview and auto-save in the background. Website actions are locked while editing. Use the side arrows to move between screens, or Preview to experience the website normally.</div>
           {status === 'published' && publicUrl && <div className="builder-live-link"><div><span>YOUR LIVE LINK</span><strong>{publicUrl}</strong></div><div className="builder-live-link-actions"><button onClick={() => navigator.clipboard?.writeText(publicUrl)}>Copy link</button><a href={publicUrl} target="_blank" rel="noreferrer">Open ↗</a></div></div>}
           <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}><div className="builder-canvas-nav-overlay" aria-label="Canvas screen navigation">{editorMode && <><button type="button" className="builder-canvas-nav builder-canvas-nav-prev" onClick={() => handleCanvasHistory('back')} disabled={!canvasHistory.canBack} title="Previous screen" aria-label="Previous screen">←</button><button type="button" className="builder-canvas-nav builder-canvas-nav-next" onClick={() => handleCanvasHistory('forward')} disabled={!canvasHistory.canForward} title="Next screen" aria-label="Next screen">→</button></>}</div><div className="builder-canvas-stage">{!loaded || !previewContent ? <div className="builder-template-empty"><div>…</div><h3>Loading website</h3><p>Preparing the selected template…</p></div> : (templateId === 'master' || templateId === 'master-birthday') ? <MasterBirthdayTemplate key={`${templateId}-${previewMode ? 'preview-demo' : 'edit'}`} content={previewContent} demo={previewMode} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div></div>
           {selectedElement && editorMode && (
