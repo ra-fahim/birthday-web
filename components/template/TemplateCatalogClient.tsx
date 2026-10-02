@@ -22,8 +22,17 @@ function getDemoSrc(template: TemplateDefinition) {
   return `${src}${src.includes('?') ? '&' : '?'}bbDemo=1`;
 }
 
+function getCatalogPreviewSrc(template: TemplateDefinition) {
+  const src = template.slug === 'master'
+    ? '/templates/master-birthday/runtime.html'
+    : (template.originalHtml || '');
+  if (!src) return '';
+  const separator = src.includes('?') ? '&' : '?';
+  return `${src}${separator}bbCatalog=1&catalog=1`;
+}
+
 function LiveTemplatePreview({ template, compact = false }: { template: TemplateDefinition; compact?: boolean }) {
-  const src = getDemoSrc(template);
+  const src = getCatalogPreviewSrc(template);
   return (
     <div className={compact ? 'catalog-template-live catalog-template-live-compact' : 'catalog-template-live'} aria-hidden="true">
       <iframe
@@ -34,13 +43,13 @@ function LiveTemplatePreview({ template, compact = false }: { template: Template
         tabIndex={-1}
         className="catalog-template-live-iframe"
         onLoad={(event) => {
-          event.currentTarget.contentWindow?.postMessage({ type: 'BB_DEMO_MODE', enabled: true, muted: true }, '*');
+          event.currentTarget.contentWindow?.postMessage({ type: 'BB_CATALOG_MODE', enabled: true }, '*');
         }}
       />
       <div className="catalog-template-live-head">
         <span className="live-dot" />
         <span>LIVE PREVIEW</span>
-        <span className="catalog-template-live-muted">🔇</span>
+        <span className="catalog-template-live-muted">🔇 Silent</span>
       </div>
       <div className="catalog-template-live-scrim" />
     </div>

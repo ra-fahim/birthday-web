@@ -8,7 +8,7 @@ const steps = [
   ['01', 'Create an account', 'Sign up or log in first. Your websites, drafts and published links are kept inside your account workspace.'],
   ['02', 'Choose a template', 'Open Template Library, search by name or category, preview the options, then choose the template that fits your occasion.'],
   ['03', 'Choose your template', 'Your selected template opens in the editor. The original template structure stays in place while you customize its editable content.'],
-  ['04', 'Turn Canvas Edit ON', 'Use Canvas Edit when you want to select items directly from the live preview. Editable items can show an edit icon. You can click that icon or double-click an editable item.'],
+  ['04', 'Edit directly on the canvas', 'Editing stays on while you build. Click editable text, media, or controls directly in the live canvas to open its editor; visitor actions are disabled until you use Preview.'],
   ['05', 'Edit text', 'Select an editable text item and change the wording. The editor only changes the data connected to that template field.'],
   ['06', 'Edit photos', 'Open the photo/gallery editor to replace an existing photo, remove it, add a new photo, reorder items when supported, and edit captions where the template uses captions.'],
   ['07', 'Edit videos', 'Replace or add videos with an uploaded file or a public video URL supported by the template. When a video has a caption field, edit the caption from the same section.'],
@@ -20,7 +20,7 @@ const steps = [
 ] as const;
 
 const tips = [
-  ['Edit mode', 'Normal preview stays clean. Turn Canvas Edit ON only when you want selection controls.'],
+  ['Edit mode', 'Normal preview stays clean. Edit directly on the canvas only when you want selection controls.'],
   ['Mobile first', 'The editor is designed to be comfortable on a phone, with the side menu and contextual controls available without forcing you to use code.'],
   ['Template-aware', 'Every template can have a different set of editable fields. Do not expect one template to have exactly the same controls as another.'],
   ['Save vs Publish', 'Save draft is for your private working version. Publish is the step that updates the public live version.'],

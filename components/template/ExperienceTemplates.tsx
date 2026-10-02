@@ -202,10 +202,17 @@ export function getMasterProposalDefaults() {
 }
 
 function Editable({ editorMode, onSelect, selection, className, children }: { editorMode?: boolean; onSelect?: (selection: { key:string; label:string; index?:number; value?:string; kind?:string })=>void; selection:{key:string;label:string;index?:number;kind?:string}; className?:string; children:React.ReactNode }) {
-  const label = selection.label;
-  return <div className={`experience-editable ${editorMode ? 'is-editor' : ''} ${className || ''}`} data-bb-editor-wrap="1">
+  return <div
+    className={`experience-editable ${editorMode ? 'is-editor' : ''} ${className || ''}`}
+    data-bb-editor-wrap="1"
+    onClick={editorMode ? (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      const value = (e.currentTarget.querySelector('[data-bb-value]') as HTMLElement | null)?.innerText || '';
+      onSelect?.({...selection, value});
+    } : undefined}
+  >
     {children}
-    {editorMode && <button type="button" className="experience-edit-button" aria-label={`Edit ${label}`} title={`Edit ${label}`} onClick={(e)=>{e.preventDefault();e.stopPropagation();onSelect?.({...selection, value:(e.currentTarget.parentElement?.querySelector('[data-bb-value]') as HTMLElement)?.innerText || ''});}}>✏</button>}
   </div>;
 }
 
@@ -234,6 +241,6 @@ export default function ExperienceTemplate({variant='romantic',content,editorMod
    <Editable editorMode={editorMode} onSelect={onElementSelect} selection={{key:'greeting',label:'Greeting'}}><div style={{marginTop:55,padding:'35px 28px',borderRadius:28,background:`linear-gradient(135deg, ${p.accent}22, transparent)`,border:`1px solid ${p.accent}44`}}><p style={{fontSize:14,textTransform:'uppercase',letterSpacing:2,color:p.accent,fontWeight:800}}>Today & always</p><p style={{fontSize:24,lineHeight:1.5,marginTop:12}}>{content.greeting || 'Wishing you the very best.'}</p></div></Editable>
    {editorMode && <button type="button" className="experience-add-media" onClick={()=>onElementSelect?.({key:'gallery',label:'Add photo',index:gallery.length,kind:'image'})}>＋ Add Photo</button>}
   </section>
-  {editorMode && <button type="button" className="experience-music-chip" onClick={()=>onElementSelect?.({key:'musicUrl',label:'Background music',kind:'audio'})}>🎵 {content.musicUrl ? 'Edit music' : 'Add background music'} <span>✏</span></button>}
+  {editorMode && <button type="button" className="experience-music-chip" onClick={(e)=>{e.preventDefault();e.stopPropagation();onElementSelect?.({key:'musicUrl',label:'Background music',kind:'audio'});}}>🎵 {content.musicUrl ? 'Edit music' : 'Add background music'}</button>}
  </div>;
 }

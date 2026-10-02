@@ -83,26 +83,33 @@ export default function UniversalElementEditor({ selected, content, templateId, 
         const updateItem=(patch:Record<string,unknown>)=>{const next=items.slice();next[i]={...next[i],...patch};updateMasterBirthdayPath('videos.items',next)};
         return <><div className="universal-editor-media-head"><div className="universal-editor-icon"><Video size={16}/></div><div><b>Video {i+1}</b><span>Upload, public URL, YouTube, caption and poster</span></div></div><SingleMediaUpload kind="video" url={String(item.source||'').match(/^(https?:\/\/.*\.(?:mp4|webm|mov)(?:\?.*)?)$/i)?.[1] || ''} websiteId={websiteId} onChange={url=>updateItem({source:url})}/><Field label="Video source URL"><input type="url" value={String(item.source||'')} onChange={e=>updateItem({source:e.target.value})} placeholder="YouTube or direct video URL"/></Field><Field label="Title"><input autoFocus value={String(item.title||'')} onChange={e=>updateItem({title:e.target.value})}/></Field><Field label="Caption"><textarea rows={3} value={String(item.caption||'')} onChange={e=>updateItem({caption:e.target.value})}/></Field><Field label="Poster / thumbnail"><input value={String(item.poster||'')} onChange={e=>updateItem({poster:e.target.value})}/></Field><Field label="Alt text"><input value={String(item.alt||'')} onChange={e=>updateItem({alt:e.target.value})}/></Field><div className="universal-editor-grid"><button type="button" className="builder-mini-btn" onClick={()=>updateMasterBirthdayPath('videos.items',[...items,{...item,id:`video-${Date.now()}`}])}>Duplicate</button><button type="button" className="builder-mini-btn" onClick={()=>updateMasterBirthdayPath('videos.items',items.filter((_,idx)=>idx!==i))}>Delete</button></div></>;
       }
+      if (path === 'letter.paragraphs' && typeof selected.index === 'number') {
+        const items = [...(cfg.letter?.paragraphs || [])];
+        const i = selected.index;
+        if (i >= items.length) return <Field label={`Letter paragraph ${i + 1}`}><textarea rows={6} autoFocus placeholder="Write this paragraph…" onChange={e=>{ if(e.target.value.trim()) updateMasterBirthdayPath('letter.paragraphs',[...items,e.target.value]); }} /></Field>;
+        return <><Field label={`Letter paragraph ${i + 1}`}><textarea rows={7} autoFocus value={String(items[i] || '')} onChange={e=>updateMasterBirthdayPath('letter.paragraphs',items.map((x,idx)=>idx===i?e.target.value:x))}/></Field><div className="universal-editor-grid"><button type="button" className="builder-mini-btn" onClick={()=>updateMasterBirthdayPath('letter.paragraphs',[...items,items[i] || ''])}>Duplicate</button><button type="button" className="builder-mini-btn" disabled={items.length<=1} onClick={()=>updateMasterBirthdayPath('letter.paragraphs',items.filter((_,idx)=>idx!==i))}>Delete</button></div></>;
+      }
       const value = String(get(path) ?? selected.value ?? '');
       if (path === 'countdown.birthdayDateTime') {
-        const toLocalDateTime = (raw: string) => {
-          const d = new Date(raw || '');
-          if (Number.isNaN(d.getTime())) return '';
-          const pad = (n: number) => String(n).padStart(2, '0');
-          return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-        };
         const current = `${masterBirthdayConfig.birthdayDate}T${masterBirthdayConfig.birthdayTime}`;
-        return <Field label="Birthday date & time"><input type="datetime-local" value={toLocalDateTime(current)} autoFocus onChange={e => {
-          const raw = e.target.value;
-          if (!raw) return;
-          const d = new Date(raw);
-          if (Number.isNaN(d.getTime())) return;
-          const pad = (n:number) => String(n).padStart(2,'0');
-          const next = JSON.parse(JSON.stringify(masterBirthdayConfig));
-          next.birthdayDate = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-          next.birthdayTime = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-          onTemplateConfigChange({ masterBirthday: next });
-        }} /><small className="builder-field-hint">Set the exact birthday date and time used by the countdown.</small></Field>;
+        return <>
+          <Field label="Birthday date & time"><input type="datetime-local" value={current} autoFocus onChange={e => {
+            const raw = e.target.value;
+            if (!raw || !raw.includes('T')) return;
+            const [birthdayDate, birthdayTime] = raw.split('T');
+            const next = JSON.parse(JSON.stringify(masterBirthdayConfig));
+            next.birthdayDate = birthdayDate;
+            next.birthdayTime = birthdayTime.slice(0, 5);
+            onTemplateConfigChange({ masterBirthday: next });
+          }} /><small className="builder-field-hint">Set the exact birthday date and time used by the countdown.</small></Field>
+          <Field label="Birthday age"><input type="number" min={1} max={120} value={Number(masterBirthdayConfig.age || 1)} onChange={e => {
+            const age = Math.max(1, Math.min(120, Number(e.target.value) || 1));
+            const next = JSON.parse(JSON.stringify(masterBirthdayConfig));
+            next.age = age;
+            next.cake = { ...(next.cake || {}), ageCandleCount: age };
+            onTemplateConfigChange({ masterBirthday: next });
+          }} /><small className="builder-field-hint">Also updates the cake candle count.</small></Field>
+        </>;
       }
       if (path === 'cake.ageCandleCount') {
         return <Field label="Birthday age"><input type="number" min="1" max="120" value={Number(get(path) || 1)} onChange={e=>updateMasterBirthdayPath(path, Math.max(1, Number(e.target.value)||1))} /><small className="builder-field-hint">Sets the number of birthday candles.</small></Field>;
