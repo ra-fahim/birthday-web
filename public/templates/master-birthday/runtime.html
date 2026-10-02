@@ -80,7 +80,7 @@
         @media (max-width:600px){ .bb-audio-toggle{ right:10px; bottom:10px; padding:9px 12px; font-size:12px; } }
 
         .countdown-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; background:linear-gradient(135deg, rgba(255,209,220,0.4), rgba(230,230,250,0.4)); backdrop-filter:blur(8px); z-index:1000; transition:1s; text-align:center; padding:20px; }
-        .countdown-screen.hide { opacity:0; visibility:hidden; pointer-events:none; }
+        .countdown-screen.hide { opacity:0; visibility:hidden; pointer-events:none; display:none !important; }
         .countdown-title { font-size:clamp(24px,5vw,40px); color:#fff; margin-bottom:20px; text-shadow:2px 2px 8px rgba(0,0,0,0.3); font-weight:600; letter-spacing:1px; }
         .countdown-box { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:20px; }
         .count-item { background:rgba(255,255,255,0.3); padding:12px 15px; border-radius:20px; min-width:70px; border:1px solid rgba(255,255,255,0.5); backdrop-filter:blur(5px); box-shadow:inset 0 1px 0 rgba(255,255,255,0.6), 0 10px 24px -12px rgba(120,80,140,0.4); }
@@ -299,6 +299,8 @@
         @keyframes btnPop { 0%{ opacity:0; transform:scale(0.8); } 100%{ opacity:1; transform:scale(1); } }
         .soulmate-btn:hover { transform:translateY(-2px) scale(1.06); box-shadow:0 20px 34px -12px rgba(155,109,255,0.9); }
         .soulmate-btn:active { transform:scale(0.96); }
+        .bb-editor-link-edit { display:none; margin-top:12px; padding:8px 12px; border:1px dashed rgba(155,109,255,.65); border-radius:999px; background:rgba(255,255,255,.82); color:#6b4fb3; font:700 11px 'Quicksand',sans-serif; cursor:pointer; text-decoration:none; }
+        body.bb-editor-active .bb-editor-link-edit { display:inline-flex; align-items:center; justify-content:center; }
 
         /* ── LIGHTBOX ── */
         .lightbox { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10001; justify-content:center; align-items:center; padding:20px; perspective:1200px; touch-action:pan-y; }
@@ -623,6 +625,7 @@
             <button class="soulmate-btn" onclick="goToInstagram()">
                 <i class="fab fa-instagram"></i> See Your Friend
             </button>
+            <button type="button" id="secretButtonLink" class="bb-editor-link-edit" data-bb-key="mb.secret.socialUrl" data-bb-label="Secret profile link" onclick="void(0)">Edit profile link ↗</button>
         </div>
     </div>
 
@@ -958,6 +961,7 @@
                 if (id === 'countdownScreen') element.classList.add('hide');
                 else element.classList.remove('show');
                 element.style.pointerEvents = 'none';
+                element.style.display = 'none';
             });
             const showMap = {
                 countdown: 'countdownScreen', greeting: 'greetingScreen', cake: 'cakeScreen',
@@ -967,9 +971,10 @@
             const targetId = showMap[screen] || 'countdownScreen';
             const target = document.getElementById(targetId);
             if (target) {
-                if (targetId === 'countdownScreen') target.classList.remove('hide');
-                else target.classList.add('show');
+                target.classList.remove('hide');
+                if (targetId !== 'countdownScreen') target.classList.add('show');
                 target.style.pointerEvents = 'auto';
+                target.style.display = targetId === 'photoScreen' ? 'block' : 'flex';
             }
             if (screen === 'cake') loadCakeState();
             if (screen === 'letter') resetEnvelope();
@@ -1163,6 +1168,27 @@
             if (window.__BB_FORCE_DEMO) return;
 
             const now = new Date();
+
+            // In editor mode the countdown is a content preview, not a live
+            // state machine. Keep its numbers current, but NEVER show/hide
+            // screens here. Navigation is owned by the editor arrows.
+            if (window.__BB_EDITOR_MODE) {
+                const currentYear = now.getFullYear();
+                let editorBirthday = new Date(currentYear, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
+                if (now > editorBirthday) editorBirthday = new Date(currentYear + 1, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute, 0);
+                const editorDiff = Math.max(0, editorBirthday - now);
+                const editorTotal = Math.ceil(editorDiff / 1000);
+                const days = Math.floor(editorTotal / (60 * 60 * 24));
+                const hours = Math.floor((editorTotal / (60 * 60)) % 24);
+                const mins = Math.floor((editorTotal / 60) % 60);
+                const secs = editorTotal % 60;
+                const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = String(value).padStart(2, '0'); };
+                set('days', days); set('hours', hours); set('mins', mins); set('secs', secs);
+                const msg = document.getElementById('countdownMessage');
+                if (msg) msg.textContent = 'Click the countdown to set the birthday date & time.';
+                countdownFinished = false;
+                return;
+            }
 
             const isBirthdayToday = isBirthday(now);
 
@@ -1939,6 +1965,7 @@
   let demoStarted = false;
   let receivedContent = false;
   let demoTimer = null;
+  let demoCountdownEndsAt = 0;
   let currentTrackIndex = 0;
   let bgAudio = null;
   // Catalog previews are always silent. Demo mode can opt into audio explicitly;
@@ -2154,6 +2181,7 @@
       const emoji=document.createElement('div'); emoji.className='reason-emoji'; emoji.textContent=reason.emoji;
       card.append(text,emoji); container.innerHTML=''; container.appendChild(card);
       if (typeof gsap !== 'undefined') gsap.from(card,{opacity:0,y:50,duration:.5,ease:'back.out'});
+      try { markEditableTargets?.(); } catch (_) {}
       currentReasonIndex += 1;
       if (counter) counter.textContent=`Reason ${currentReasonIndex} of ${reasons.length}`;
       if (currentReasonIndex >= reasons.length) { btn.textContent = "You're the BESTEST ! 💖"; btn.classList.add('story-mode'); }
@@ -2248,6 +2276,7 @@
   function applySecret(){
     const img=q('#secretScreen .secret-photo'); if(img){img.src=safeUrl(state.secret.image)||'';img.alt=state.secret.imageAlt||'Secret Memory';}
     const btn=q('#secretScreen .soulmate-btn'); if(btn){btn.innerHTML=`<i class="fab fa-instagram"></i> ${esc(state.secret.buttonText||'See Your Friend')}`;btn.onclick=()=>{const url=state.secret.socialUrl||'';if(url)window.open(url,'_blank','noopener,noreferrer');};}
+    const link=q('#secretButtonLink'); if(link){link.title=String(state.secret.socialUrl||'');link.setAttribute('data-bb-value',String(state.secret.socialUrl||''));}
   }
 
   function syncAudioToggle(){
@@ -2262,8 +2291,27 @@
   function setMusicEnabled(enabled){
     if(window.__BB_EDITOR_MODE){ musicEnabled=false; syncAudioToggle(); return; }
     musicEnabled = !!enabled;
-    if(!musicEnabled) { try{window.pauseBirthdayAudio?.();}catch(_){} try{q('#countdownAudio')?.pause?.();}catch(_){} }
-    else if(window.__BB_DEMO_UNLOCKED || countdownFinished){ try{window.playBirthdayAudio?.();}catch(_){} }
+    if(!musicEnabled) {
+      // Explicitly clearing these guards lets a later user ON action resume
+      // the existing player instead of leaving it permanently marked as played.
+      birthdayAudioPlayed = false;
+      pendingPlay = false;
+      countdownAudioPlayed = false;
+      try{window.pauseBirthdayAudio?.();}catch(_){}
+      try{const ca=q('#countdownAudio'); if(ca){ ca.pause(); ca.muted=true; }}catch(_){}
+    } else {
+      // During the 10-second demo countdown, resume the countdown audio only
+      // if the toggle is turned back on while still inside its last 10 seconds.
+      try{
+        const ca=q('#countdownAudio');
+        const now=Date.now();
+        if(ca && window.__BB_FORCE_DEMO && !window.__BB_DEMO_UNLOCKED && state.countdown.audioEnabled && demoCountdownEndsAt && now >= demoCountdownEndsAt-10000 && now < demoCountdownEndsAt && !countdownAudioPlayed){
+          ca.muted=false;
+          ca.play?.().then(()=>{ countdownAudioPlayed=true; }).catch(()=>{});
+        }
+      }catch(_){}
+      if(window.__BB_DEMO_UNLOCKED || countdownFinished){ try{window.playBirthdayAudio?.();}catch(_){} }
+    }
     syncAudioToggle();
     applyCountdown?.();
   }
@@ -2349,21 +2397,20 @@
     window.__BB_FORCE_DEMO = true;
     window.__BB_DEMO_UNLOCKED = false;
     musicEnabled = !window.__BB_EDITOR_MODE;
+    birthdayAudioPlayed = false;
+    pendingPlay = false;
+    countdownAudioPlayed = false;
+    demoCountdownEndsAt = Date.now() + 10000;
     try{window.pauseBirthdayAudio?.();}catch(_){}
     try{q('#countdownAudio')?.pause?.();}catch(_){}
     try{q('#countdownAudio') && (q('#countdownAudio').muted = true);}catch(_){}
     syncAudioToggle();
     // Every Demo open starts from a fresh 10-second countdown, regardless of
     // any previous screen state or content message delivered by the editor.
-    q('#countdownScreen')?.classList.remove('hide');
-    q('#greetingScreen')?.classList.remove('show');
-    q('#cakeScreen')?.classList.remove('show');
-    q('#reasonsScreen')?.classList.remove('show');
-    q('#photoScreen')?.classList.remove('show');
-    q('#videoScreen')?.classList.remove('show');
-    q('#letterScreen')?.classList.remove('show');
-    q('#secretScreen')?.classList.remove('show');
-    const target=Date.now()+10000;
+    const demoScreens=['countdownScreen','greetingScreen','cakeScreen','reasonsScreen','photoScreen','videoScreen','letterScreen','secretScreen'];
+    demoScreens.forEach(id=>{ const el=q('#'+id); if(!el)return; el.classList.remove('show','hide'); el.style.display='none'; el.style.pointerEvents='none'; });
+    const demoCountdown=q('#countdownScreen'); if(demoCountdown){ demoCountdown.classList.remove('hide'); demoCountdown.style.display='flex'; demoCountdown.style.pointerEvents='auto'; }
+    const target=demoCountdownEndsAt;
     const tick=()=>{
       const left=Math.max(0,target-Date.now());
       const total=Math.ceil(left/1000);
@@ -2392,7 +2439,7 @@
 
   window.addEventListener('message',function(event){
     const data=event.data||{};
-    if(data.type==='BB_CONTENT'){receivedContent=true;applyAll(data.content||{});return;}
+    if(data.type==='BB_CONTENT'){receivedContent=true;window.BB_CONTENT=data.content||{};applyAll(data.content||{});return;}
     if(data.type==='BB_CATALOG_MODE'){
       window.__BB_CATALOG_MODE = data.enabled !== false;
       demoStarted = false;
@@ -2421,7 +2468,7 @@
     if(data.type==='BB_SET_AUDIO_ENABLED'){ setMusicEnabled(data.enabled !== false); }
     if(data.type==='BB_EDITOR_MODE'){
       window.__BB_EDITOR_MODE=!!data.enabled;
-      document.documentElement.dataset.bbEditor=data.enabled?'1':'0';
+      document.documentElement.dataset.bbEditor=data.enabled?'1':'0'; document.body.classList.toggle('bb-editor-active', !!data.enabled);
       if(data.enabled){ musicEnabled=false; try{window.pauseBirthdayAudio?.();}catch(_){} try{q('#countdownAudio')?.pause?.();}catch(_){} }
       else { musicEnabled=true; }
       markEditableTargets();
@@ -2432,7 +2479,7 @@
 
   });
 
-  const EDITOR_TARGET_SELECTOR='h1,h2,h3,h4,p,text,button,img,video,.photo-card,.photo-date,.photo-caption,.video-card,.bb-video-caption,.bb-editor-audio-control,.countdown-box,.count-item,.count-number';
+  const EDITOR_TARGET_SELECTOR='h1,h2,h3,h4,p,text,button,img,video,.photo-card,.photo-date,.photo-caption,.video-card,.bb-video-caption,.bb-editor-audio-control,.bb-editor-link-edit,.countdown-box,.count-item,.count-number';
   function markEditableTargets(){
     qa(EDITOR_TARGET_SELECTOR).forEach(el=>{
       if(el.closest('#bbAudioToggle') || el.closest('.lightbox') || el.id==='tableKnife') return;
@@ -2476,6 +2523,7 @@
     if(t.matches('.letter-return-btn')) return {key:'mb.letter.buttonText',label:'Letter button',value:t.innerText,kind:'button'};
     if(t.matches('#secretScreen .secret-photo')) return {key:'mb.secret.image',label:'Secret image',kind:'image'};
     if(t.matches('.soulmate-btn')) return {key:'mb.secret.buttonText',label:'Secret button',value:t.innerText,kind:'button'};
+    if(t.matches('#secretButtonLink, .bb-editor-link-edit')) return {key:'mb.secret.socialUrl',label:'Secret profile link',value:window.BB_CONTENT?.secret?.socialUrl||'',kind:'url'};
     return null;
   }
 

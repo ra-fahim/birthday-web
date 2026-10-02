@@ -43,4 +43,15 @@ const demoGuards = [
 for (const marker of demoGuards) {
   if (!runtime.includes(marker)) throw new Error(`Master Birthday demo-safety guard is missing: ${marker}`);
 }
+const canvasStabilityMarkers = [
+  'display:none !important',
+  "target.style.display = targetId === 'photoScreen' ? 'block' : 'flex';",
+  "#secretButtonLink, .bb-editor-link-edit",
+  'demoCountdownEndsAt',
+  'birthdayAudioPlayed = false;',
+  'countdownAudioPlayed = false;',
+];
+for (const marker of canvasStabilityMarkers) {
+  if (!runtime.includes(marker)) throw new Error(`Canvas stability marker is missing: ${marker}`);
+}
 console.log('Birthday Builder Supabase preflight: PASS');
