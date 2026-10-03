@@ -12,7 +12,6 @@ const requiredFiles = [
   'public/templates/master-birthday/runtime.html',
   'public/templates/master-birthday/original.html',
   'public/master-template.html',
-  'public/templates/master-proposal/index.html',
   'public/templates/miss-you-1/index.html',
   'public/templates/wedding-proposal-original.html',
 ];
