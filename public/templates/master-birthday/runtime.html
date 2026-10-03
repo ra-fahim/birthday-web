@@ -12,7 +12,7 @@
 
     <title>Loading... 💫</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Comic+Neue:wght@700&family=Dancing+Script:wght@700&family=Caveat:wght@500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Comic+Neue:wght@700&family=Dancing+Script:wght@700&family=Caveat:wght@500;600;700&family=Quicksand:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
@@ -331,6 +331,68 @@
         .secret-container { max-width:600px; width:100%; box-sizing:border-box; background:linear-gradient(145deg, rgba(255,255,255,0.92), rgba(255,250,253,0.86)); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); padding:clamp(1.25rem,5vw,2rem); border-radius:30px; box-shadow:0 28px 50px -18px rgba(120,80,140,0.45), inset 0 1px 0 rgba(255,255,255,0.85); text-align:center; border:1px solid rgba(255,255,255,0.75); margin:auto; }
         .secret-photo { width:100%; max-height:min(400px,45vh); object-fit:cover; border-radius:24px; box-shadow:0 18px 34px -14px rgba(120,80,140,0.5); cursor:pointer; transition:transform 0.4s var(--premium-ease); border:3px solid white; animation:photoReveal 0.8s ease-out; display:block; }
         .secret-photo:hover { transform:scale(1.02); }
+        /* ===== Name puzzle screen (Letter -> Puzzle -> Secret) ===== */
+        .pz-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#ffe6f0,#ffe0f0); z-index:550; padding:20px; box-sizing:border-box; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; }
+        .pz-screen.show { display:flex; }
+        .pz-orb { position:absolute; border-radius:50%; filter:blur(70px); pointer-events:none; opacity:.35; animation:pzOrb 18s ease-in-out infinite; }
+        .pz-orb-a { width:320px; height:320px; background:var(--bb-main,#ff69b4); top:-110px; left:-90px; }
+        .pz-orb-b { width:300px; height:300px; background:var(--bb-secondary,#9b6dff); bottom:-100px; right:-80px; animation-delay:-8s; }
+        @keyframes pzOrb { 0%,100% { transform:translate(0,0) scale(1); } 50% { transform:translate(40px,-30px) scale(1.12); } }
+        .pz-card { --pz-w:clamp(36px,9.5vw,56px); --pz-gap:clamp(6px,2vw,12px); --pz-cols:8; position:relative; z-index:1; max-width:640px; width:100%; margin:auto; box-sizing:border-box; text-align:center; background:linear-gradient(145deg, rgba(255,255,255,0.92), rgba(255,250,253,0.86)); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); padding:clamp(1.25rem,5vw,2.4rem) clamp(1rem,5vw,2.2rem); border-radius:30px; border:1px solid rgba(255,255,255,0.75); box-shadow:0 28px 50px -18px rgba(120,80,140,0.45), inset 0 1px 0 rgba(255,255,255,0.85); color:var(--bb-text,#4a4a4a); }
+        .pz-card::before { content:''; position:absolute; inset:9px; border-radius:22px; border:1px dashed var(--bb-glow,#ffb6d9); opacity:.7; pointer-events:none; }
+        .pz-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border-radius:50px; background:rgba(255,255,255,0.75); border:1px solid var(--bb-glow,#ffb6d9); color:var(--bb-accent,#d4145a); font-size:.68rem; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; margin-bottom:14px; box-shadow:0 6px 16px -8px var(--bb-glow,#ffb6d9); }
+        .pz-diamond { display:inline-block; width:5px; height:5px; background:var(--bb-accent,#d4145a); transform:rotate(45deg); }
+        .pz-title, .pz-win-title { font-family:'Playfair Display',Georgia,serif; font-weight:900; line-height:1.15; letter-spacing:-.3px; background:linear-gradient(100deg,var(--bb-accent,#d4145a),var(--bb-main,#ff69b4),var(--bb-secondary,#9b6dff),var(--bb-accent,#d4145a)); background-size:300% auto; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent; animation:pzShimmer 6s linear infinite; }
+        .pz-title { font-size:clamp(1.5rem,6vw,2.3rem); margin-bottom:6px; }
+        .pz-win-title { font-size:clamp(2rem,8vw,2.9rem); margin-bottom:16px; }
+        @keyframes pzShimmer { to { background-position:300% center; } }
+        .pz-sub { font-size:.95rem; line-height:1.6; margin:12px 0 8px; opacity:.85; }
+        .pz-hint { color:var(--bb-main,#ff69b4); font-size:.86rem; font-weight:700; font-style:italic; min-height:22px; margin-bottom:6px; }
+        .pz-hint:empty { display:none; }
+        .pz-progress { height:6px; background:rgba(0,0,0,.08); border-radius:6px; overflow:hidden; margin:14px 0 8px; }
+        .pz-progress-fill { height:100%; width:0%; border-radius:6px; background:linear-gradient(90deg,var(--bb-main,#ff69b4),var(--bb-secondary,#9b6dff)); box-shadow:0 0 12px var(--bb-glow,#ffb6d9); transition:width .5s cubic-bezier(.4,.2,.2,1); }
+        .pz-progress-label { font-size:.66rem; letter-spacing:2.5px; text-transform:uppercase; color:var(--bb-accent,#d4145a); font-weight:700; margin-bottom:22px; min-height:1em; }
+        .pz-slots, .pz-tiles { display:flex; flex-wrap:wrap; justify-content:center; gap:var(--pz-gap); max-width:calc(var(--pz-cols) * var(--pz-w) + (var(--pz-cols) - 1) * var(--pz-gap) + 2px); margin-left:auto; margin-right:auto; margin-bottom:26px; min-height:calc(var(--pz-w) * 1.28); }
+        .pz-slot, .pz-tile { width:var(--pz-w); height:calc(var(--pz-w) * 1.28); border-radius:clamp(10px,3vw,16px); display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',Georgia,serif; font-weight:900; font-size:calc(var(--pz-w) * .5); position:relative; box-sizing:border-box; user-select:none; -webkit-user-select:none; -webkit-tap-highlight-color:transparent; outline:none; }
+        .pz-slot { transition:transform .3s, box-shadow .3s; }
+        .pz-slot.empty { background:rgba(255,255,255,.7); border:1.5px dashed var(--bb-glow,#ffb6d9); box-shadow:inset 0 2px 6px rgba(120,80,140,.15); overflow:hidden; }
+        .pz-slot.empty::after { content:'\25C7'; color:var(--bb-glow,#ffb6d9); font-size:1rem; font-family:inherit; font-weight:400; }
+        .pz-slot.filled { background:linear-gradient(145deg,var(--bb-main,#ff69b4),var(--bb-secondary,#9b6dff)); color:#fff; cursor:pointer; box-shadow:0 12px 22px -10px var(--bb-main,#ff69b4), inset 0 2px 0 rgba(255,255,255,.45); animation:pzPop .45s cubic-bezier(.34,1.56,.64,1); text-shadow:0 1px 2px rgba(0,0,0,.18); }
+        .pz-slot.filled:hover, .pz-slot.filled:focus-visible { transform:translateY(-4px); }
+        .pz-slot.showing-hint::after { content:attr(data-hint); position:absolute; inset:0; display:flex; align-items:center; justify-content:center; border-radius:inherit; background:rgba(255,255,255,.92); color:var(--bb-accent,#d4145a); font-size:calc(var(--pz-w) * .5); font-weight:900; font-family:'Playfair Display',Georgia,serif; text-shadow:0 0 14px var(--bb-glow,#ffb6d9); animation:pzHint .7s ease infinite alternate; z-index:2; }
+        @keyframes pzPop { 0% { transform:scale(.3) rotate(-12deg); opacity:0; } 70% { transform:scale(1.12) rotate(3deg); opacity:1; } 100% { transform:scale(1) rotate(0); } }
+        @keyframes pzHint { from { opacity:.55; transform:scale(.92); } to { opacity:1; transform:scale(1.06); } }
+        .pz-tiles-label { display:flex; align-items:center; justify-content:center; gap:12px; font-size:.66rem; letter-spacing:4px; text-transform:uppercase; color:var(--bb-accent,#d4145a); opacity:.85; font-weight:700; margin-bottom:14px; }
+        .pz-tiles-label::before, .pz-tiles-label::after { content:''; width:34px; height:1px; background:linear-gradient(90deg,transparent,var(--bb-main,#ff69b4),transparent); }
+        .pz-tile { cursor:pointer; color:var(--bb-accent,#d4145a); background:radial-gradient(circle at 30% 20%,#fff 0%,var(--bb-glow,#ffb6d9) 100%); border:1.5px solid var(--bb-main,#ff69b4); box-shadow:0 12px 22px -10px var(--bb-main,#ff69b4), inset 0 2px 0 rgba(255,255,255,.9); transition:transform .3s cubic-bezier(.4,.2,.2,1), box-shadow .3s, opacity .3s; overflow:hidden; }
+        .pz-tile:hover:not(.used), .pz-tile:focus-visible:not(.used) { transform:translateY(-6px) scale(1.05); box-shadow:0 18px 30px -10px var(--bb-main,#ff69b4), inset 0 2px 0 #fff; }
+        .pz-tile:active:not(.used) { transform:translateY(-2px) scale(1.02); }
+        .pz-tile.used { opacity:.28; cursor:default; pointer-events:none; transform:scale(.94); filter:saturate(.5); }
+        .pz-buttons { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+        .pz-btn { border:none; padding:12px 28px; border-radius:50px; font-family:inherit; font-weight:700; font-size:clamp(.85rem,3.4vw,1rem); letter-spacing:.5px; cursor:pointer; transition:transform .3s, box-shadow .3s, opacity .3s; -webkit-tap-highlight-color:transparent; }
+        .pz-btn:hover:not(:disabled) { transform:translateY(-3px) scale(1.04); }
+        .pz-btn:active:not(:disabled) { transform:scale(.96); }
+        .pz-btn:disabled { opacity:.45; cursor:not-allowed; }
+        .pz-btn-primary { color:#fff; background:linear-gradient(45deg,var(--bb-button,#ff69b4),var(--bb-secondary,#9b6dff)); box-shadow:0 16px 28px -12px var(--bb-main,#ff69b4); padding:13px 38px; }
+        .pz-btn-ghost { color:var(--bb-accent,#d4145a); background:rgba(255,255,255,.75); border:1.5px solid var(--bb-glow,#ffb6d9); box-shadow:0 8px 18px -10px var(--bb-glow,#ffb6d9); }
+        .pz-message { margin-top:18px; min-height:24px; font-size:.9rem; font-weight:600; opacity:.9; }
+        .pz-message.wrong { color:var(--bb-accent,#d4145a); font-style:italic; }
+        .pz-shake { animation:pzShake .55s cubic-bezier(.36,.07,.19,.97); }
+        @keyframes pzShake { 0%,100% { transform:translateX(0); } 15%,45%,75% { transform:translateX(-10px); } 30%,60%,90% { transform:translateX(10px); } }
+        .pz-win { display:none; position:relative; }
+        .pz-win.show { display:block; animation:pzFadeUp .9s cubic-bezier(.4,.2,.2,1) both; }
+        .pz-game.pz-off { display:none; }
+        @keyframes pzFadeUp { from { opacity:0; transform:translateY(34px) scale(.96); } to { opacity:1; transform:translateY(0) scale(1); } }
+        .pz-glow { position:absolute; top:40px; left:50%; transform:translateX(-50%); width:240px; height:240px; background:radial-gradient(circle,var(--bb-glow,#ffb6d9) 0%,transparent 65%); filter:blur(26px); opacity:.7; pointer-events:none; z-index:-1; }
+        .pz-crown { display:block; font-size:clamp(3rem,12vw,4.2rem); line-height:1; margin:4px 0; animation:pzCrown 3s ease-in-out infinite; filter:drop-shadow(0 0 22px var(--bb-glow,#ffb6d9)); }
+        @keyframes pzCrown { 0%,100% { transform:translateY(0) rotate(-3deg); } 50% { transform:translateY(-10px) rotate(3deg); } }
+        .pz-win-msg { font-size:clamp(.92rem,3.6vw,1.05rem); line-height:1.9; margin-bottom:28px; opacity:.92; }
+        .pz-name { display:inline-block; font-family:'Playfair Display',Georgia,serif; font-weight:900; font-size:clamp(1.3rem,5.5vw,1.7rem); margin:2px 6px; letter-spacing:1px; background:linear-gradient(90deg,var(--bb-accent,#d4145a),var(--bb-main,#ff69b4),var(--bb-secondary,#9b6dff),var(--bb-accent,#d4145a)); background-size:200% auto; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent; animation:pzShimmer 3s linear infinite; }
+        .pz-editor-note { display:none; margin-bottom:14px; padding:8px 12px; border-radius:12px; background:rgba(255,193,7,.18); border:1px solid rgba(255,193,7,.6); color:#7a5a00; font-size:.8rem; font-weight:600; }
+        .pz-editor-note.show { display:block; }
+        .pz-sparkle { position:fixed; pointer-events:none; font-size:1.4rem; z-index:9000; animation:pzSparkle 1.8s ease-out forwards; }
+        @keyframes pzSparkle { 0% { opacity:1; transform:scale(0) rotate(0); } 50% { opacity:1; transform:scale(1.4) rotate(180deg); } 100% { opacity:0; transform:scale(0) rotate(360deg) translateY(-80px); } }
+        @media (prefers-reduced-motion: reduce) { .pz-orb, .pz-crown, .pz-title, .pz-win-title, .pz-name, .pz-slot.filled, .pz-win.show { animation:none !important; } }
         @keyframes photoReveal { 0%{ opacity:0; transform:scale(0.85); } 100%{ opacity:1; transform:scale(1); } }
         .soulmate-btn { margin-top:clamp(16px,4vw,30px); padding:clamp(10px,3vw,12px) clamp(20px,6vw,30px); background:linear-gradient(45deg,#9b6dff,#ff6dc7); border:none; border-radius:50px; color:white; font-size:clamp(1rem,3.6vw,1.2rem); cursor:pointer; font-weight:bold; box-shadow:0 12px 26px -10px rgba(155,109,255,0.7), inset 0 1px 0 rgba(255,255,255,0.5); transition:transform 0.4s var(--premium-ease), box-shadow 0.4s var(--premium-ease); border:2px solid rgba(255,255,255,0.7); display:inline-block; text-decoration:none; animation:btnPop 0.5s ease-out 0.3s both; max-width:100%; white-space:normal; }
         @keyframes btnPop { 0%{ opacity:0; transform:scale(0.8); } 100%{ opacity:1; transform:scale(1); } }
@@ -678,7 +740,39 @@
         <div class="letter-container" id="letterContainer">
             <h2>A Letter for You friend 💌</h2>
             <div class="letter-content" id="letterContent"></div>
-            <button class="letter-return-btn" onclick="goToSecretScreen()">Again, Happy Birthday Anarkoli Bury</button>
+            <button class="letter-return-btn" onclick="goToPuzzleScreen()">Again, Happy Birthday Anarkoli Bury</button>
+        </div>
+    </div>
+
+    <div class="pz-screen" id="puzzleScreen">
+        <span class="pz-orb pz-orb-a" aria-hidden="true"></span>
+        <span class="pz-orb pz-orb-b" aria-hidden="true"></span>
+        <div class="pz-card" id="pzCard">
+            <div class="pz-game" id="pzGame">
+                <div class="pz-editor-note" id="pzEditorNote">Puzzle is turned off &mdash; visitors skip this page and go straight to the secret photo.</div>
+                <div class="pz-badge"><i class="pz-diamond"></i><span id="pzBadge" data-bb-key="mb.puzzle.badge">Name Puzzle</span><i class="pz-diamond"></i></div>
+                <h1 class="pz-title" id="pzTitle">Arrange the Birthday Name</h1>
+                <p class="pz-sub" id="pzSub">Rearrange the letters below to reveal the hidden name.</p>
+                <p class="pz-hint" id="pzHint">&#10022; Hint: A name that shines brighter than gold &#10022;</p>
+                <div class="pz-progress" aria-hidden="true"><div class="pz-progress-fill" id="pzProgressFill"></div></div>
+                <div class="pz-progress-label" id="pzProgressLabel" aria-live="polite">0% Revealed</div>
+                <div class="pz-slots" id="pzSlots" role="group" aria-label="Answer"></div>
+                <div class="pz-tiles-label" id="pzTilesLabel">Letters</div>
+                <div class="pz-tiles" id="pzTiles" role="group" aria-label="Letters"></div>
+                <div class="pz-buttons">
+                    <button type="button" class="pz-btn pz-btn-ghost" id="pzHintBtn">&#10022; Hint</button>
+                    <button type="button" class="pz-btn pz-btn-ghost" id="pzResetBtn">&#8635; Reset</button>
+                </div>
+                <p class="pz-message" id="pzMessage" aria-live="polite"></p>
+            </div>
+            <div class="pz-win" id="pzWin">
+                <div class="pz-glow" aria-hidden="true"></div>
+                <span class="pz-crown" aria-hidden="true">&#128081;</span>
+                <div class="pz-badge"><i class="pz-diamond"></i><span id="pzWinBadge">Name Revealed</span><i class="pz-diamond"></i></div>
+                <h2 class="pz-win-title" id="pzWinTitle">Happy Birthday</h2>
+                <div class="pz-win-msg" id="pzWinMsg"></div>
+                <button type="button" class="pz-btn pz-btn-primary" id="pzContinueBtn">Continue &rarr;</button>
+            </div>
         </div>
     </div>
 
@@ -1037,7 +1131,7 @@
             // Switch every OTHER screen fully off. After the fade-out a screen used to stay
             // in the page at opacity 0 with pointer-events on, covering the new screen so
             // none of its buttons/candles/cards could be clicked (live site + Preview).
-            ['countdownScreen','greetingScreen','cakeScreen','reasonsScreen','photoScreen','videoScreen','letterScreen','secretScreen'].forEach(other => {
+            ['countdownScreen','greetingScreen','cakeScreen','reasonsScreen','photoScreen','videoScreen','letterScreen','puzzleScreen','secretScreen'].forEach(other => {
                 if (other === id) return;
                 const o = document.getElementById(other);
                 if (!o) return;
@@ -1056,7 +1150,7 @@
             const screens = [
                 'countdownScreen', 'greetingScreen', 'cakeScreen',
                 'reasonsScreen', 'photoScreen', 'videoScreen',
-                'letterScreen', 'secretScreen'
+                'letterScreen', 'puzzleScreen', 'secretScreen'
             ];
             screens.forEach(id => {
                 const element = document.getElementById(id);
@@ -1069,7 +1163,7 @@
             const showMap = {
                 countdown: 'countdownScreen', greeting: 'greetingScreen', cake: 'cakeScreen',
                 reasons: 'reasonsScreen', photo: 'photoScreen', video: 'videoScreen',
-                letter: 'letterScreen', secret: 'secretScreen'
+                letter: 'letterScreen', puzzle: 'puzzleScreen', secret: 'secretScreen'
             };
             const targetId = showMap[screen] || 'countdownScreen';
             const target = document.getElementById(targetId);
@@ -1083,6 +1177,7 @@
             if (screen === 'cake') loadCakeState();
             if (screen === 'letter') resetEnvelope();
             if (screen === 'reasons') displayReason();
+            if (screen === 'puzzle') { try { window.__bbPuzzle && window.__bbPuzzle.enter(); } catch (_) {} }
         }
 
         const greetingText = "Hey You Know What! You're the most adorable human i ever met! 💖";
@@ -2086,12 +2181,37 @@
             }, 900);
         };
 
-        window.goToSecretScreen = function() {
+        // Letter -> Name puzzle -> Secret photo.
+        // If the puzzle is switched off (or the name has fewer than 2 letters)
+        // the letter button goes straight to the secret photo as before.
+        let __bbNavLock = false;
+        function __bbNavUnlockLater() { setTimeout(function () { __bbNavLock = false; }, 700); }
+        window.goToPuzzleScreen = function() {
+            if (__bbNavLock) return;
+            let usePuzzle = false;
+            try { usePuzzle = !!(window.__bbPuzzle && window.__bbPuzzle.isAvailable()); } catch (_) { usePuzzle = false; }
+            if (!usePuzzle) { window.goToSecretScreen('letterScreen'); return; }
+            __bbNavLock = true;
             parallaxOut('#letterScreen', () => {
                 document.getElementById('letterScreen').classList.remove('show');
+                __bbActivateScreen('puzzleScreen');
+                updateHistory('puzzle');
+                try { window.__bbPuzzle.enter(); } catch (_) {}
+                parallaxIn('#puzzleScreen');
+                __bbNavUnlockLater();
+            });
+        };
+
+        window.goToSecretScreen = function(from) {
+            if (__bbNavLock) return;
+            __bbNavLock = true;
+            const fromId = from === 'puzzleScreen' ? 'puzzleScreen' : (from === 'letterScreen' ? 'letterScreen' : (document.getElementById('puzzleScreen') && document.getElementById('puzzleScreen').classList.contains('show') ? 'puzzleScreen' : 'letterScreen'));
+            parallaxOut('#' + fromId, () => {
+                document.getElementById(fromId).classList.remove('show');
                 __bbActivateScreen('secretScreen');
                 updateHistory('secret');
                 parallaxIn('#secretScreen');
+                __bbNavUnlockLater();
             });
         };
 
@@ -2121,7 +2241,7 @@
 <script>
 (function () {
   'use strict';
-  const DEFAULT = {"recipientName":"Anarkoli","senderName":"","age":17,"birthdayDate":"2030-01-08","birthdayTime":"00:00","timezone":"Asia/Dhaka","pageTitle":"Something's Coming 💫","browserTitle":"Loading... 💫","ogTitle":"Something's Coming 💫","ogDescription":"Tap to open when the time is right ✨","ogImage":"","customSlug":"","countdown":{"title":"Something special is unlocking...⌛","message":"⏰ Something is coming soon...","audioUrl":"https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3","audioEnabled":true},"wishingAudioUrl":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","greeting":{"heading":"Happy Birthday Anarkoli..❤️🎂💫","text":"Hey You Know What! You're the most adorable human i ever met! 💖","enterButton":"Click to enter your world 💕"},"cake":{"cakeText":"happy","birthdayText":"birthday","recipientName":"Anarkoli","ageCandleCount":24,"wishTitle":"Close your eyes and make a wish...","wishSubtitle":"Then blow out the candles 🕯️","micHint":"🎤 Blow into your mic to blow out the candles, or tap them","cakeStatus":"🎉 Cake cut! Happy Birthday! 🎉","cutInstruction":"🔪 Press and drag anywhere on the cake — cut it your way","nextButton":"Enter your storyline 💫","microphoneEnabled":true,"soundEffects":true,"vibration":true},"reasons":{"heading":"Happy birthday princess 👑","note":"","items":[{"id":"reason-1","text":"You're such a kind and wonderful person, and I feel lucky to share such a good bond with you.","emoji":"🌟"},{"id":"reason-2","text":"May your day be filled with love, laughter, and endless joy.","emoji":"💗"},{"id":"reason-3","text":"Wishing you success, happiness, and everything your heart desires.","emoji":"💕"},{"id":"reason-4","text":"Stay the amazing girl you are—always spreading positivity around. Have the happiest year ahead! 🥳","emoji":"🌟"}],"buttonText":"Click Here... 💕","finalButtonText":"You're the BESTEST ! 💖"},"memories":{"heading":"The Beautiful Moments ","subtitle":"Every moment spent with you has been magical. Let's cherish these precious memories Anarkoli...","nextButton":"Again Your Storylane 🎥","items":[{"id":"memory-1","url":"https://picsum.photos/seed/anime1/800/600","title":"A Magical Reflection 💖","caption":"A reflection of pure grace, elegance, and unmatched beauty. 🌹👑","date":"A Magical Reflection 💖","alt":"Anime 1"},{"id":"memory-2","url":"https://picsum.photos/seed/anime2/800/600","title":"Lost in Anime Lore","caption":"May your journey ahead be filled with happiness, success, and endless smiles😊💕","date":"Lost in Anime Lore","alt":"Anime 2"},{"id":"memory-3","url":"https://picsum.photos/seed/anime3/800/600","title":"Her Smile Says It All","caption":"You're truly one of the sweetest girls I know, and I feel lucky to have a person like you❤️","date":"Her Smile Says It All","alt":"Anime 3"},{"id":"memory-4","url":"https://picsum.photos/seed/anime4/800/600","title":"One More Beautiful Memory","caption":"A little extra memory to make this story even more special. ✨💖","date":"One More Beautiful Memory","alt":"Anime 4"}]},"videos":{"title":"A Special Video Message","nextButton":"See your letter 💌","items":[{"id":"video-1","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4","title":"Happy Birthday Anarkoli ❤️🎂","caption":"A little birthday video message just for this special story. 🎥💖","poster":"","alt":"Happy Birthday video"},{"id":"video-2","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4","title":"Another Special Memory 🎬","caption":"A second demo video slot so you can test adding and editing more than one video.","poster":"","alt":"Second demo video"}]},"soundtrack":{"items":[{"id":"track-1","title":"Birthday wishing audio","artist":"","sourceType":"youtube","url":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","cover":""}]},"letter":{"title":"A Letter for My favourite chapter..  💌","paragraphs":["Every laugh, every chat, and every moment we once shared will always hold a special place in my heart.💫","Even though time and things have changed, I'm still grateful for the bond we had and the beautiful energy you brought into my life.","On your birthday, I sincerely wish you endless happiness, peace, and success in everything you do.🌸","You deserve all the joy in the world—keep shining as you always have.✨","Happy Birthday💝"],"signature":"","buttonText":"Again, Happy Birthday Anarkoli.."},"secret":{"image":"https://picsum.photos/seed/anime4/800/600","imageAlt":"Secret Memory","buttonText":"See Your Friend","buttonIcon":"instagram","socialPlatform":"Instagram","socialUrl":"https://www.instagram.com/rafahimn"},"theme":{"main":"#ff69b4","secondary":"#9b6dff","accent":"#d4145a","button":"#ff69b4","text":"#4a4a4a","glow":"#ffb6d9","overlay":"linear-gradient(135deg, rgba(255,192,203,0.3), rgba(147,112,219,0.3))","backgroundImage":"","backgroundVideo":"https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp4","mode":"light","fontPreset":"original","animationIntensity":"full"},"effects":{"butterflies":true,"flowers":true,"hearts":true,"sparkles":true,"customCursor":true,"confetti":true,"smoke":true,"soundEffects":true,"vibration":true,"microphone":true}};
+  const DEFAULT = {"recipientName":"Anarkoli","senderName":"","age":17,"birthdayDate":"2030-01-08","birthdayTime":"00:00","timezone":"Asia/Dhaka","pageTitle":"Something's Coming 💫","browserTitle":"Loading... 💫","ogTitle":"Something's Coming 💫","ogDescription":"Tap to open when the time is right ✨","ogImage":"","customSlug":"","countdown":{"title":"Something special is unlocking...⌛","message":"⏰ Something is coming soon...","audioUrl":"https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3","audioEnabled":true},"wishingAudioUrl":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","greeting":{"heading":"Happy Birthday Anarkoli..❤️🎂💫","text":"Hey You Know What! You're the most adorable human i ever met! 💖","enterButton":"Click to enter your world 💕"},"cake":{"cakeText":"happy","birthdayText":"birthday","recipientName":"Anarkoli","ageCandleCount":24,"wishTitle":"Close your eyes and make a wish...","wishSubtitle":"Then blow out the candles 🕯️","micHint":"🎤 Blow into your mic to blow out the candles, or tap them","cakeStatus":"🎉 Cake cut! Happy Birthday! 🎉","cutInstruction":"🔪 Press and drag anywhere on the cake — cut it your way","nextButton":"Enter your storyline 💫","microphoneEnabled":true,"soundEffects":true,"vibration":true},"reasons":{"heading":"Happy birthday princess 👑","note":"","items":[{"id":"reason-1","text":"You're such a kind and wonderful person, and I feel lucky to share such a good bond with you.","emoji":"🌟"},{"id":"reason-2","text":"May your day be filled with love, laughter, and endless joy.","emoji":"💗"},{"id":"reason-3","text":"Wishing you success, happiness, and everything your heart desires.","emoji":"💕"},{"id":"reason-4","text":"Stay the amazing girl you are—always spreading positivity around. Have the happiest year ahead! 🥳","emoji":"🌟"}],"buttonText":"Click Here... 💕","finalButtonText":"You're the BESTEST ! 💖"},"memories":{"heading":"The Beautiful Moments ","subtitle":"Every moment spent with you has been magical. Let's cherish these precious memories Anarkoli...","nextButton":"Again Your Storylane 🎥","items":[{"id":"memory-1","url":"https://picsum.photos/seed/anime1/800/600","title":"A Magical Reflection 💖","caption":"A reflection of pure grace, elegance, and unmatched beauty. 🌹👑","date":"A Magical Reflection 💖","alt":"Anime 1"},{"id":"memory-2","url":"https://picsum.photos/seed/anime2/800/600","title":"Lost in Anime Lore","caption":"May your journey ahead be filled with happiness, success, and endless smiles😊💕","date":"Lost in Anime Lore","alt":"Anime 2"},{"id":"memory-3","url":"https://picsum.photos/seed/anime3/800/600","title":"Her Smile Says It All","caption":"You're truly one of the sweetest girls I know, and I feel lucky to have a person like you❤️","date":"Her Smile Says It All","alt":"Anime 3"},{"id":"memory-4","url":"https://picsum.photos/seed/anime4/800/600","title":"One More Beautiful Memory","caption":"A little extra memory to make this story even more special. ✨💖","date":"One More Beautiful Memory","alt":"Anime 4"}]},"videos":{"title":"A Special Video Message","nextButton":"See your letter 💌","items":[{"id":"video-1","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4","title":"Happy Birthday Anarkoli ❤️🎂","caption":"A little birthday video message just for this special story. 🎥💖","poster":"","alt":"Happy Birthday video"},{"id":"video-2","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4","title":"Another Special Memory 🎬","caption":"A second demo video slot so you can test adding and editing more than one video.","poster":"","alt":"Second demo video"}]},"soundtrack":{"items":[{"id":"track-1","title":"Birthday wishing audio","artist":"","sourceType":"youtube","url":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","cover":""}]},"letter":{"title":"A Letter for My favourite chapter..  💌","paragraphs":["Every laugh, every chat, and every moment we once shared will always hold a special place in my heart.💫","Even though time and things have changed, I'm still grateful for the bond we had and the beautiful energy you brought into my life.","On your birthday, I sincerely wish you endless happiness, peace, and success in everything you do.🌸","You deserve all the joy in the world—keep shining as you always have.✨","Happy Birthday💝"],"signature":"","buttonText":"Again, Happy Birthday Anarkoli.."},"puzzle":{"enabled":true,"name":"","badge":"Name Puzzle","title":"Arrange the Birthday Name","subtitle":"Rearrange the letters below to reveal the hidden name.","hint":"✦ Hint: A name that shines brighter than gold ✦","hintButton":"✦ Hint","resetButton":"↻ Reset","lettersLabel":"Letters","wrongMessage":"✖ Not quite right — the letters will return","resetMessage":"↻ Letters reshuffled — try again!","winBadge":"Name Revealed","winTitle":"Happy Birthday","winMessage":"Wishing you the most magical day,\n{name}\nMay this year bring you everything your heart desires — love, laughter, and dreams fulfilled. 💖","continueButton":"Continue →"},"secret":{"image":"https://picsum.photos/seed/anime4/800/600","imageAlt":"Secret Memory","buttonText":"See Your Friend","buttonIcon":"instagram","socialPlatform":"Instagram","socialUrl":"https://www.instagram.com/rafahimn"},"theme":{"main":"#ff69b4","secondary":"#9b6dff","accent":"#d4145a","button":"#ff69b4","text":"#4a4a4a","glow":"#ffb6d9","overlay":"linear-gradient(135deg, rgba(255,192,203,0.3), rgba(147,112,219,0.3))","backgroundImage":"","backgroundVideo":"https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp4","mode":"light","fontPreset":"original","animationIntensity":"full"},"effects":{"butterflies":true,"flowers":true,"hearts":true,"sparkles":true,"customCursor":true,"confetti":true,"smoke":true,"soundEffects":true,"vibration":true,"microphone":true}};
   // Reset/default target is controlled by lib/master-birthday.ts (2030-01-08).
   DEFAULT.birthdayDate = '2030-01-08';
   DEFAULT.birthdayTime = '00:00';
@@ -2217,12 +2337,12 @@
     style.textContent = `
       body { --bb-main:${esc(t.main)}; --bb-secondary:${esc(t.secondary)}; --bb-accent:${esc(t.accent)}; --bb-button:${esc(t.button)}; --bb-text:${esc(t.text)}; --bb-glow:${esc(t.glow)}; }
       .overlay { background:${t.overlay || DEFAULT.theme.overlay} !important; }
-      .enter-btn, .reasons-btn, .cake-next-btn, .photo-next-btn, .video-next-btn, .letter-return-btn, .soulmate-btn { background:linear-gradient(45deg, ${t.button}, ${t.secondary}) !important; }
+      .enter-btn, .reasons-btn, .cake-next-btn, .photo-next-btn, .video-next-btn, .letter-return-btn, .soulmate-btn, .pz-btn-primary { background:linear-gradient(45deg, ${t.button}, ${t.secondary}) !important; }
       .reasons-header h1, .photo-header h1, .video-screen h2, .letter-container h2 { color:${esc(t.accent)} !important; }
       .photo-date { color:${esc(t.accent)} !important; }
       .cake-status { box-shadow:0 0 24px ${esc(t.glow)}55, inset 0 1px 0 rgba(255,255,255,.15) !important; }
       .custom-cursor svg path { fill:${esc(t.main)} !important; }
-      ${t.mode === 'dark' ? 'body { background:#110d16 !important; } .letter-screen { background:linear-gradient(135deg,#19161a 0%,#0f1014 100%) !important; } .letter-container { background:linear-gradient(145deg,rgba(36,31,39,.98),rgba(25,23,29,.95)) !important; color:#fff !important; } .letter-content,.letter-content p { color:#f4edf8 !important; }' : ''}
+      ${t.mode === 'dark' ? 'body { background:#110d16 !important; } .letter-screen { background:linear-gradient(135deg,#19161a 0%,#0f1014 100%) !important; } .letter-container { background:linear-gradient(145deg,rgba(36,31,39,.98),rgba(25,23,29,.95)) !important; color:#fff !important; } .letter-content,.letter-content p { color:#f4edf8 !important; } .pz-screen { background:linear-gradient(135deg,#19161a 0%,#0f1014 100%) !important; } .pz-card { background:linear-gradient(145deg,rgba(36,31,39,.98),rgba(25,23,29,.95)) !important; color:#fff !important; } .pz-slot.empty { background:rgba(255,255,255,.06) !important; } .pz-btn-ghost { background:rgba(255,255,255,.08) !important; }' : ''}
       ${t.animationIntensity === 'off' ? '* { animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition:none !important; }' : t.animationIntensity === 'soft' ? '* { animation-duration:1.7s !important; }' : ''}
       ${t.backgroundImage ? `body { background-image:url(\"${safeUrl(t.backgroundImage)}\") !important; background-size:cover; background-attachment:fixed; }` : ''}
       ${t.fontPreset === 'quicksand' ? `body { font-family:'Quicksand',sans-serif !important; }` : t.fontPreset === 'dancing' ? `body { font-family:'Dancing Script',cursive !important; }` : t.fontPreset === 'bubblegum' ? `body { font-family:'Bubblegum Sans',cursive !important; }` : t.fontPreset === 'comic' ? `body { font-family:'Comic Neue',cursive !important; }` : t.fontPreset === 'caveat' ? `body { font-family:'Caveat',cursive !important; }` : ''}
@@ -2549,6 +2669,230 @@
     const link=q('#secretButtonLink'); if(link){link.title=String(state.secret.socialUrl||'');link.setAttribute('data-bb-value',String(state.secret.socialUrl||''));}
   }
 
+
+  // ===== Name puzzle (Letter -> Puzzle -> Secret) =====================
+  // Owned by this runtime so Edit / Preview / Live / Demo all share one flow.
+  // Navigation helpers (goToPuzzleScreen / goToSecretScreen) live in the first
+  // script block; they call window.__bbPuzzle.enter() when the screen opens.
+  const PZ_MAX = 12;
+  let PZ_MARK, PZ_ALNUM, PZ_VIRAMA;
+  try { PZ_MARK = new RegExp('[\\p{M}\\u200c\\u200d]', 'u'); PZ_ALNUM = new RegExp('[\\p{L}\\p{N}]', 'u'); }
+  catch (_) { PZ_MARK = /[\u0300-\u036f\u0900-\u0903\u093a-\u094f\u0980-\u0983\u09bc-\u09d7\u200c\u200d]/; PZ_ALNUM = /[A-Za-z0-9\u00c0-\u024f\u0900-\u097f\u0980-\u09ff]/; }
+  PZ_VIRAMA = /[\u094d\u09cd\u0a4d\u0acd\u0b4d\u0bcd\u0c4d\u0ccd\u0d4d]/;
+  const pz = { sig: '', target: [], tiles: [], slots: [], solved: false, locked: false, hintCooldown: false, hintIdx: -1, timers: [] };
+
+  function pzClusters(str) {
+    const out = []; let join = false;
+    for (const ch of Array.from(String(str || ''))) {
+      if (PZ_MARK.test(ch)) { if (out.length) { out[out.length - 1] += ch; join = PZ_VIRAMA.test(ch); } continue; }
+      if (PZ_ALNUM.test(ch)) { if (join && out.length) out[out.length - 1] += ch; else out.push(ch); join = false; continue; }
+      join = false;
+    }
+    return out;
+  }
+  function pzRawName() {
+    return String(state.puzzle?.name || '').trim() || String(state.recipientName || '').trim() || String(state.cake?.recipientName || '').trim();
+  }
+  function pzDisplayName() { return pzRawName().replace(/[\s.\u2026\u00b7,!?\-_~]+$/g, '') || pzRawName(); }
+  function pzLetters() {
+    const raw = pzRawName();
+    let cl = pzClusters(raw);
+    if (cl.length > PZ_MAX) {
+      const first = pzClusters(raw.split(/\s+/).filter(Boolean)[0] || '');
+      if (first.length >= 3) cl = first;
+      cl = cl.slice(0, PZ_MAX);
+    }
+    return cl.map(c => c.toLocaleUpperCase());
+  }
+  function pzAvailable() { return state.puzzle?.enabled !== false && pzLetters().length >= 2; }
+  function pzTimer(fn, ms) { const id = setTimeout(() => { pz.timers = pz.timers.filter(t => t !== id); fn(); }, ms); pz.timers.push(id); return id; }
+  function pzClearTimers() { pz.timers.forEach(clearTimeout); pz.timers = []; }
+  function pzShuffle(arr) {
+    const original = arr.join('|'); let tries = 0, a = arr.slice();
+    do {
+      for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+      tries++;
+    } while (a.join('|') === original && tries < 40);
+    return a;
+  }
+  function pzFx() { return state.theme?.animationIntensity !== 'off'; }
+  function pzSetMessage(text, wrong) { const m = q('#pzMessage'); if (!m) return; m.textContent = text || ''; m.className = 'pz-message' + (wrong ? ' wrong' : ''); }
+  function pzView(win) {
+    q('#pzGame')?.classList.toggle('pz-off', !!win);
+    q('#pzWin')?.classList.toggle('show', !!win);
+  }
+  function pzReset(letters) {
+    pzClearTimers();
+    pz.target = letters; pz.sig = letters.join('|');
+    pz.tiles = pzShuffle(letters).map((letter, id) => ({ letter, used: false, id }));
+    pz.slots = new Array(letters.length).fill(null);
+    pz.solved = false; pz.locked = false; pz.hintCooldown = false; pz.hintIdx = -1;
+    const hb = q('#pzHintBtn'); if (hb) hb.disabled = false;
+    q('#pzSlots')?.classList.remove('pz-shake');
+    pzSetMessage('', false);
+    pzView(false);
+  }
+  function pzProgress(label) {
+    const total = pz.slots.length || 1, filled = pz.slots.filter(s => s !== null).length, pct = Math.round(filled / total * 100);
+    const f = q('#pzProgressFill'); if (f) f.style.width = pct + '%';
+    const l = q('#pzProgressLabel'); if (l) l.textContent = label || (pct === 100 ? 'All letters placed \u2014 verifying\u2026' : pct + '% Revealed');
+  }
+  function pzActivateKey(fn) { return e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } }; }
+  function pzRender() {
+    const slotsEl = q('#pzSlots'), tilesEl = q('#pzTiles'); if (!slotsEl || !tilesEl) return;
+    // Balanced rows: one row when it fits, otherwise split evenly (e.g. 8 -> 4+4, 12 -> 6+6).
+    try {
+      const n = pz.slots.length, wide = window.matchMedia('(min-width:600px)').matches, one = wide ? 8 : 5;
+      q('#pzCard')?.style.setProperty('--pz-cols', String(n <= one ? Math.max(n, 1) : Math.ceil(n / 2)));
+    } catch (_) {}
+    slotsEl.innerHTML = ''; tilesEl.innerHTML = '';
+    pz.slots.forEach((tileId, i) => {
+      const s = document.createElement('div');
+      s.className = 'pz-slot';
+      s.setAttribute('data-hint', pz.target[i] || '');
+      if (tileId === null) { s.classList.add('empty'); s.setAttribute('aria-label', 'Empty letter ' + (i + 1)); }
+      else {
+        s.classList.add('filled'); s.textContent = pz.tiles[tileId].letter;
+        s.setAttribute('role', 'button'); s.tabIndex = 0; s.setAttribute('aria-label', 'Remove letter ' + pz.tiles[tileId].letter);
+        s.addEventListener('click', () => pzRemove(i));
+        s.addEventListener('keydown', pzActivateKey(() => pzRemove(i)));
+      }
+      if (pz.hintIdx === i) s.classList.add('showing-hint');
+      slotsEl.appendChild(s);
+    });
+    pz.tiles.forEach((tile, i) => {
+      const t = document.createElement('div');
+      t.className = 'pz-tile'; t.textContent = tile.letter;
+      t.setAttribute('role', 'button'); t.setAttribute('aria-label', 'Letter ' + tile.letter);
+      if (tile.used) { t.classList.add('used'); t.setAttribute('aria-disabled', 'true'); t.tabIndex = -1; }
+      else {
+        t.tabIndex = 0;
+        t.addEventListener('click', () => pzPick(i, t));
+        t.addEventListener('keydown', pzActivateKey(() => pzPick(i, t)));
+      }
+      tilesEl.appendChild(t);
+    });
+  }
+  function pzSparkle(el) {
+    if (!pzFx() || state.effects?.sparkles === false || !el) return;
+    let rect; try { rect = el.getBoundingClientRect(); } catch (_) { return; }
+    const icons = ['\u2726', '\u2727', '\u2729', '\u272b', '\u272c'];
+    const colors = [state.theme?.main || '#ff69b4', state.theme?.secondary || '#9b6dff', state.theme?.accent || '#d4145a'];
+    for (let i = 0; i < 6; i++) {
+      const s = document.createElement('div');
+      s.className = 'pz-sparkle'; s.textContent = icons[Math.floor(Math.random() * icons.length)];
+      s.style.color = colors[Math.floor(Math.random() * colors.length)];
+      s.style.textShadow = '0 0 10px currentColor';
+      s.style.left = (rect.left + rect.width / 2 + (Math.random() - .5) * 70) + 'px';
+      s.style.top = (rect.top + rect.height / 2 + (Math.random() - .5) * 70) + 'px';
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 1900);
+    }
+  }
+  function pzConfetti() {
+    if (!pzFx() || state.effects?.confetti === false || typeof window.confetti !== 'function') return;
+    try {
+      const t = state.theme || {};
+      window.confetti({ particleCount: 140, spread: 85, startVelocity: 38, origin: { y: .6 }, colors: [t.main || '#ff69b4', t.secondary || '#9b6dff', t.accent || '#d4145a', '#ffffff', '#ffd93d'] });
+    } catch (_) {}
+  }
+  function pzPick(tileIdx, el) {
+    if (window.__BB_EDITOR_MODE || pz.locked || pz.solved) return;
+    const tile = pz.tiles[tileIdx]; if (!tile || tile.used) return;
+    const slot = pz.slots.indexOf(null); if (slot === -1) return;
+    pz.slots[slot] = tileIdx; tile.used = true;
+    pzSparkle(el);
+    try { if (state.effects?.vibration !== false) window.vibrate?.(10); } catch (_) {}
+    pzSetMessage('', false);
+    pzRender(); pzProgress(); pzCheck();
+  }
+  function pzRemove(slotIdx) {
+    if (window.__BB_EDITOR_MODE || pz.locked || pz.solved) return;
+    const tileId = pz.slots[slotIdx]; if (tileId === null || tileId === undefined) return;
+    pz.slots[slotIdx] = null; pz.tiles[tileId].used = false;
+    pzRender(); pzProgress();
+  }
+  function pzCheck() {
+    if (pz.slots.includes(null)) return;
+    const formed = pz.slots.map(id => pz.tiles[id].letter).join('|');
+    if (formed === pz.target.join('|')) { pzWin(); return; }
+    pz.locked = true; pz.hintIdx = -1;
+    const slotsEl = q('#pzSlots'); slotsEl?.classList.add('pz-shake');
+    pzSetMessage(state.puzzle?.wrongMessage || DEFAULT.puzzle.wrongMessage, true);
+    try { if (state.effects?.vibration !== false) window.vibrate?.([30, 40, 30]); } catch (_) {}
+    pzTimer(() => {
+      slotsEl?.classList.remove('pz-shake');
+      pz.slots = pz.slots.map(() => null); pz.tiles.forEach(t => { t.used = false; });
+      pz.locked = false;
+      pzRender(); pzProgress();
+    }, 1000);
+  }
+  function pzHint() {
+    if (window.__BB_EDITOR_MODE || pz.hintCooldown || pz.locked || pz.solved) return;
+    const candidates = [];
+    pz.slots.forEach((tileId, i) => { const cur = tileId !== null ? pz.tiles[tileId].letter : null; if (cur !== pz.target[i]) candidates.push(i); });
+    if (!candidates.length) return;
+    pz.hintCooldown = true;
+    const hb = q('#pzHintBtn'); if (hb) hb.disabled = true;
+    pz.hintIdx = candidates[Math.floor(Math.random() * candidates.length)];
+    pzRender();
+    pzSetMessage('\u2726 A whispered secret\u2026', false);
+    pzTimer(() => {
+      pz.hintIdx = -1; pz.hintCooldown = false;
+      const b = q('#pzHintBtn'); if (b) b.disabled = false;
+      if (!pz.solved && !pz.locked) { const m = q('#pzMessage'); if (m && !m.classList.contains('wrong')) pzSetMessage('', false); }
+      pzRender();
+    }, 2200);
+  }
+  function pzResetGame() {
+    if (window.__BB_EDITOR_MODE || pz.solved) return;
+    pzReset(pz.target.slice());
+    pzSetMessage(state.puzzle?.resetMessage || DEFAULT.puzzle.resetMessage, false);
+    pzRender(); pzProgress();
+  }
+  function pzWin() {
+    pz.locked = true; pz.solved = true; pz.hintIdx = -1;
+    pzProgress('\u2726 Solved \u2726');
+    qa('#pzSlots .pz-slot').forEach(pzSparkle);
+    pzTimer(() => { pzView(true); pzConfetti(); }, 700);
+  }
+  function pzBuildWinMessage() {
+    const box = q('#pzWinMsg'); if (!box) return;
+    box.textContent = '';
+    const name = pzDisplayName();
+    String(state.puzzle?.winMessage ?? DEFAULT.puzzle.winMessage).split('\n').forEach((line, li) => {
+      if (li > 0) box.appendChild(document.createElement('br'));
+      line.split('{name}').forEach((part, pi) => {
+        if (pi > 0) { const sp = document.createElement('span'); sp.className = 'pz-name'; sp.textContent = name; box.appendChild(sp); }
+        if (part) box.appendChild(document.createTextNode(part));
+      });
+    });
+  }
+  function applyPuzzle() {
+    const p = Object.assign({}, DEFAULT.puzzle, state.puzzle || {});
+    const set = (sel, v) => { const el = q(sel); if (el) el.textContent = String(v ?? ''); };
+    set('#pzBadge', p.badge); set('#pzTitle', p.title); set('#pzSub', p.subtitle); set('#pzHint', p.hint);
+    set('#pzHintBtn', p.hintButton); set('#pzResetBtn', p.resetButton); set('#pzTilesLabel', p.lettersLabel);
+    set('#pzWinBadge', p.winBadge); set('#pzWinTitle', p.winTitle); set('#pzContinueBtn', p.continueButton);
+    pzBuildWinMessage();
+    q('#pzEditorNote')?.classList.toggle('show', !!window.__BB_EDITOR_MODE && p.enabled === false);
+    // If the name changed (editor live update) rebuild the board for the new name.
+    const letters = pzLetters();
+    if (letters.join('|') !== pz.sig || !pz.tiles.length) { pzReset(letters); }
+    pzRender(); pzProgress(pz.solved ? '\u2726 Solved \u2726' : undefined);
+  }
+  function pzEnter() {
+    const letters = pzLetters();
+    if (letters.join('|') !== pz.sig || !pz.tiles.length || (pz.locked && !pz.solved)) pzReset(letters);
+    if (pz.solved && !window.__BB_EDITOR_MODE) { pzView(true); }
+    else { pzView(false); }
+    pzRender(); pzProgress(pz.solved ? '\u2726 Solved \u2726' : undefined);
+  }
+  q('#pzHintBtn')?.addEventListener('click', pzHint);
+  q('#pzResetBtn')?.addEventListener('click', pzResetGame);
+  q('#pzContinueBtn')?.addEventListener('click', () => { if (window.__BB_EDITOR_MODE) return; window.goToSecretScreen && window.goToSecretScreen('puzzleScreen'); });
+  window.__bbPuzzle = { enter: pzEnter, isAvailable: pzAvailable, leave: pzClearTimers };
+
   function syncAudioToggle(){
     const btn=q('#bbAudioToggle'); if(!btn)return;
     btn.classList.toggle('off', !musicEnabled);
@@ -2656,13 +3000,13 @@
     const useTemplateDefaultsOnly = !!BB_FORCE_DEMO && !BB_PREVIEW_MODE;
     const incoming=(useTemplateDefaultsOnly ? {} : ((content&&typeof content==='object')?content:{}));
     const cfg=incoming.templateConfig?.masterBirthday || incoming.templateConfig || incoming;
-    state={...DEFAULT,...cfg,countdown:{...DEFAULT.countdown,...cfg.countdown},greeting:{...DEFAULT.greeting,...cfg.greeting},cake:{...DEFAULT.cake,...cfg.cake},reasons:{...DEFAULT.reasons,...cfg.reasons,items:Array.isArray(cfg.reasons?.items)?cfg.reasons.items:DEFAULT.reasons.items},memories:{...DEFAULT.memories,...cfg.memories,items:Array.isArray(cfg.memories?.items)?cfg.memories.items:DEFAULT.memories.items},videos:{...DEFAULT.videos,...cfg.videos,items:Array.isArray(cfg.videos?.items)?cfg.videos.items:DEFAULT.videos.items},soundtrack:{...DEFAULT.soundtrack,...cfg.soundtrack,items:Array.isArray(cfg.soundtrack?.items)?cfg.soundtrack.items:DEFAULT.soundtrack.items},letter:{...DEFAULT.letter,...cfg.letter,paragraphs:Array.isArray(cfg.letter?.paragraphs)?cfg.letter.paragraphs:DEFAULT.letter.paragraphs},secret:{...DEFAULT.secret,...cfg.secret},theme:{...DEFAULT.theme,...cfg.theme},effects:{...DEFAULT.effects,...cfg.effects}};
+    state={...DEFAULT,...cfg,countdown:{...DEFAULT.countdown,...cfg.countdown},greeting:{...DEFAULT.greeting,...cfg.greeting},cake:{...DEFAULT.cake,...cfg.cake},reasons:{...DEFAULT.reasons,...cfg.reasons,items:Array.isArray(cfg.reasons?.items)?cfg.reasons.items:DEFAULT.reasons.items},memories:{...DEFAULT.memories,...cfg.memories,items:Array.isArray(cfg.memories?.items)?cfg.memories.items:DEFAULT.memories.items},videos:{...DEFAULT.videos,...cfg.videos,items:Array.isArray(cfg.videos?.items)?cfg.videos.items:DEFAULT.videos.items},soundtrack:{...DEFAULT.soundtrack,...cfg.soundtrack,items:Array.isArray(cfg.soundtrack?.items)?cfg.soundtrack.items:DEFAULT.soundtrack.items},letter:{...DEFAULT.letter,...cfg.letter,paragraphs:Array.isArray(cfg.letter?.paragraphs)?cfg.letter.paragraphs:DEFAULT.letter.paragraphs},puzzle:{...DEFAULT.puzzle,...cfg.puzzle},secret:{...DEFAULT.secret,...cfg.secret},theme:{...DEFAULT.theme,...cfg.theme},effects:{...DEFAULT.effects,...cfg.effects}};
     if (BB_FORCE_DEMO && !BB_PREVIEW_MODE) {
       state.secret = { ...state.secret, socialUrl: 'https://www.instagram.com/rafahimn' };
     }
     if(incoming.name && !cfg.recipientName) state.recipientName=String(incoming.name);
     if(incoming.birthday && !cfg.birthdayDate){const d=new Date(incoming.birthday);if(!Number.isNaN(d.getTime())){state.birthdayDate=d.toISOString().slice(0,10);state.birthdayTime=d.toTimeString().slice(0,5);}}
-    applyBasics();applyTheme();applyEffects();applyCountdown();applyGreeting();applyCake();applyReasons();applyMemories();applyVideos();applyLetter();applySecret();applyTrackEngine();markEditableTargets();
+    applyBasics();applyTheme();applyEffects();applyCountdown();applyGreeting();applyCake();applyReasons();applyMemories();applyVideos();applyLetter();applyPuzzle();applySecret();applyTrackEngine();markEditableTargets();
     syncAudioToggle();
     // Reconcile the visible screen immediately after state arrives. This keeps
     // a published birthday from briefly showing stale 00s when the birthday is
@@ -2857,7 +3201,7 @@
     syncAudioToggle();
     // Every Demo open starts from a fresh 10-second countdown, regardless of
     // any previous screen state or content message delivered by the editor.
-    const demoScreens=['countdownScreen','greetingScreen','cakeScreen','reasonsScreen','photoScreen','videoScreen','letterScreen','secretScreen'];
+    const demoScreens=['countdownScreen','greetingScreen','cakeScreen','reasonsScreen','photoScreen','videoScreen','letterScreen','puzzleScreen','secretScreen'];
     demoScreens.forEach(id=>{ const el=q('#'+id); if(!el)return; el.classList.remove('show','hide'); el.style.display='none'; el.style.pointerEvents='none'; });
     const demoCountdown=q('#countdownScreen'); if(demoCountdown){ demoCountdown.classList.remove('hide'); demoCountdown.style.display='flex'; demoCountdown.style.pointerEvents='auto'; }
     const target=demoCountdownEndsAt;
@@ -3084,6 +3428,12 @@
     if(t.matches('#letterScreen .letter-container h2')) return {key:'mb.letter.title',label:'Letter title',value:t.innerText,kind:'text'};
     if(t.matches('#letterContent p')){const lines=qa('#letterContent p');return {key:'mb.letter.paragraphs',label:`Letter paragraph ${lines.indexOf(t)+1}`,index:lines.indexOf(t),value:t.innerText,kind:'text'};}
     if(t.matches('.letter-return-btn')) return {key:'mb.letter.buttonText',label:'Letter button',value:t.innerText,kind:'button'};
+    if(t.matches('#pzBadge')) return {key:'mb.puzzle.badge',label:'Puzzle badge',value:t.innerText,kind:'text'};
+    if(t.matches('#pzTitle')) return {key:'mb.puzzle.title',label:'Puzzle title',value:t.innerText,kind:'text'};
+    if(t.matches('#pzSub')) return {key:'mb.puzzle.subtitle',label:'Puzzle instructions',value:t.innerText,kind:'text'};
+    if(t.matches('#pzHint')) return {key:'mb.puzzle.hint',label:'Puzzle hint line',value:t.innerText,kind:'text'};
+    if(t.matches('#pzHintBtn')) return {key:'mb.puzzle.hintButton',label:'Hint button',value:t.innerText,kind:'button'};
+    if(t.matches('#pzResetBtn')) return {key:'mb.puzzle.resetButton',label:'Reset button',value:t.innerText,kind:'button'};
     if(t.matches('#secretScreen .secret-photo')) return {key:'mb.secret.image',label:'Secret image',kind:'image'};
     if(t.matches('.soulmate-btn')) return {key:'mb.secret.buttonText',label:'Secret button',value:t.innerText,kind:'button'};
     if(t.matches('#secretButtonLink, .bb-editor-link-edit')) return {key:'mb.secret.socialUrl',label:'Secret profile link',value:window.BB_CONTENT?.secret?.socialUrl||'',kind:'url'};
@@ -3120,12 +3470,12 @@
 
   // Ensure navigation state is visible to the editor without changing the source flow.
   const pushHistory=window.updateHistory;
-  const editorScreenOrder=['countdown','greeting','cake','reasons','photo','video','letter','secret'];
+  const editorScreenOrder=['countdown','greeting','cake','reasons','photo','video','letter','puzzle','secret'];
   let editorHistoryIndex=0;
   function currentEditorScreen(){
     const visible=editorScreenOrder.find(screen=>{
       if(screen==='countdown') return !q('#countdownScreen')?.classList.contains('hide');
-      const el=q('#'+({greeting:'greetingScreen',cake:'cakeScreen',reasons:'reasonsScreen',photo:'photoScreen',video:'videoScreen',letter:'letterScreen',secret:'secretScreen'}[screen]||''));
+      const el=q('#'+({greeting:'greetingScreen',cake:'cakeScreen',reasons:'reasonsScreen',photo:'photoScreen',video:'videoScreen',letter:'letterScreen',puzzle:'puzzleScreen',secret:'secretScreen'}[screen]||''));
       return !!el?.classList.contains('show');
     });
     return visible || editorScreenOrder[editorHistoryIndex] || 'countdown';

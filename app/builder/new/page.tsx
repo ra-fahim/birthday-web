@@ -6,7 +6,10 @@ import { templateBySlug } from '@/lib/templates';
 
 export default async function New({ searchParams }: { searchParams?: { template?: string; occasion?: string } }) {
   const u = await getSessionUser();
-  if (!u) redirect('/login');
+  if (!u) {
+    const back = searchParams?.template ? `/builder/new?template=${encodeURIComponent(String(searchParams.template))}` : '/create';
+    redirect(`/login?next=${encodeURIComponent(back)}`);
+  }
   if (u.role !== 'admin' && !u.approved && await isApprovalRequired()) redirect('/dashboard?pending=1');
 
   const requested = String(searchParams?.template || '');

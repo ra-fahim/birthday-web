@@ -28,6 +28,6 @@ export async function GET(req:Request){
   }
 
   await supabaseRest('profiles',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:authUser.id,email:authUser.email,name:authUser.user_metadata?.full_name||authUser.user_metadata?.name||authUser.email.split('@')[0],avatar_url:authUser.user_metadata?.avatar_url||authUser.user_metadata?.picture||null,approved})}).catch(()=>{});
-  const response=NextResponse.redirect(new URL('/dashboard',app));setSessionCookie(response,d.access_token,d.refresh_token);response.cookies.set(googleStateCookie,'',{httpOnly:true,path:'/',maxAge:0});response.cookies.set(googleVerifierCookie,'',{httpOnly:true,path:'/',maxAge:0});response.cookies.set(googleInviteCookie,'',{httpOnly:true,path:'/',maxAge:0});return response;
+  const nextCookie=c.get('bb_next')?.value||'';const dest=nextCookie.startsWith('/')&&!nextCookie.startsWith('//')&&!nextCookie.includes('\\')?nextCookie:'/dashboard';const response=NextResponse.redirect(new URL(dest,app));response.cookies.set('bb_next','',{httpOnly:true,path:'/',maxAge:0});setSessionCookie(response,d.access_token,d.refresh_token);response.cookies.set(googleStateCookie,'',{httpOnly:true,path:'/',maxAge:0});response.cookies.set(googleVerifierCookie,'',{httpOnly:true,path:'/',maxAge:0});response.cookies.set(googleInviteCookie,'',{httpOnly:true,path:'/',maxAge:0});return response;
  }catch{return NextResponse.redirect(new URL('/login?error=google_login_failed',req.url))}
 }

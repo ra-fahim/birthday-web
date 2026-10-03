@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { getSessionUser } from '@/lib/auth';
 import PublicNavbar from '@/components/navigation/PublicNavbar';
 import { templatesByCategory } from '@/lib/templates';
@@ -20,6 +21,7 @@ const CATEGORY_META: Record<string, { label: string; emoji: string; description:
 
 export default async function CreatePage() {
   const u = await getSessionUser().catch(() => null);
+  if (!u) redirect('/signup?next=%2Fcreate');
   const categories = Object.entries(templatesByCategory).filter(([, templates]) => templates.length > 0);
 
   return (
