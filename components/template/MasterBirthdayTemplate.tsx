@@ -74,7 +74,7 @@ export default function MasterBirthdayTemplate({ content, demo = false, preview 
     return () => window.removeEventListener('message', handler);
   }, [onElementSelect, onHistoryState]);
 
-  return <div style={{ width: '100%', height: standalone ? '100dvh' : '100%', minHeight: standalone ? '100dvh' : 0, position: 'relative', overflow: 'hidden' }}>
+  return <div style={{ width: '100%', height: standalone ? '100dvh' : '100%', minHeight: standalone ? '100dvh' : 0, position: 'relative', overflow: standalone ? 'hidden' : 'visible', touchAction: standalone ? 'auto' : 'pan-y' }}>
   <iframe
     ref={frameRef}
     title="Master Birthday"

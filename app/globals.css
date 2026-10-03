@@ -1046,3 +1046,32 @@ main.builder-shell .builder-context-empty-icon{width:34px;height:34px;display:gr
   .adm-hero{padding:22px;border-radius:20px}.adm-hero-art{display:none}
 }
 @media(max-width:560px){.adm-kpi-grid,.adm-quick-grid,.adm-module-grid{grid-template-columns:1fr}.adm-kpi b{font-size:24px}.adm-pill{display:none}}
+
+
+/* MASTER BIRTHDAY EDIT MODE — scrolling fix */
+@media (min-width: 0px){
+  html:has(main.builder-shell), body:has(main.builder-shell){
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    height:auto!important;
+    min-height:100%;
+    -webkit-overflow-scrolling:touch;
+  }
+  main.builder-shell[data-preview="0"]{
+    overflow:visible!important;
+    height:auto!important;
+    min-height:100dvh;
+  }
+  main.builder-shell[data-preview="0"] .builder-layout,
+  main.builder-shell[data-preview="0"] .builder-preview-panel{
+    overflow:visible!important;
+    height:auto!important;
+    min-height:0;
+  }
+  main.builder-shell[data-preview="0"] .builder-canvas-stage{
+    touch-action:pan-y pinch-zoom!important;
+  }
+  main.builder-shell[data-preview="0"] .builder-context-editor{
+    overflow:visible!important;
+  }
+}
