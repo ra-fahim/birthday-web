@@ -32,22 +32,12 @@ export const templateInspections: Record<string, TemplateInspection> = {
       'basic information', 'countdown', 'greeting', 'cake interaction copy and candle count', 'reasons', 'memories', 'Lightbox', 'videos', 'soundtrack', 'letter', 'secret ending', 'theme', 'effects'
     ],
   },
-  'master-proposal': {
-    slug: 'master-proposal',
-    sourceFiles: ['/templates/master-proposal/source-original/App.tsx', '/templates/master-proposal/source-original/components/MuseumGallery.tsx', '/templates/master-proposal/source-original/components/BackgroundMusic.tsx'],
-    summary: 'Proposal experience with one background soundtrack and a museum containing mixed photo/video memories.',
-    media: [
-      { key: 'bgMusicUrl', label: 'Background music', kind: 'audio', behavior: 'Loops as the proposal soundtrack.', sourceType: 'file-or-url' },
-      { key: 'museum', label: 'Museum memories', kind: 'image', behavior: 'Each museum item can independently be a photo or video; video supports direct links and YouTube.', sourceType: 'file-or-url', count: 6 },
-    ],
-    editableAreas: ['opening gate', 'story chapters', 'museum photo/video items', 'background music', 'date planner', 'buttons', 'letter']
-  },
   'miss-you-1': {
     slug: 'miss-you-1',
     sourceFiles: ['/templates/miss-you-1/index.html', '/templates/miss-you-1/config.js', '/templates/miss-you-1/js/ui.js'],
     summary: 'Love-letter experience with one background music slot and a built-in animated scene.',
     media: [
-      { key: 'musicUrl', label: 'Background music', kind: 'audio', behavior: 'Replaces the bundled bgm.mp3 when a public URL or uploaded file is supplied.', sourceType: 'file-or-url' },
+      { key: 'musicUrl', label: 'Background music', kind: 'audio', behavior: 'Replaces the default hosted background music when a public URL or uploaded file is supplied.', sourceType: 'file-or-url' },
     ],
     editableAreas: ['names', 'letter paragraphs', 'counter labels', 'seed text', 'background music']
   },

@@ -60,125 +60,6 @@ export function getMissYouDefaults() {
   } as Record<string, unknown>;
 }
 
-function MasterProposalTemplate({ content, editorMode, onElementSelect, onHistoryState }: { content: BirthdayContent; editorMode?: boolean; onElementSelect?: (selection: { key: string; label: string; index?: number; value?: string; kind?: string }) => void; onHistoryState?: (state: { canBack?: boolean; canForward?: boolean; screen?: string }) => void }) {
-  const config = React.useMemo(() => {
-    const { genericEdits: _ignored, ...rest } = { ...getMasterProposalDefaults(), ...(content.templateConfig || {}) } as Record<string, unknown>;
-    return rest;
-  }, [content.templateConfig]);
-  const src = React.useMemo(() => '/templates/master-proposal/index.html?bbEdit=1&bbVersion=20261003-premium1', []);
-  const extraMessages = React.useMemo(() => [{ type: 'BB_SITE_CONFIG', config }], [config]);
-  return <GenericEditableIframe title="Valentine" src={src} content={content} editorMode={editorMode} genericEdits={((content.templateConfig||{}) as any).genericEdits || {}} extraMessages={extraMessages} minHeight={720} background="#FAF9F6" onElementSelect={onElementSelect} onHistoryState={onHistoryState} />}
-
-export function getMasterProposalDefaults() {
-  return {
-    recipientEmail: 'rabbiahmedfahim44@gmail.com',
-    toName: 'Rodney (The Best Boyfriend)',
-    fromName: 'Sherry (Your Valentine)',
-    fromLabel: 'Sherry',
-    heroTitle: 'To My Dearest',
-    heroSubtitle: 'Scroll slowly',
-    story: [
-      { title: 'The Beginning', body: 'It started with a simple moment, a glance that felt different from all the others. In that instant, the noise of the world faded, and I knew my life was about to change forever.' },
-      { title: 'The Little Things', body: "It's the way you laugh at my terrible jokes, the warmth of your hand in mine, and the quiet comfort of just being near you. These small moments build a universe I never want to leave." },
-      { title: 'The Strength', body: 'On days when the world feels heavy, you are my sanctuary. Your kindness is a beacon, guiding me back to who I want to be. You make me better, simply by being you.' },
-      { title: 'The Promise', body: 'To listen when you speak, to support you when you dream, and to hold you when you need rest. My heart is a steady rhythm, beating in time with yours, today and always.' },
-      { title: 'The Horizon', body: 'As we look forward, I see a future painted with our shared dreams. Hand in hand, we will write the rest of this story, creating a masterpiece of moments that lasts a lifetime.' },
-    ],
-    museum: [
-      { id: '1', type: 'image', url: '/museum-gallery/1.jpg', title: 'The First Glance', date: 'Chapter I', description: 'A quiet beginning, preserved like a favorite page in our story.' },
-      { id: '2', type: 'image', url: '/museum-gallery/4.jpg', title: 'Golden Little Moments', date: 'Chapter II', description: 'The ordinary moments that somehow became the ones I wanted to keep forever.' },
-      { id: '3', type: 'video', url: '/museum-gallery/2.mp4', thumbnail: '/museum-gallery/2-thumb.png', title: 'A Memory in Motion', date: 'Chapter III', description: 'Press play and let one of our favorite memories move again.' },
-    ],
-    bgMusicUrl: '',
-    texts: {
-      museumTitle: 'Museum of Our Love', museumSubtitle: 'A Curated Collection of Us',
-      comfortTitle: 'Comfort Corner', comfortSubtitle: 'A safe space for any emotions you may be feeling', comfortHint: 'Select a feeling to minimize the distance',
-      gardenTitle: 'The Digital Garden', gardenSubtitle: "I can't bring you flowers every hour, so I built you a garden that never dies.", gardenHint: '(Tap anywhere in the box below to plant a flower)', gardenEmpty: 'Plant me...', gardenWaiting: 'Waiting for your touch...', gardenCount: '{count} flowers planted for you',
-      jarTitle: 'The Love Jar', jarSubtitle: 'Pull a note whenever you need a reminder', jarButton: 'Pull a Note',
-      bucketTitle: 'Our Bucket List', bucketSubtitle: 'Dreams for Someday', bucketFooter: 'Checking these off, one by one, with you.',
-      footer: 'Made with love, for you.',
-    },
-    loveNotes: [
-      'I love how hard you work for your dreams.',
-      'Your smile is literally the best part of my day.',
-      'You make even boring things fun just by being there.',
-      "I'm so proud of everything you've accomplished.",
-      'You give the best hugs in the world.',
-      "I love listening to you talk about things you're passionate about.",
-      'You are beautiful, inside and out.',
-      'Thank you for being my peace in a chaotic world.',
-      'I admire your strength and resilience.',
-      'Just thinking about you makes me smile.',
-      'I love that I can be myself around you.',
-      'You are my favorite person to do nothing with.',
-      "I love the way your eyes light up when you're happy.",
-      "You're stuck with me now (and I love it).",
-      'I appreciate how caring you are.',
-      'Every moment with you is a memory I cherish.',
-    ],
-    bucketList: [
-      'Graduate Together',
-      'Late Night Road Trip',
-      'Travel to Japan',
-      'Adopt a Puppy',
-      'Cook a Fancy Meal (Without Burning It)',
-      'Our First Apartment',
-    ],
-    finalLetter: {
-      title: "Happy Valentine's Day",
-      paragraphs: [
-        'Words often fail to capture the depth of what I feel, but I hope this small gesture reminds you of how incredibly special you are to me.',
-        'You are my best friend, my confidant, and my greatest love. Thank you for filling my days with light and my heart with peace.',
-        'I love you, more than yesterday, but less than tomorrow.',
-      ],
-      signoff: 'Forever yours',
-    },
-    introGate: {
-      firstLine: 'I made this just for you.',
-      secondLineLabel: 'But first',
-      secondLine: 'Before anything else...',
-      yesButtonText: 'Yes, Forever',
-      noButtonText: 'No',
-      noButtonTextRepeat: 'Still No?',
-      prompts: [
-        { title: 'Will you be my Valentine?', subtitle: '...and for a lifetime?' },
-        { title: 'Wait, did you click the wrong button?', subtitle: 'I think your finger slipped!' },
-        { title: 'Are you sure? I have snacks!', subtitle: 'All your favorites, unlimited supply.' },
-        { title: 'What if I promise to do the dishes?', subtitle: 'For like... a whole week.' },
-        { title: "I'll give you a foot massage...", subtitle: 'Anytime you want. Seriously.' },
-        { title: "Don't break my heart! 🥺", subtitle: 'Look at this sad face.' },
-        { title: "I'm going to cry...", subtitle: 'Tears are actually forming right now.' },
-        { title: 'Okay, seriously, just click Yes.', subtitle: "The 'No' button is getting tired." },
-        { title: "You're being stubborn!", subtitle: 'But I still love you.' },
-        { title: 'Please? Please? Please?', subtitle: "I'll be the best Valentine ever." },
-        { title: "I'm not taking no for an answer!", subtitle: 'Resistance is futile, darling.' },
-      ],
-    },
-    datePlanner: {
-      heading: "Let's Plan Our Date Together",
-      subtitle: 'Pick what your heart desires.',
-      sendButtonLabel: 'Send Ticket',
-      options: [
-        { id: 'massage', label: 'Massage & Class', planTitle: 'The Stress Melter', planDescription: "Multitasking at its finest. While you attend your online class, I'll be your personal masseur. I'll give you a full body massage to help you relax and recharge before you have to clock in at 5 PM.", budget: 'Free' },
-        { id: 'preshift', label: 'Pre-Work Recharge', planTitle: 'The 30-Minute Power Date', planDescription: "I know you're busy between class and work. I'll meet you right in that gap. I'll bring you food/coffee, we'll sit for a bit, and I'll hype you up before your 5 PM shift starts.", budget: '$' },
-        { id: 'color', label: 'Color Challenge', planTitle: 'The Color Snack Challenge', planDescription: 'We pick a random color (Pink? Blue? Red?) and head to the nearest convenience store. We can only buy and eat snacks/drinks that match that color!', budget: '$$' },
-        { id: 'arcade', label: 'Arcade & Ice Cream', planTitle: 'Retro Arcade Duel', planDescription: "We hit the arcade. Air hockey, basketball, and crane games. Loser buys the winner ice cream afterwards (but let's be honest, I'll buy it anyway).", budget: '$$' },
-        { id: 'movie', label: 'Laptop Cinema', planTitle: 'Dorm/Room Movie Night', planDescription: "I'll bring the popcorn and snacks. We build a blanket nest and watch that movie you've been wanting to see on your laptop.", budget: '$' },
-        { id: 'study', label: 'Study & Sip', planTitle: 'Coffee Shop Focus Date', planDescription: "We'll find a quiet corner at a cute cafe. I'll buy the coffee/boba, you bring the notes. 50% studying, 50% holding hands under the table.", budget: '$' },
-        { id: 'capitaltown', label: 'Capital Town', planTitle: 'Capital Town Anniversary Redo', planDescription: "We missed going here for our anniversary, but we're making up for it now. Let's finally have that date at Capital Town Pampanga. We'll walk around, grab food, and enjoy the vibe before your schedule gets busy.", budget: '$$', isSpecial: true },
-      ],
-    },
-    comfortResponses: {
-      tired: { label: "I'm Tired", response: "Baby, I know you've been running on fumes lately. I see how hard you're working, and I'm so incredibly proud of you—but please remember that you don't have to carry the world on your shoulders. It's okay to just stop. Close your eyes, take a deep breath, and let go for a moment. I've got you." },
-      anxious: { label: "I'm Anxious", response: "Hey... look at me. It's just a thought, it's not the truth. You are safe, you are so capable, and I am right here holding your hand through this. We'll take it one tiny step at a time. Just breathe with me. In... and out. You're going to be okay." },
-      sad: { label: "I'm Sad", response: "I'm so sorry you're feeling down, my love. I wish I could just wrap my arms around you and take it all away. It's okay to feel this way—let it out. You don't have to be strong all the time. I'm here, I'm listening, and I love you through every single emotion." },
-      miss: { label: 'I Miss You', response: "I know... the distance feels extra heavy today, doesn't it? I miss you more than words can even describe. But remember, every second that passes is one second closer to us being together again. You are always in my heart, no matter how many miles are between us." },
-      happy: { label: "I'm Happy", response: 'Oh, seeing you happy makes my entire world light up! seriously, your joy is infectious. Hold onto this feeling, soak it up. You deserve every bit of this sunshine and so much more. I love seeing you glow like this!' },
-      overwhelmed: { label: "I'm Overwhelmed", response: "Shhh, it's okay. The world is being a lot right now. Let's pause everything. You don't need to figure it all out today. Just focus on the very next thing—even if that's just drinking a glass of water. I believe in you, but for now, just rest." },
-    },
-  } as Record<string, unknown>;
-}
-
 function Editable({ editorMode, onSelect, selection, className, children }: { editorMode?: boolean; onSelect?: (selection: { key:string; label:string; index?:number; value?:string; kind?:string })=>void; selection:{key:string;label:string;index?:number;kind?:string}; className?:string; children:React.ReactNode }) {
   return <div
     className={`experience-editable ${editorMode ? 'is-editor' : ''} ${className || ''}`}
@@ -202,7 +83,6 @@ export default function ExperienceTemplate(props:{variant?:string;content:Birthd
  const {variant='romantic',content,editorMode,onElementSelect,onHistoryState}=props;
  if (variant === 'wedding-proposal') return <WeddingProposalTemplate content={content} editorMode={editorMode} onElementSelect={onElementSelect} onHistoryState={onHistoryState} />;
  if (variant === 'miss-you-1') return <MissYouTemplate content={content} editorMode={editorMode} onElementSelect={onElementSelect} onHistoryState={onHistoryState} />;
- if (variant === 'master-proposal') return <MasterProposalTemplate content={content} editorMode={editorMode} onElementSelect={onElementSelect} onHistoryState={onHistoryState} />;
  return <StandardExperienceTemplate variant={variant} content={content} editorMode={editorMode} onElementSelect={onElementSelect} onHistoryState={onHistoryState} />;
 }
 

@@ -6,7 +6,7 @@ import { defaultContent, BirthdayContent, weddingProposalDefaults } from '@/lib/
 import MasterBirthdayTemplate from '@/components/template/MasterBirthdayTemplate';
 import MasterBirthdayEditor from './MasterBirthdayEditor';
 import { masterBirthdayDefaults, mergeMasterBirthdayConfig } from '@/lib/master-birthday';
-import ExperienceTemplate, { getMissYouDefaults, getMasterProposalDefaults } from '@/components/template/ExperienceTemplates';
+import ExperienceTemplate, { getMissYouDefaults } from '@/components/template/ExperienceTemplates';
 import { SingleMediaUpload, GalleryUpload, InlineMediaField } from './MediaUploader';
 import FeatureControls from './FeatureControls';
 import UniversalElementEditor from './UniversalElementEditor';
@@ -357,7 +357,6 @@ export default function Builder() {
     }
     if (targetTemplate === 'wedding-proposal') return { ...base, ...weddingProposalDefaults() } as BirthdayContent;
     if (targetTemplate === 'miss-you-1') return { ...base, templateConfig: { ...getMissYouDefaults() } };
-    if (targetTemplate === 'master-proposal') return { ...base, templateConfig: { ...getMasterProposalDefaults() } };
     return base;
   }, []);
 
@@ -599,8 +598,6 @@ export default function Builder() {
   const occasionTemplates = useMemo(() => templatesForOccasion(occasion), [occasion]);
   const missYouConfig = useMemo(() => ({ ...getMissYouDefaults(), ...(c.templateConfig || {}) }), [c.templateConfig]);
   const updateMissYou = (patch: Record<string, unknown>) => update({ templateConfig: { ...missYouConfig, ...patch } });
-  const masterProposalConfig = useMemo(() => ({ ...getMasterProposalDefaults(), ...(c.templateConfig || {}) }), [c.templateConfig]);
-  const updateMasterProposal = (patch: Record<string, unknown>) => update({ templateConfig: { ...masterProposalConfig, ...patch } });
   const masterBirthdayConfig = useMemo(() => mergeMasterBirthdayConfig((c.templateConfig as any)?.masterBirthday), [c.templateConfig]);
   const updateMasterBirthday = useCallback((next: typeof masterBirthdayDefaults) => update({ templateConfig: { ...(c.templateConfig || {}), masterBirthday: next } }), [c.templateConfig]);
   const templateInspection = useMemo(() => getTemplateInspection(templateId), [templateId]);
@@ -617,7 +614,6 @@ export default function Builder() {
     if (value === 'music') return hasMusicMedia;
     if (templateId === 'wedding-proposal') return ['overview', 'opening', 'music'].includes(value as string);
     if (templateId === 'miss-you-1') return ['overview', 'story', 'music'].includes(value as string);
-    if (templateId === 'master-proposal') return ['overview', 'opening', 'story', 'gallery', 'music', 'letter'].includes(value as string);
     if (templateId === 'master' || templateId === 'master-birthday') return ['overview','opening','story','gallery','video','music','letter','theme','effects','social','advanced'].includes(value as string);
     return value !== 'social' || templateId === 'master';
   });

@@ -51,10 +51,6 @@ export const templateGuides: Record<string, TemplateGuide> = {
       ]
     }
   },
-  'master-proposal': {
-    bn: { intro: 'Valentine-এর জন্য একই template-first workflow ব্যবহার করুন: template নির্বাচন করুন, canvas-এর highlighted element edit করুন, Preview দিয়ে পরীক্ষা করুন এবং শেষে live link publish করুন।', sections: commonBn('Valentine') },
-    en: { intro: 'Valentine uses the same template-first workflow: choose the template, edit highlighted elements on the canvas, preview the full experience and publish your live link.', sections: commonBn('Valentine') },
-  },
   'wedding-proposal': {
     bn: { intro: 'Wedding Proposal template-এর design নিজের মতো করতে template-এর content replace করুন। Interactive elements canvas থেকেই edit করুন এবং Preview-তে পুরো flow দেখে Publish করুন।', sections: commonBn('Wedding Proposal') },
     en: { intro: 'Customize the Wedding Proposal template by replacing its content. Edit interactive elements directly from the canvas, review the full flow in Preview and publish it when ready.', sections: commonBn('Wedding Proposal') },

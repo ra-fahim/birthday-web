@@ -5,7 +5,6 @@ import { Edit3, ImagePlus, Music2, RotateCcw, Trash2, Upload, Video } from 'luci
 import { InlineMediaField, SingleMediaUpload } from './MediaUploader';
 import type { BirthdayContent, GalleryItem } from '@/lib/types';
 import { mergeMasterBirthdayConfig } from '@/lib/master-birthday';
-import { getMasterProposalDefaults } from '@/components/template/ExperienceTemplates';
 
 type Selection = { key: string; label: string; index?: number; value?: string; kind?: string };
 type Props = {
@@ -22,7 +21,6 @@ export default function UniversalElementEditor({ selected, content, templateId, 
   const key = selected.key;
   const common = (content as any)[key];
   const templateConfig = (content.templateConfig || {}) as Record<string, any>;
-  const master = templateId === 'master-proposal';
   const masterBirthday = templateId === 'master-birthday' || templateId === 'master';
   const masterBirthdayConfig = mergeMasterBirthdayConfig((templateConfig as any)?.masterBirthday);
   const updateMasterBirthdayPath = (path: string, value: unknown) => {
@@ -282,134 +280,10 @@ export default function UniversalElementEditor({ selected, content, templateId, 
       <button type="button" className="builder-upload-btn universal-add-media" onClick={() => onChange({ videoUrl: '', videoCaption: '' })}><Video size={14}/> Add / replace video</button>
       <MoreSettings rows={[['Controls','On'],['Autoplay','Off'],['Loop','Off']]} />
     </>;
-    if (master && (key === 'heroTitle' || key === 'heroSubtitle')) {
-      const mdef = getMasterProposalDefaults() as Record<string, any>;
-      const cur = typeof templateConfig[key] === 'string' ? templateConfig[key] : String(mdef[key] ?? selected.value ?? '');
-      return <TextField value={cur} onChange={value => onTemplateConfigChange({ [key]: value })} />;
-    }
-    if (master && key.startsWith('texts.')) {
-      const name = key.slice('texts.'.length);
-      const mdef = (getMasterProposalDefaults() as Record<string, any>).texts || {};
-      const texts = { ...mdef, ...((templateConfig.texts || {}) as Record<string, string>) };
-      const set = (n: string, value: string) => onTemplateConfigChange({ texts: { ...texts, [n]: value } });
-      return <>
-        <TextField value={String(texts[name] ?? selected.value ?? '')} multiline={String(texts[name] || '').length > 50} onChange={value => set(name, value)} />
-        {name === 'gardenWaiting' && <Field label="After flowers are planted"><input value={String(texts.gardenCount ?? '')} onChange={e => set('gardenCount', e.target.value)} /><small className="builder-field-hint">Use {'{count}'} for the number of flowers.</small></Field>}
-        <button type="button" className="builder-mini-btn" onClick={() => set(name, String(mdef[name] ?? ''))}><RotateCcw size={14}/> Use the original text</button>
-      </>;
-    }
-    if (master && (key === 'loveNotes' || key === 'bucketList') && typeof selected.index === 'number') {
-      const mdef = getMasterProposalDefaults() as Record<string, any>;
-      const items: string[] = Array.isArray(templateConfig[key]) ? [...templateConfig[key]] : [...(mdef[key] || [])];
-      const i = selected.index;
-      const noun = key === 'loveNotes' ? 'love note' : 'bucket list item';
-      if (i >= items.length) return <><Field label={`New ${noun}`}><textarea rows={3} autoFocus placeholder={`Write a ${noun}…`} onChange={e => { if (e.target.value.trim()) onTemplateConfigChange({ [key]: [...items, e.target.value] }); }} /></Field><p className="builder-note">Start typing and it is added to the end of the list.</p></>;
-      return <>
-        <Field label={`${noun[0].toUpperCase()}${noun.slice(1)} ${i + 1}`}>{key === 'loveNotes' ? <textarea rows={4} autoFocus value={items[i] || ''} onChange={e => onTemplateConfigChange({ [key]: items.map((x, idx) => idx === i ? e.target.value : x) })} /> : <input autoFocus value={items[i] || ''} onChange={e => onTemplateConfigChange({ [key]: items.map((x, idx) => idx === i ? e.target.value : x) })} />}</Field>
-        <div className="universal-editor-grid"><button type="button" className="builder-mini-btn" onClick={() => onTemplateConfigChange({ [key]: [...items.slice(0, i + 1), items[i] || '', ...items.slice(i + 1)] })}>Duplicate</button><button type="button" className="builder-mini-btn" disabled={items.length <= 1} onClick={() => onTemplateConfigChange({ [key]: items.filter((_, idx) => idx !== i) })}>Delete</button></div>
-      </>;
-    }
-    if (master && key.startsWith('comfortResponses.')) {
-      const id = key.slice('comfortResponses.'.length);
-      const mdef = (getMasterProposalDefaults() as Record<string, any>).comfortResponses || {};
-      const all = { ...mdef, ...((templateConfig.comfortResponses || {}) as Record<string, any>) };
-      const cur = { ...(mdef[id] || {}), ...(all[id] || {}) };
-      const set = (patch: Record<string, string>) => onTemplateConfigChange({ comfortResponses: { ...all, [id]: { ...cur, ...patch } } });
-      return <>
-        <Field label="Button text"><input autoFocus value={String(cur.label || '')} onChange={e => set({ label: e.target.value })} /></Field>
-        <Field label="Message shown when this feeling is picked"><textarea rows={7} value={String(cur.response || '')} onChange={e => set({ response: e.target.value })} /></Field>
-        <button type="button" className="builder-mini-btn" onClick={() => set({ label: String(mdef[id]?.label || ''), response: String(mdef[id]?.response || '') })}><RotateCcw size={14}/> Use the original text</button>
-      </>;
-    }
-    if (master && key.startsWith('finalLetter.')) {
-      const field = key.slice('finalLetter.'.length);
-      const mdef = (getMasterProposalDefaults() as Record<string, any>).finalLetter || {};
-      const letter = { ...mdef, ...((templateConfig.finalLetter || {}) as Record<string, any>) };
-      const setLetter = (patch: Record<string, unknown>) => onTemplateConfigChange({ finalLetter: { ...letter, ...patch } });
-      if (field === 'paragraphs' && typeof selected.index === 'number') {
-        const items: string[] = Array.isArray(letter.paragraphs) ? [...letter.paragraphs] : [];
-        const i = selected.index;
-        if (i >= items.length) return <Field label="New paragraph"><textarea rows={5} autoFocus placeholder="Write this paragraph…" onChange={e => { if (e.target.value.trim()) setLetter({ paragraphs: [...items, e.target.value] }); }} /></Field>;
-        return <>
-          <Field label={`Letter paragraph ${i + 1}`}><textarea rows={8} autoFocus value={items[i] || ''} onChange={e => setLetter({ paragraphs: items.map((x, idx) => idx === i ? e.target.value : x) })} /></Field>
-          <div className="universal-editor-grid"><button type="button" className="builder-mini-btn" onClick={() => setLetter({ paragraphs: [...items.slice(0, i + 1), '', ...items.slice(i + 1)] })}>＋ Add after</button><button type="button" className="builder-mini-btn" disabled={items.length <= 1} onClick={() => setLetter({ paragraphs: items.filter((_, idx) => idx !== i) })}>Delete</button></div>
-        </>;
-      }
-      if (field === 'title' || field === 'signoff') return <TextField value={String(letter[field] ?? '')} onChange={value => setLetter({ [field]: value })} />;
-    }
-    if (master && key === 'ticketSettings') {
-      const mdef = getMasterProposalDefaults() as Record<string, any>;
-      const val = (k: string) => String(typeof templateConfig[k] === 'string' ? templateConfig[k] : mdef[k] ?? '');
-      return <>
-        <div className="universal-editor-media-head"><div className="universal-editor-icon"><Edit3 size={16}/></div><div><b>Date ticket delivery</b><span>Who gets the ticket when the date is chosen</span></div></div>
-        <Field label="Send the ticket to (email)"><input type="email" autoFocus value={val('recipientEmail')} onChange={e => onTemplateConfigChange({ recipientEmail: e.target.value })} placeholder="you@example.com" /></Field>
-        <Field label="Receiver name"><input value={val('toName')} onChange={e => onTemplateConfigChange({ toName: e.target.value })} /></Field>
-        <Field label="Your name"><input value={val('fromName')} onChange={e => onTemplateConfigChange({ fromName: e.target.value })} /></Field>
-        <Field label="Short sign-off name"><input value={val('fromLabel')} onChange={e => onTemplateConfigChange({ fromLabel: e.target.value })} /></Field>
-      </>;
-    }
-    if (master && key === 'bgMusicUrl') return <>
-      <div className="universal-editor-media-head"><div className="universal-editor-icon"><Music2 size={16}/></div><div><b>Background music</b><span>Valentine soundtrack</span></div></div>
-      <SingleMediaUpload kind="audio" url={String(templateConfig.bgMusicUrl || '')} websiteId={websiteId} onChange={url => onTemplateConfigChange({ bgMusicUrl: url })} />
-      <Field label="Audio URL"><input type="url" value={String(templateConfig.bgMusicUrl || '')} onChange={e => onTemplateConfigChange({ bgMusicUrl: e.target.value })} placeholder="https://..." /></Field>
-      <MoreSettings rows={[['Autoplay','Starts after the first question is answered'],['Loop','On'],['Player','Mute button for the visitor']]} />
-      {templateConfig.bgMusicUrl ? <button type="button" className="universal-danger" onClick={() => onTemplateConfigChange({ bgMusicUrl: '' })}><Trash2 size={14}/> Remove music</button> : null}
-    </>;
-    if (master && key === 'museum' && typeof selected.index === 'number') {
-      const museum = Array.isArray(templateConfig.museum) ? [...templateConfig.museum] : [];
-      if (selected.index >= museum.length) {
-        return <><div className="universal-editor-media-head"><div className="universal-editor-icon"><ImagePlus size={16}/></div><div><b>Add gallery item</b><span>New memory</span></div></div><button type="button" className="builder-upload-btn" onClick={()=>onTemplateConfigChange({ museum:[...museum,{id:String(Date.now()),type:'image',url:'',title:'New Memory',date:'',description:''}] })}><ImagePlus size={14}/> Create gallery item</button></>;
-      }
-      const item = museum[selected.index] || {};
-      return <>
-        <div className="universal-editor-media-head"><div className="universal-editor-icon"><ImagePlus size={16}/></div><div><b>Gallery item</b><span>Memory {selected.index + 1}</span></div></div>
-        <Field label="Type"><select value={String(item.type || 'image')} onChange={e => setMasterArrayItem('museum', { type: e.target.value })}><option value="image">Photo</option><option value="video">Video</option></select></Field>
-        <InlineMediaField value={String(item.url || '')} placeholder="Photo or video URL" accept={item.type === 'video' ? 'video/*' : 'image/*'} folder={item.type === 'video' ? 'video' : 'gallery'} websiteId={websiteId} onChange={url => setMasterArrayItem('museum', { url })} />
-        <Field label="Title"><input value={String(item.title || '')} onChange={e => setMasterArrayItem('museum', { title: e.target.value })} /></Field>
-        <Field label="Date"><input value={String(item.date || '')} onChange={e => setMasterArrayItem('museum', { date: e.target.value })} /></Field>
-        <Field label="Description"><textarea rows={4} value={String(item.description || '')} onChange={e => setMasterArrayItem('museum', { description: e.target.value })} /></Field>
-        <Danger onClick={() => setMasterArrayItem('museum', {}, true)} />
-      </>;
-    }
-    if (master && key === 'story' && typeof selected.index === 'number') {
-      const storyList: any[] = Array.isArray(templateConfig.story) ? templateConfig.story : [];
-      if (selected.index >= storyList.length) return <><div className="universal-editor-media-head"><div className="universal-editor-icon"><Edit3 size={16}/></div><div><b>Add a story chapter</b><span>Appears after the last chapter</span></div></div><button type="button" className="builder-upload-btn" onClick={() => onTemplateConfigChange({ story: [...storyList, { title: 'New chapter', body: 'Write your chapter here…' }] })}>＋ Create chapter</button></>;
-      const item = storyList[selected.index] || {};
-      return <>
-        <Field label="Chapter title"><input value={String(item.title || '')} onChange={e => setMasterArrayItem('story', { title: e.target.value })} /></Field>
-        <Field label="Chapter text"><textarea rows={7} value={String(item.body || '')} onChange={e => setMasterArrayItem('story', { body: e.target.value })} /></Field>
-        <Danger onClick={() => setMasterArrayItem('story', {}, true)} />
-      </>;
-    }
-    if (master && key.startsWith('introGate.')) {
-      const field = key.split('.')[1];
-      const gate = (templateConfig.introGate || {}) as Record<string, any>;
-      if (field === 'prompts' && typeof selected.index === 'number') {
-        const item = (Array.isArray(gate.prompts) ? gate.prompts : [])[selected.index] || {};
-        const set = (patch: Record<string, unknown>) => {
-          const next = [...(Array.isArray(gate.prompts) ? gate.prompts : [])];
-          next[selected.index!] = { ...(next[selected.index!] || {}), ...patch };
-          onTemplateConfigChange({ introGate: { ...gate, prompts: next } });
-        };
-        const promptList: any[] = Array.isArray(gate.prompts) ? gate.prompts : [];
-        return <><Field label={selected.index >= promptList.length ? 'New question' : `Question ${selected.index + 1}`}><input autoFocus value={String(item.title || '')} onChange={e => set({ title: e.target.value })} /></Field><Field label="Subtitle"><input value={String(item.subtitle || '')} onChange={e => set({ subtitle: e.target.value })} /></Field>{selected.index < promptList.length && promptList.length > 1 && <button type="button" className="universal-danger" onClick={() => onTemplateConfigChange({ introGate: { ...gate, prompts: promptList.filter((_, idx) => idx !== selected.index) } })}><Trash2 size={14}/> Remove this question</button>}<p className="builder-note">Each time the receiver taps “No”, the next question appears.</p></>;
-      }
-      if (field === 'yesButtonText' || field === 'noButtonText' || field === 'noButtonTextRepeat' || field === 'firstLine' || field === 'secondLineLabel' || field === 'secondLine') return <TextField value={String(gate[field] || '')} multiline={field === 'firstLine' || field === 'secondLine'} onChange={value => onTemplateConfigChange({ introGate: { ...gate, [field]: value } })} />;
-    }
-    if (master && key.startsWith('datePlanner.')) {
-      const field = key.split('.')[1];
-      const planner = (templateConfig.datePlanner || {}) as Record<string, any>;
-      if (field === 'options' && typeof selected.index === 'number') {
-        const item = (Array.isArray(planner.options) ? planner.options : [])[selected.index] || {};
-        const set = (patch: Record<string, unknown>) => { const next = [...(Array.isArray(planner.options) ? planner.options : [])]; next[selected.index!] = { ...(next[selected.index!] || {}), ...patch }; onTemplateConfigChange({ datePlanner: { ...planner, options: next } }); };
-        return <><Field label="Option label"><input value={String(item.label || '')} onChange={e => set({ label: e.target.value })} /></Field><Field label="Plan title"><input value={String(item.planTitle || '')} onChange={e => set({ planTitle: e.target.value })} /></Field><Field label="Description"><textarea rows={6} value={String(item.planDescription || '')} onChange={e => set({ planDescription: e.target.value })} /></Field><Field label="Budget"><input value={String(item.budget || '')} onChange={e => set({ budget: e.target.value })} /></Field></>;
-      }
-      return <TextField value={String(planner[field] || '')} multiline={field === 'heading' || field === 'subtitle'} onChange={value => onTemplateConfigChange({ datePlanner: { ...planner, [field]: value } })} />;
-    }
     if (key === 'missYou') { const cfg = templateConfig; const set=(field:string,value:any)=>onTemplateConfigChange({[field]:value}); return <><Field label="Name 1"><input value={String(cfg.name1||'')} onChange={e=>set('name1',e.target.value)} /></Field><Field label="Name 2"><input value={String(cfg.name2||'')} onChange={e=>set('name2',e.target.value)} /></Field><Field label="Main line"><input value={String(cfg.seedText||'')} onChange={e=>set('seedText',e.target.value)} /></Field><Field label="Paragraph 1"><textarea rows={6} value={Array.isArray(cfg.paragraph1)?cfg.paragraph1.join('\n'):String(cfg.paragraph1||'')} onChange={e=>set('paragraph1',e.target.value.split('\n'))} /></Field><Field label="Paragraph 2"><textarea rows={6} value={Array.isArray(cfg.paragraph2)?cfg.paragraph2.join('\n'):String(cfg.paragraph2||'')} onChange={e=>set('paragraph2',e.target.value.split('\n'))} /></Field><Field label="Paragraph 3"><textarea rows={6} value={Array.isArray(cfg.paragraph3)?cfg.paragraph3.join('\n'):String(cfg.paragraph3||'')} onChange={e=>set('paragraph3',e.target.value.split('\n'))} /></Field><div className="mt-3"><b className="builder-eyebrow">BACKGROUND MUSIC</b><div className="mt-2"><SingleMediaUpload kind="audio" url={String(cfg.musicUrl||'')} websiteId={websiteId} onChange={url=>set('musicUrl',url)} /></div></div></>; }
     if (key in content) return <TextField value={String(common ?? '')} multiline={['message','greeting','heroSubtitle','secret','buttonText'].includes(key)} onChange={value => onChange({ [key]: value } as Partial<BirthdayContent>)} />;
     return <div className="builder-note">This element is visible in the template but does not expose a direct editor field yet.</div>;
-  }, [selected, content, templateId, websiteId, key, common, master, masterBirthday, masterBirthdayConfig, templateConfig]);
+  }, [selected, content, templateId, websiteId, key, common, masterBirthday, masterBirthdayConfig, templateConfig]);
 
   return <section className="builder-selection-card universal-editor-card">
     <div className="universal-editor-top"><div><span className="builder-eyebrow">QUICK EDIT</span><h3>{selected.label}</h3><p>Make one change at a time. Your preview updates instantly.</p></div><button className="builder-clear-selection" onClick={onClose} aria-label="Close editor">×</button></div>
