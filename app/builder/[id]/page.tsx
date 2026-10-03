@@ -447,13 +447,16 @@ export default function Builder() {
       if (!panel) return;
       const rect = panel.getBoundingClientRect();
       const top = (shellRef.current?.querySelector<HTMLElement>('.builder-topbar')?.offsetHeight || 64) + 8;
-      const headVisible = rect.top >= top - 4 && rect.top <= window.innerHeight * 0.6;
       if (viewport === 'desktop') {
         const fullyVisible = rect.top >= 84 && rect.bottom <= window.innerHeight - 16;
         if (!fullyVisible) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-      } else if (!headVisible) {
-        // Phone / tablet: bring the options box into view (below the template box).
-        window.scrollTo({ top: Math.max(0, window.scrollY + rect.top - top), behavior: 'smooth' });
+      } else {
+        // Phone / tablet: bring the options box into view just below the template box, so the
+        // template stays partly visible while the first fields of the editor are reachable.
+        const want = Math.max(top + 8, window.innerHeight - 300);
+        if (rect.top > want || rect.top < top - 4) {
+          window.scrollTo({ top: Math.max(0, window.scrollY + rect.top - want), behavior: 'smooth' });
+        }
       }
     }, 30);
     return () => window.clearTimeout(id);

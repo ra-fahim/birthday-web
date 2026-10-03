@@ -902,3 +902,42 @@ main.builder-shell .builder-context-empty-icon{width:34px;height:34px;display:gr
 /* Standard (React) templates: dashed highlight on every editable block */
 .experience-editable.is-editor{outline:2px dashed rgba(236,72,153,.7)!important;outline-offset:7px;cursor:pointer;-webkit-tap-highlight-color:rgba(236,72,153,.25)}
 .experience-editable.is-editor:hover{outline-color:#ec4899!important}
+
+/* ===== v30: phone/tablet builder fixes =====
+   1) The page must always scroll normally (no clipped/locked html/body/main).
+   2) The edit box under the template: its header used to be `position:sticky` inside an
+      `overflow:hidden` box, so it was pushed down by the top-bar height and covered the
+      first fields (the big white gap + cut-off "Content" label). Header is now plain.
+   3) While an element is selected the template box is shorter, so the edit box is
+      visible right below it and the page can be dragged from the edit box. */
+@media(max-width:1024px){
+  html:has(main.builder-shell),
+  body:has(main.builder-shell){height:auto!important;min-height:100%;overflow-y:auto!important;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:auto}
+  main.builder-shell{height:auto!important;overflow-y:visible!important;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
+  main.builder-shell .builder-preview-panel{overflow:visible!important;height:auto!important}
+  main.builder-shell .builder-canvas-stage{touch-action:pan-y pinch-zoom}
+
+  main.builder-shell[data-viewport="tablet"] .builder-context-editor,
+  main.builder-shell[data-viewport="mobile"] .builder-context-editor,
+  main.builder-shell[data-viewport="tablet"][data-selected] .builder-context-editor,
+  main.builder-shell[data-viewport="mobile"][data-selected] .builder-context-editor{
+    position:relative!important;overflow:visible!important;height:auto!important;min-height:0!important;max-height:none!important;
+    display:block!important;scroll-margin-top:calc(var(--bb-top,64px) + 8px);
+  }
+  main.builder-shell[data-viewport="tablet"] .builder-context-editor-head,
+  main.builder-shell[data-viewport="mobile"] .builder-context-editor-head{
+    position:relative!important;top:auto!important;z-index:1;border-radius:16px 16px 0 0;
+  }
+  main.builder-shell[data-viewport="tablet"] .builder-context-editor-body,
+  main.builder-shell[data-viewport="mobile"] .builder-context-editor-body{
+    position:relative;display:block!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;
+    border-radius:0 0 16px 16px;
+  }
+  main.builder-shell .builder-context-editor-body .universal-editor-card{min-height:0!important}
+  main.builder-shell .builder-context-editor-body textarea{min-height:96px}
+
+  main.builder-shell[data-viewport="tablet"][data-selected="1"] .builder-preview-frame,
+  main.builder-shell[data-viewport="mobile"][data-selected="1"] .builder-preview-frame{
+    height:clamp(300px,52dvh,560px)!important;min-height:300px!important;
+  }
+}
