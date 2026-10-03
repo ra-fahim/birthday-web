@@ -70,7 +70,6 @@ let currentTheme = 'blush';
 let musicEnabled = true;
 let musicStarted = false;
 let musicFrame = null;
-let customMusicUrl = '';
 const BACKGROUND_YOUTUBE_ID = 'AfybMbBSwaA';
 let showThemePicker = false;
 let introComplete = false;
@@ -78,9 +77,9 @@ let gardenFlowers = [];
 let noteOpen = null;
 let rejectionCount = 0;
 let noteTimer = null;
+let customMusicUrl = '';
 
 const app = document.getElementById('app');
-const BB_EDITOR_MODE = new URLSearchParams(window.location.search).has('bbEdit');
 
 function setTheme(themeKey) {
   currentTheme = themeKey;
@@ -189,39 +188,9 @@ function toggleBackgroundMusic() {
   renderControls();
 }
 
-function updateEditorMusicControl() {
-  const btn = document.querySelector('[data-bb-key=\"musicUrl\"]');
-  if (!btn) return;
-  btn.textContent = customMusicUrl ? '🎵 Edit background music' : '🎵 Add background music';
-}
 
-window.addEventListener('message', (event) => {
-  if (!event.data || event.data.type !== 'BB_VALENTINE_CONFIG') return;
-  const nextUrl = String(event.data.config?.musicUrl || '').trim();
-  customMusicUrl = nextUrl;
-  updateEditorMusicControl();
-});
-
-
-let SECTION_INDEX = 0;
 function section(html, className='') {
-  SECTION_INDEX += 1;
-  const stepAttr = BB_EDITOR_MODE ? ' data-bb-step-screen="1"' : '';
-  const screenLabel = BB_EDITOR_MODE ? ` data-bb-screen-label="Step ${SECTION_INDEX}"` : '';
-  const displayStyle = BB_EDITOR_MODE ? ` style="display:${SECTION_INDEX === 1 ? 'flex' : 'none'}"` : '';
-  return `<section data-bb-screen="section-${SECTION_INDEX}"${stepAttr}${screenLabel} class="w-full relative overflow-x-hidden ${className}"${displayStyle}><div class="h-full flex flex-col justify-center items-center section-reveal">${html}</div></section>`;
-}
-
-function editorIntroHTML() {
-  return section(`<div class="w-full max-w-3xl mx-auto px-6 text-center">
-    <div class="mb-8 inline-flex p-4 rounded-full border border-love-accent/15 dark:border-love-dark-accent/15 bg-white/30 dark:bg-black/20 backdrop-blur-sm">${icon('heart','w-8 h-8 text-love-accent dark:text-love-dark-accent')}</div>
-    <h1 class="font-serif text-4xl md:text-6xl lg:text-7xl font-light italic mb-6 text-love-text dark:text-love-dark-text tracking-tight">I made this just for you.</h1>
-    <p class="text-base md:text-lg text-love-text/65 dark:text-love-dark-text/65 leading-relaxed max-w-xl mx-auto">Start here. Click any editable text to change it. Use the music button below to add your own soundtrack.</p>
-    <div class="mt-10 flex flex-col items-center gap-4">
-      <button type="button" data-bb-key="musicUrl" data-bb-kind="audio" class="px-6 py-3 rounded-full border border-love-accent/25 dark:border-love-dark-accent/25 bg-white/55 dark:bg-black/20 text-love-accent dark:text-love-dark-accent text-sm font-semibold tracking-wide shadow-sm hover:bg-love-accent/10 transition-colors">🎵 Add background music</button>
-      <span class="text-xs uppercase tracking-[0.22em] text-love-text/35 dark:text-love-dark-text/35">Next / Previous controls the editing steps</span>
-    </div>
-  </div>`, 'min-h-screen flex flex-col justify-center items-center text-center px-6 py-16 relative z-10');
+  return `<section class="w-full relative overflow-x-hidden ${className}"><div class="h-full flex flex-col justify-center items-center section-reveal">${html}</div></section>`;
 }
 
 function renderHeroAndStory() {
@@ -411,21 +380,6 @@ function setupScrollAnimations() {
 }
 
 function mainRender() {
-  SECTION_INDEX = 0;
-  if (BB_EDITOR_MODE) {
-    app.innerHTML = `${backgroundHTML()}<div class="min-h-screen font-sans selection:bg-love-accent selection:text-white transition-colors duration-700 relative">${editorIntroHTML()}${renderHeroAndStory()}${bloomGardenHTML()}${loveJarHTML()}${finalLetterHTML()}<footer class="py-8 text-center text-love-text/30 dark:text-love-dark-text/30 text-xs tracking-widest uppercase relative z-10 font-medium">Made with love, for you.</footer></div>`;
-    setTheme('blush');
-    renderControls();
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.height = '100vh';
-    document.documentElement.style.height = '100vh';
-    setupGarden();
-    setupLoveJar();
-    updateEditorMusicControl();
-    return;
-  }
-
   app.innerHTML = `${backgroundHTML()}<div class="min-h-screen font-sans selection:bg-love-accent selection:text-white transition-colors duration-700 relative">${renderHeroAndStory()}${bloomGardenHTML()}${loveJarHTML()}${finalLetterHTML()}<footer class="py-8 text-center text-love-text/30 dark:text-love-dark-text/30 text-xs tracking-widest uppercase relative z-10 font-medium">Made with love, for you.</footer></div>${introHTML()}<div id="progress" class="fixed top-0 left-0 right-0 h-1 bg-love-accent dark:bg-love-dark-accent origin-left z-50 opacity-50" style="transform:scaleX(0)"></div>`;
   setTheme('blush');
   renderControls();
@@ -444,5 +398,281 @@ function mainRender() {
   setupInAppGuard();
 }
 
-
 mainRender();
+
+
+/* --------------------------------------------------------------------------
+ * Builder integration for Valentine 2026.
+ * This runs only in ?bbEdit=1 and leaves the standalone/demo experience intact.
+ * -------------------------------------------------------------------------- */
+(function initValentineBuilder(){
+  var editMode = new URLSearchParams(window.location.search).get('bbEdit') === '1';
+  if(!editMode) return;
+  if(window.__BB_VALENTINE_EDITOR__) return;
+  window.__BB_VALENTINE_EDITOR__ = true;
+  window.__BB_CUSTOM_HISTORY__ = true;
+
+  var steps = [];
+  var index = 0;
+  var edits = {};
+  var introStage = 0;
+  var introTimerA = null;
+  var introTimerB = null;
+
+  function esc(value){
+    return String(value == null ? '' : value)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+
+  function clearIntroTimers(){
+    if(introTimerA){clearTimeout(introTimerA); introTimerA=null;}
+    if(introTimerB){clearTimeout(introTimerB); introTimerB=null;}
+    if(window.__gateTimer){clearTimeout(window.__gateTimer); window.__gateTimer=null;}
+    if(window.__gateTimer2){clearTimeout(window.__gateTimer2); window.__gateTimer2=null;}
+  }
+
+  function key(el){ return el && el.getAttribute ? el.getAttribute('data-bb-key') : ''; }
+  function label(el){ return (el && el.getAttribute && (el.getAttribute('data-bb-label') || el.getAttribute('aria-label'))) || key(el) || 'Editable text'; }
+  function currentValue(el){
+    if(!el) return '';
+    var kind=el.getAttribute('data-bb-kind')||'';
+    if(kind==='audio') return String(window.__bbMusicUrl||customMusicUrl||'');
+    return String(el.innerText||el.textContent||'').trim();
+  }
+  function kindOf(el){
+    var k=el && el.getAttribute && el.getAttribute('data-bb-kind');
+    if(k) return k;
+    if(!el) return 'text';
+    return el.tagName==='BUTTON'?'button':el.tagName==='IMG'?'image':el.tagName==='VIDEO'?'video':el.tagName==='AUDIO'?'audio':el.tagName==='A'?'link':'text';
+  }
+  function select(el){
+    var s={key:key(el),label:label(el),value:currentValue(el),kind:kindOf(el)};
+    var ix=el.getAttribute('data-bb-index');
+    if(ix!==null && ix!=='') s.index=Number(ix);
+    try{ parent.postMessage({type:'BB_ELEMENT_SELECTED',selection:s},'*'); }catch(e){}
+  }
+  function mark(el, k, textLabel, kind){
+    if(!el) return;
+    if(el.getAttribute('data-bb-key')!==k) el.setAttribute('data-bb-key',k);
+    if(el.getAttribute('data-bb-label')!==textLabel) el.setAttribute('data-bb-label',textLabel);
+    if(kind && el.getAttribute('data-bb-kind')!==kind) el.setAttribute('data-bb-kind',kind);
+  }
+  function addIndex(el,i){ if(el) el.setAttribute('data-bb-index',String(i)); }
+
+  function tagMainContent(){
+    var sections=Array.prototype.slice.call(document.querySelectorAll('section.section-reveal'))
+      .map(function(inner){return inner.parentElement;}).filter(Boolean);
+    if(sections[0]){
+      mark(sections[0].querySelector('.hero-title'),'gx.valentine.heroTitle','Hero title');
+      mark(sections[0].querySelector('.hero-subtitle'),'gx.valentine.heroSubtitle','Hero subtitle');
+    }
+    var stories=Array.prototype.slice.call(document.querySelectorAll('.story-item'));
+    stories.forEach(function(item,i){
+      mark(item.querySelector('.story-title'),'gx.valentine.storyTitle.'+i,'Story '+(i+1)+' title');
+      mark(item.querySelector('.story-body'),'gx.valentine.storyBody.'+i,'Story '+(i+1)+' text');
+    });
+    var garden=document.getElementById('garden');
+    var gardenSection=garden ? garden.closest('section') : null;
+    if(gardenSection){
+      var gH=gardenSection.querySelector('h2');
+      var gp=gardenSection.querySelectorAll('p');
+      mark(gH,'gx.valentine.gardenTitle','Digital Garden title');
+      if(gp[0]) mark(gp[0],'gx.valentine.gardenSubtitle','Digital Garden subtitle');
+      if(gp[1]) mark(gp[1],'gx.valentine.gardenHint','Digital Garden hint');
+    }
+    var jar=document.getElementById('jar-wrap');
+    var jarSection=jar ? jar.closest('section') : null;
+    if(jarSection){
+      var jH=jarSection.querySelector('h2');
+      var jp=jarSection.querySelector('p');
+      var forYou=jarSection.querySelector('#jar span');
+      var pull=jarSection.querySelector('#pull-note');
+      mark(jH,'gx.valentine.jarTitle','Love Jar title');
+      if(jp) mark(jp,'gx.valentine.jarSubtitle','Love Jar subtitle');
+      if(forYou) mark(forYou,'gx.valentine.jarLabel','Love Jar label');
+      mark(pull,'gx.valentine.jarButton','Love Jar button','button');
+    }
+    var final=document.querySelector('.final-letter');
+    if(final){
+      var fc=final.querySelector('.final-content');
+      if(fc){
+        mark(fc.querySelector('h3'),'gx.valentine.finalTitle','Final letter title');
+        var fp=fc.querySelectorAll('p');
+        if(fp[0]) mark(fp[0],'gx.valentine.finalBody1','Final letter paragraph 1');
+        if(fp[1]) mark(fp[1],'gx.valentine.finalBody2','Final letter paragraph 2');
+        if(fp[2]) mark(fp[2],'gx.valentine.finalBody3','Final letter paragraph 3');
+        if(fp[3]) mark(fp[3],'gx.valentine.finalSignature','Final signature');
+      }
+    }
+  }
+
+  function tagIntroContent(){
+    var stage=document.getElementById('gate-stage');
+    if(!stage) return;
+    // Add the music control only to the very first editor step.
+    var old=stage.querySelector('[data-bb-music-editor]');
+    if(old) old.remove();
+    if(introStage===0){
+      var wrap=document.createElement('div');
+      wrap.setAttribute('data-bb-music-editor','1');
+      wrap.style.cssText='margin-top:28px;display:flex;flex-direction:column;align-items:center;gap:8px;';
+      wrap.innerHTML='<button type="button" data-bb-key="musicUrl" data-bb-label="Background music" data-bb-kind="audio" style="padding:12px 22px;border-radius:999px;border:1px solid rgba(184,107,120,.35);background:rgba(255,255,255,.58);color:var(--love-accent);font:600 13px Montserrat, sans-serif;letter-spacing:.05em;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.08);">'+(customMusicUrl||window.__bbMusicUrl?'🎵 Edit background music':'🎵 Add background music')+'</button><span style="font:500 10px Montserrat,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:rgba(46,32,38,.45);">Music can be added from the edit box</span></div>';
+      stage.appendChild(wrap);
+    }
+    if(introStage===0){
+      mark(stage.querySelector('h2'),'gx.valentine.introTitle','Intro title');
+    } else if(introStage===1){
+      mark(stage.querySelector('p'),'gx.valentine.introKicker','Intro kicker');
+      mark(stage.querySelector('h2'),'gx.valentine.introBefore','Intro message');
+    } else {
+      mark(stage.querySelector('h1'),'gx.valentine.introQuestion','Question title');
+      mark(stage.querySelector('p'),'gx.valentine.introQuestionSub','Question subtitle');
+      var btns=stage.querySelectorAll('button');
+      if(btns[0]) mark(btns[0],'gx.valentine.yesButton','Yes button','button');
+      if(btns[1]) mark(btns[1],'gx.valentine.noButton','No button','button');
+      // The question is editor-only static navigation content: never let the real
+      // Yes/No handlers execute while editing.
+    }
+  }
+
+  function applyEdits(){
+    Object.keys(edits||{}).forEach(function(k){
+      var edit=edits[k];
+      if(!edit || edit.value==null) return;
+      var value=String(edit.value);
+      Array.prototype.forEach.call(document.querySelectorAll('[data-bb-key]'),function(el){
+        if(el.getAttribute('data-bb-key')!==k) return;
+        if(el.getAttribute('data-bb-kind')==='audio') return;
+        if(String(el.textContent||'')!==value) el.textContent=value;
+      });
+    });
+  }
+
+  function postHistory(){
+    var current=steps[index];
+    try{ parent.postMessage({type:'BB_CANVAS_HISTORY_STATE',canBack:index>0,canForward:index<steps.length-1,screen:current?current.label:String(index)},'*'); }catch(e){}
+  }
+
+  function hideAll(){
+    var sections=document.querySelectorAll('section[data-bb-editor-section]');
+    sections.forEach(function(s){s.style.display='none';s.style.visibility='hidden';s.style.opacity='0';s.style.pointerEvents='none';});
+    var gate=document.getElementById('intro-gate');
+    if(gate){gate.style.visibility='hidden';gate.style.opacity='0';gate.style.pointerEvents='none';}
+  }
+
+  function showStep(i){
+    clearIntroTimers();
+    index=Math.max(0,Math.min(i,steps.length-1));
+    hideAll();
+    var step=steps[index];
+    document.body.style.overflow='hidden';
+    document.documentElement.style.overflow='hidden';
+    document.body.style.height='100vh';
+    document.documentElement.style.height='100vh';
+    if(step.type==='intro'){
+      var gate=document.getElementById('intro-gate');
+      if(gate){gate.style.visibility='visible';gate.style.opacity='1';gate.style.pointerEvents='auto';}
+      introStage=step.gate;
+      window.__gateStep=step.gate;
+      rejectionCount=0;
+      setIntroStage();
+      clearIntroTimers();
+      tagIntroContent();
+      applyEdits();
+    }else{
+      var section=document.querySelector('section[data-bb-editor-section="'+step.section+'"]');
+      if(section){section.style.display='flex';section.style.visibility='visible';section.style.opacity='1';section.style.pointerEvents='auto';}
+      tagMainContent();
+      applyEdits();
+    }
+    postHistory();
+  }
+
+  function buildSteps(){
+    var realSections=Array.prototype.slice.call(document.querySelectorAll('section.section-reveal')).map(function(inner){return inner.parentElement;}).filter(Boolean);
+    steps=[
+      {type:'intro',gate:0,label:'Intro'},
+      {type:'intro',gate:1,label:'Before anything else'},
+      {type:'intro',gate:2,label:'The question'}
+    ];
+    realSections.forEach(function(section,i){
+      var label='Step '+(i+4);
+      if(i===0) label='Hero';
+      else if(i<=5) label='Story '+i;
+      else if(i===6) label='Digital Garden';
+      else if(i===7) label='Love Jar';
+      else if(i===8) label='Final letter';
+      var id='valentine-section-'+i;
+      section.setAttribute('data-bb-editor-section',id);
+      steps.push({type:'section',section:id,label:label});
+    });
+  }
+
+  // Capture the editor navigation and editable text taps. Real template buttons
+  // never execute in edit mode.
+  function guard(e){
+    var t=e.target&&e.target.closest?e.target.closest('[data-bb-key]'):null;
+    if(t){
+      if(e.type==='click' || e.type==='touchend'){
+        if(e.cancelable) e.preventDefault();
+        e.stopImmediatePropagation();
+        select(t);
+      } else {
+        e.stopImmediatePropagation();
+      }
+      return;
+    }
+    if(e.target && e.target.closest && e.target.closest('[data-bb-editor-nav],#controls [data-theme]')) return;
+    if(e.cancelable) e.preventDefault();
+    e.stopImmediatePropagation();
+  }
+  document.addEventListener('click',guard,true);
+  document.addEventListener('pointerdown',guard,true);
+  document.addEventListener('mousedown',guard,true);
+  document.addEventListener('touchstart',guard,{capture:true,passive:true});
+  document.addEventListener('touchend',guard,{capture:true,passive:false});
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Enter'&&e.key!==' ') return;
+    var t=e.target&&e.target.closest?e.target.closest('[data-bb-key]'):null;
+    if(t){e.preventDefault();e.stopImmediatePropagation();select(t);}
+  },true);
+
+  var style=document.createElement('style');
+  style.textContent='[data-bb-key]{cursor:pointer !important;outline:2px dashed rgba(184,107,120,.65);outline-offset:5px;border-radius:4px;-webkit-tap-highlight-color:rgba(184,107,120,.18)}[data-bb-key]:hover{outline-color:#8f4f5d;box-shadow:0 0 0 4px rgba(184,107,120,.13)}[data-bb-editor-section]{min-height:100vh !important}[data-bb-music-editor] button{outline:0 !important}';
+  document.head.appendChild(style);
+
+  buildSteps();
+  tagMainContent();
+  showStep(0);
+
+  window.BB_EDITOR_NAVIGATE=function(delta){ showStep(index+(delta<0?-1:1)); };
+
+  window.addEventListener('message',function(e){
+    var d=e.data||{};
+    if(d.type==='BB_GENERIC_EDITS'){
+      edits=d.edits&&typeof d.edits==='object'?d.edits:{};
+      applyEdits();
+    }
+    if(d.type==='BB_VALENTINE_CONFIG'){
+      window.__bbMusicUrl=String(d.config&&d.config.musicUrl||'').trim();
+      customMusicUrl=window.__bbMusicUrl;
+      var btn=document.querySelector('[data-bb-key="musicUrl"]');
+      if(btn) btn.textContent=customMusicUrl?'🎵 Edit background music':'🎵 Add background music';
+    }
+  });
+
+  // Re-tag dynamic intro content whenever MutationObserver sees its replacement.
+  var observer=new MutationObserver(function(){
+    if(!document.getElementById('gate-stage')) return;
+    if(steps[index] && steps[index].type==='intro'){
+      tagIntroContent();
+      applyEdits();
+    }else{
+      tagMainContent();
+      applyEdits();
+    }
+  });
+  observer.observe(document.documentElement,{subtree:true,childList:true});
+  setTimeout(function(){tagIntroContent();applyEdits();postHistory();},50);
+})();
