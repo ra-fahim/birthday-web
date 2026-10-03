@@ -3649,22 +3649,36 @@ function movable(el,dy){
   return false;
 }
 
+function realScroller(){
+  try{
+    var fe=window.frameElement;
+    var el=fe&&fe.parentElement;
+    while(el&&el!==el.ownerDocument.body&&el!==el.ownerDocument.documentElement){
+      var cs=el.ownerDocument.defaultView.getComputedStyle(el);
+      var oy=cs.overflowY;
+      if((oy==='auto'||oy==='scroll'||oy==='overlay')&&el.scrollHeight>el.clientHeight+1)return el;
+      el=el.parentElement;
+    }
+  }catch(_){}
+  return null;
+}
+
 function scrollParent(dy){
   if(!dy||!window.parent)return false;
   try{
+    var box=realScroller();
+    if(box){
+      var maxBox=Math.max(0,box.scrollHeight-box.clientHeight);
+      var nextBox=Math.max(0,Math.min(maxBox,box.scrollTop+dy));
+      if(Math.abs(nextBox-box.scrollTop)>=0.5){box.scrollTop=nextBox;return true;}
+    }
     var doc=window.parent.document;
     var se=doc.scrollingElement||doc.documentElement;
-    var body=doc.body;
-    var max=Math.max(
-      0,
-      (se?.scrollHeight||0)-(se?.clientHeight||0),
-      (body?.scrollHeight||0)-(body?.clientHeight||0)
-    );
-    var current=Math.max(se?.scrollTop||0,body?.scrollTop||0);
+    var max=Math.max(0,(se?.scrollHeight||0)-(se?.clientHeight||0));
+    var current=se?.scrollTop||0;
     var next=Math.max(0,Math.min(max,current+dy));
     if(Math.abs(next-current)<0.5)return false;
     if(se)se.scrollTop=next;
-    if(body)body.scrollTop=next;
     return true;
   }catch(_){
     try{window.parent.scrollBy(0,dy);return true;}catch(__){return false;}

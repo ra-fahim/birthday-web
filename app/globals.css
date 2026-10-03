@@ -912,3 +912,7 @@ main.builder-shell[data-preview="0"] .builder-canvas-stage{
 main.builder-shell[data-preview="0"] .builder-canvas-stage iframe{
   overscroll-behavior-y:auto!important;
 }
+
+/* Master Birthday canvas: the template screens scroll inside the iframe; wrappers must not add a second scrollbar. */
+.builder-preview-canvas.is-master-canvas{overflow-x:auto!important;overflow-y:hidden!important;overscroll-behavior:contain}
+.builder-preview-canvas.is-master-canvas .builder-canvas-stage{overflow:hidden!important}
