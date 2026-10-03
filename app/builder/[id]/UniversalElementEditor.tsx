@@ -119,6 +119,14 @@ export default function UniversalElementEditor({ selected, content, templateId, 
         const updateItem=(patch:Record<string,unknown>)=>{const next=items.slice();next[i]={...next[i],...patch};updateMasterBirthdayPath('videos.items',next)};
         return <><div className="universal-editor-media-head"><div className="universal-editor-icon"><Video size={16}/></div><div><b>Video {i+1}</b><span>Upload, public URL, YouTube, caption and poster</span></div></div><SingleMediaUpload kind="video" url={String(item.source||'').match(/^(https?:\/\/.*\.(?:mp4|webm|mov)(?:\?.*)?)$/i)?.[1] || ''} websiteId={websiteId} onChange={url=>updateItem({source:url})}/><Field label="Video source URL"><input type="url" value={String(item.source||'')} onChange={e=>updateItem({source:e.target.value})} placeholder="YouTube or direct video URL"/></Field><Field label="Title"><input autoFocus value={String(item.title||'')} onChange={e=>updateItem({title:e.target.value})}/></Field><Field label="Caption"><textarea rows={3} value={String(item.caption||'')} onChange={e=>updateItem({caption:e.target.value})}/></Field><Field label="Poster / thumbnail"><input value={String(item.poster||'')} onChange={e=>updateItem({poster:e.target.value})}/></Field><Field label="Alt text"><input value={String(item.alt||'')} onChange={e=>updateItem({alt:e.target.value})}/></Field><div className="universal-editor-grid"><button type="button" className="builder-mini-btn" onClick={()=>updateMasterBirthdayPath('videos.items',[...items,{...item,id:`video-${Date.now()}`}])}>Duplicate</button><button type="button" className="builder-mini-btn" onClick={()=>updateMasterBirthdayPath('videos.items',items.filter((_,idx)=>idx!==i))}>Delete</button></div></>;
       }
+      if (path === 'puzzle.word') {
+        const cur = String(get(path) || '').trim() || String(selected.value || '').trim();
+        const count = Array.from(cur.replace(/[\s.,!?\-_~]+/g, '')).length;
+        return <>
+          <div className="universal-editor-media-head"><div className="universal-editor-icon"><Edit3 size={16}/></div><div><b>Puzzle word</b><span>Type any word — the letter boxes and hint update automatically</span></div></div>
+          <Field label="Word to arrange"><input autoFocus value={String(get(path) || '')} placeholder={cur} onChange={e => updateMasterBirthdayPath(path, e.target.value)} /><small className="builder-field-hint">{count} letter box{count === 1 ? '' : 'es'} · the hint is generated from this word. Leave empty to use the recipient name.</small></Field>
+        </>;
+      }
       if (path === 'secret.image') {
         return <>
           <div className="universal-editor-media-head"><div className="universal-editor-icon"><ImagePlus size={16}/></div><div><b>Secret photo</b><span>Upload a photo or use a public image URL</span></div></div>

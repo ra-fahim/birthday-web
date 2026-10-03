@@ -422,7 +422,44 @@
         /* Until the real birthday date arrives from the host, don't paint the countdown:
            otherwise a past date flashes the countdown screen before jumping to Greeting. */
         html.bb-wait-content #countdownScreen { visibility: hidden !important; }
-    </style>
+    
+        /* ===== Unified, clearly-clickable buttons (solid body + 3D edge + icon; no hazy overlay) ===== */
+        .enter-btn, .reasons-btn, .cake-next-btn, .photo-next-btn, .video-next-btn, .letter-return-btn, .soulmate-btn, .pz-btn, .mic-enable-btn {
+            border:2px solid rgba(255,255,255,.95) !important;
+            text-shadow:none !important;
+            cursor:pointer;
+            box-shadow:0 5px 0 rgba(90,20,70,.30), 0 14px 22px -10px rgba(60,20,60,.45) !important;
+            transition:transform .18s ease, box-shadow .18s ease, filter .18s ease !important;
+            -webkit-tap-highlight-color:transparent;
+        }
+        .enter-btn:hover, .reasons-btn:hover, .cake-next-btn:hover, .photo-next-btn:hover, .video-next-btn:hover, .letter-return-btn:hover, .soulmate-btn:hover, .pz-btn:hover:not(:disabled), .mic-enable-btn:hover {
+            transform:translateY(-2px) !important; filter:brightness(1.06) saturate(1.05);
+            box-shadow:0 7px 0 rgba(90,20,70,.30), 0 18px 26px -10px rgba(60,20,60,.5) !important;
+        }
+        .enter-btn:active, .reasons-btn:active, .cake-next-btn:active, .photo-next-btn:active, .video-next-btn:active, .letter-return-btn:active, .soulmate-btn:active, .pz-btn:active:not(:disabled), .mic-enable-btn:active {
+            transform:translateY(4px) !important; box-shadow:0 1px 0 rgba(90,20,70,.30), 0 4px 8px -4px rgba(60,20,60,.4) !important;
+        }
+        .enter-btn:focus-visible, .reasons-btn:focus-visible, .cake-next-btn:focus-visible, .photo-next-btn:focus-visible, .video-next-btn:focus-visible, .letter-return-btn:focus-visible, .soulmate-btn:focus-visible, .pz-btn:focus-visible, .mic-enable-btn:focus-visible { outline:3px solid rgba(255,255,255,.9); outline-offset:3px; }
+        .pz-btn-ghost { background:#fff !important; border:2px solid var(--bb-accent,#d4145a) !important; color:var(--bb-accent,#d4145a) !important; }
+        .mic-enable-btn { background:var(--bb-main,#ff69b4) !important; }
+        .enter-btn::before, .reasons-btn::before, .cake-next-btn::before, .photo-next-btn::before, .video-next-btn::before, .letter-return-btn::before, .pz-btn::before, .mic-enable-btn::before {
+            content:''; display:inline-block; width:1.1em; height:1.1em; margin-right:.55em; vertical-align:-.17em;
+            background-color:currentColor; -webkit-mask:var(--bb-btn-icon) center/contain no-repeat; mask:var(--bb-btn-icon) center/contain no-repeat;
+        }
+        .pz-btn-primary::before, .cake-next-btn::before, .photo-next-btn::before, .video-next-btn::before { margin-right:.5em; }
+        .soulmate-btn i { margin-right:.5em; }
+        .enter-btn { --bb-btn-icon:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='black'%20stroke='black'%20stroke-width='2.2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M19%2014c1.49-1.46%203-3.21%203-5.5A5.5%205.5%200%200%200%2016.5%203c-1.76%200-3%20.5-4.5%202-1.5-1.5-2.74-2-4.5-2A5.5%205.5%200%200%200%202%208.5c0%202.3%201.5%204.05%203%205.5l7%207Z'/%3E%3C/svg%3E"); }
+        .reasons-btn { --bb-btn-icon:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='black'%20stroke='black'%20stroke-width='2.2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='m12%203-1.9%205.8a2%202%200%200%201-1.3%201.3L3%2012l5.8%201.9a2%202%200%200%201%201.3%201.3L12%2021l1.9-5.8a2%202%200%200%201%201.3-1.3L21%2012l-5.8-1.9a2%202%200%200%201-1.3-1.3Z'/%3E%3C/svg%3E"); }
+        .cake-next-btn { --bb-btn-icon:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2.2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M5%2012h14'/%3E%3Cpath%20d='m12%205%207%207-7%207'/%3E%3C/svg%3E"); }
+        .photo-next-btn { --bb-btn-icon:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2.2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Crect%20x='3'%20y='3'%20width='18'%20height='18'%20rx='2'/%3E%3Cpath%20d='M7%203v18M17%203v18M3%208h4M3%2016h4M17%208h4M17%2016h4'/%3E%3C/svg%3E"); }
+        .video-next-btn { --bb-btn-icon:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2.2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Crect%20x='2'%20y='4'%20width='20'%20height='16'%20rx='2'/%3E%3Cpath%20d='m22%207-10%206L2%207'/%3E%3C/svg%3E"); }
+        .letter-return-btn { --bb-btn-icon:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2.2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Crect%20x='3'%20y='8'%20width='18'%20height='4'%20rx='1'/%3E%3Cpath%20d='M12%208v13'/%3E%3Cpath%20d='M19%2012v7a2%202%200%200%201-2%202H7a2%202%200%200%201-2-2v-7'/%3E%3Cpath%20d='M7.5%208a2.5%202.5%200%200%201%200-5C11%203%2012%208%2012%208s1-5%204.5-5a2.5%202.5%200%200%201%200%205'/%3E%3C/svg%3E"); }
+        #pzHintBtn { --bb-btn-icon:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2.2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M15%2014c.2-1%20.7-1.7%201.5-2.5%201-.9%201.5-2.2%201.5-3.5A6%206%200%200%200%206%208c0%201%20.2%202.2%201.5%203.5.7.7%201.3%201.5%201.5%202.5'/%3E%3Cpath%20d='M9%2018h6M10%2022h4'/%3E%3C/svg%3E"); }
+        #pzResetBtn { --bb-btn-icon:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2.2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M3%2012a9%209%200%201%200%209-9%209.75%209.75%200%200%200-6.74%202.74L3%208'/%3E%3Cpath%20d='M3%203v5h5'/%3E%3C/svg%3E"); }
+        #pzContinueBtn { --bb-btn-icon:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2.2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M5%2012h14'/%3E%3Cpath%20d='m12%205%207%207-7%207'/%3E%3C/svg%3E"); }
+        .mic-enable-btn { --bb-btn-icon:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2.2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M12%202a3%203%200%200%200-3%203v7a3%203%200%200%200%206%200V5a3%203%200%200%200-3-3Z'/%3E%3Cpath%20d='M19%2010v2a7%207%200%200%201-14%200v-2M12%2019v3'/%3E%3C/svg%3E"); }
+        .table-knife { filter:drop-shadow(0 3px 4px rgba(0,0,0,.35)); }
+</style>
     <script>
     (function(){try{
         var q=new URLSearchParams(location.search);
@@ -651,7 +688,7 @@
                 </div>
             </div>
             <div class="mic-hint" id="micHint">🎤 Blow into your mic to blow out the candles, or tap them</div>
-            <button type="button" class="mic-enable-btn" id="micEnableBtn">🎤 Enable microphone</button>
+            <button type="button" class="mic-enable-btn" id="micEnableBtn">Enable microphone</button>
             <div class="candles" id="candles"></div>
             <div class="cake-status" id="cakeStatus"></div>
             <div class="cut-hint" id="cutHint">🔪 Press and drag anywhere on the cake — cut it your way</div>
@@ -753,25 +790,25 @@
                 <div class="pz-badge"><i class="pz-diamond"></i><span id="pzBadge" data-bb-key="mb.puzzle.badge">Name Puzzle</span><i class="pz-diamond"></i></div>
                 <h1 class="pz-title" id="pzTitle">Arrange the Birthday Name</h1>
                 <p class="pz-sub" id="pzSub">Rearrange the letters below to reveal the hidden name.</p>
-                <p class="pz-hint" id="pzHint">&#10022; Hint: A name that shines brighter than gold &#10022;</p>
+                <p class="pz-hint" id="pzHint"></p>
                 <div class="pz-progress" aria-hidden="true"><div class="pz-progress-fill" id="pzProgressFill"></div></div>
                 <div class="pz-progress-label" id="pzProgressLabel" aria-live="polite">0% Revealed</div>
                 <div class="pz-slots" id="pzSlots" role="group" aria-label="Answer"></div>
-                <div class="pz-tiles-label" id="pzTilesLabel">Letters</div>
+                <div class="pz-tiles-label" id="pzTilesLabel" data-bb-key="mb.puzzle.lettersLabel">Letters</div>
                 <div class="pz-tiles" id="pzTiles" role="group" aria-label="Letters"></div>
                 <div class="pz-buttons">
-                    <button type="button" class="pz-btn pz-btn-ghost" id="pzHintBtn">&#10022; Hint</button>
-                    <button type="button" class="pz-btn pz-btn-ghost" id="pzResetBtn">&#8635; Reset</button>
+                    <button type="button" class="pz-btn pz-btn-ghost" id="pzHintBtn">Hint</button>
+                    <button type="button" class="pz-btn pz-btn-ghost" id="pzResetBtn">Reset</button>
                 </div>
                 <p class="pz-message" id="pzMessage" aria-live="polite"></p>
             </div>
             <div class="pz-win" id="pzWin">
                 <div class="pz-glow" aria-hidden="true"></div>
                 <span class="pz-crown" aria-hidden="true">&#128081;</span>
-                <div class="pz-badge"><i class="pz-diamond"></i><span id="pzWinBadge">Name Revealed</span><i class="pz-diamond"></i></div>
-                <h2 class="pz-win-title" id="pzWinTitle">Happy Birthday</h2>
-                <div class="pz-win-msg" id="pzWinMsg"></div>
-                <button type="button" class="pz-btn pz-btn-primary" id="pzContinueBtn">Continue &rarr;</button>
+                <div class="pz-badge"><i class="pz-diamond"></i><span id="pzWinBadge" data-bb-key="mb.puzzle.winBadge">Name Revealed</span><i class="pz-diamond"></i></div>
+                <h2 class="pz-win-title" id="pzWinTitle" data-bb-key="mb.puzzle.winTitle">Happy Birthday</h2>
+                <div class="pz-win-msg" id="pzWinMsg" data-bb-key="mb.puzzle.winMessage"></div>
+                <button type="button" class="pz-btn pz-btn-primary" id="pzContinueBtn">Continue</button>
             </div>
         </div>
     </div>
@@ -1554,7 +1591,13 @@
             }
 
             cakeEmoji.classList.remove('cake-cut');
-            if (!knifePickedUp) cakeEmoji.classList.remove('knife-active');
+            if (!knifePickedUp) {
+                cakeEmoji.classList.remove('knife-active');
+                if (tableKnife) tableKnife.classList.remove('picked');
+                const kc = document.getElementById('knifeCursor');
+                if (kc) kc.classList.remove('active');
+                if (window.__bbKnifeTimer && candlesBlown < totalCandles) { clearTimeout(window.__bbKnifeTimer); window.__bbKnifeTimer = null; }
+            }
             nextBtn.style.display = 'none';
             micHint.style.display = 'block';
             if (micEnableBtn) micEnableBtn.classList.toggle('show', micDenied && !window.__BB_FORCE_DEMO);
@@ -1587,12 +1630,18 @@
             }
 
             if (candlesBlown === totalCandles) {
-                statusDiv.textContent = knifePickedUp ? '🔪 Now hold and drag across the cake to slice it' : '🎉 All candles blown! Tap the knife';
+                statusDiv.textContent = knifePickedUp ? '🔪 Knife ready — press and drag across the cake to cut it' : '🎉 All candles blown! Your knife is getting ready…';
                 cutHint.classList.add('ready');
                 micHint.style.display = 'none';
                 if (tableKnife && !knifePickedUp) tableKnife.classList.add('ready');
                 if (knifeLabel && !knifePickedUp) knifeLabel.classList.add('show');
                 stopMicrophone();
+                if (!knifePickedUp && !window.__bbKnifeTimer) {
+                    window.__bbKnifeTimer = setTimeout(function () {
+                        window.__bbKnifeTimer = null;
+                        if (!cakeCut && candlesBlown === totalCandles && !knifePickedUp) pickUpKnife();
+                    }, 700);
+                }
             } else {
                 const remaining = totalCandles - candlesBlown;
                 statusDiv.textContent = `${remaining} candles burning - Blow or tap`;
@@ -1731,7 +1780,7 @@
         }
 
         window.cutCake = function() {
-            if (cakeCut || candlesBlown !== totalCandles) return;
+            if (cakeCut || candlesBlown !== totalCandles || !knifePickedUp) return;
             const today = new Date();
             const dateKey = getDateKey(today);
             cakeCut = true;
@@ -1966,7 +2015,14 @@
         }
 
         function onCutPointerMove(e) {
-            if (!cutDragActive) return;
+            if (!cutDragActive) {
+                if (knifePickedUp && !cakeCut && candlesBlown === totalCandles && e.pointerType === 'mouse') {
+                    const k = document.getElementById('knifeCursor');
+                    if (k) k.classList.add('active');
+                    updateKnifePosition(e.clientX, e.clientY);
+                }
+                return;
+            }
             updateKnifePosition(e.clientX, e.clientY);
 
             cutAngle = pointerToCakeAngle(e.clientX, e.clientY);
@@ -1999,12 +2055,9 @@
         }
 
         function onCutPointerUp() {
-            if (!cutDragActive) {
-                if (!cakeCut && candlesBlown === totalCandles) {
-                    cutCake();
-                }
-                return;
-            }
+            // A tap/pointer-up must NEVER cut the cake by itself. The cake is only
+            // cut when the knife is active and the visitor drags it across the cake.
+            if (!cutDragActive) return;
             cutDragActive = false;
             if (!cakeCut) resetSliceLine();
         }
@@ -2241,7 +2294,7 @@
 <script>
 (function () {
   'use strict';
-  const DEFAULT = {"recipientName":"Anarkoli","senderName":"","age":17,"birthdayDate":"2030-01-08","birthdayTime":"00:00","timezone":"Asia/Dhaka","pageTitle":"Something's Coming 💫","browserTitle":"Loading... 💫","ogTitle":"Something's Coming 💫","ogDescription":"Tap to open when the time is right ✨","ogImage":"","customSlug":"","countdown":{"title":"Something special is unlocking...⌛","message":"⏰ Something is coming soon...","audioUrl":"https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3","audioEnabled":true},"wishingAudioUrl":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","greeting":{"heading":"Happy Birthday Anarkoli..❤️🎂💫","text":"Hey You Know What! You're the most adorable human i ever met! 💖","enterButton":"Click to enter your world 💕"},"cake":{"cakeText":"happy","birthdayText":"birthday","recipientName":"Anarkoli","ageCandleCount":24,"wishTitle":"Close your eyes and make a wish...","wishSubtitle":"Then blow out the candles 🕯️","micHint":"🎤 Blow into your mic to blow out the candles, or tap them","cakeStatus":"🎉 Cake cut! Happy Birthday! 🎉","cutInstruction":"🔪 Press and drag anywhere on the cake — cut it your way","nextButton":"Enter your storyline 💫","microphoneEnabled":true,"soundEffects":true,"vibration":true},"reasons":{"heading":"Happy birthday princess 👑","note":"","items":[{"id":"reason-1","text":"You're such a kind and wonderful person, and I feel lucky to share such a good bond with you.","emoji":"🌟"},{"id":"reason-2","text":"May your day be filled with love, laughter, and endless joy.","emoji":"💗"},{"id":"reason-3","text":"Wishing you success, happiness, and everything your heart desires.","emoji":"💕"},{"id":"reason-4","text":"Stay the amazing girl you are—always spreading positivity around. Have the happiest year ahead! 🥳","emoji":"🌟"}],"buttonText":"Click Here... 💕","finalButtonText":"You're the BESTEST ! 💖"},"memories":{"heading":"The Beautiful Moments ","subtitle":"Every moment spent with you has been magical. Let's cherish these precious memories Anarkoli...","nextButton":"Again Your Storylane 🎥","items":[{"id":"memory-1","url":"https://picsum.photos/seed/anime1/800/600","title":"A Magical Reflection 💖","caption":"A reflection of pure grace, elegance, and unmatched beauty. 🌹👑","date":"A Magical Reflection 💖","alt":"Anime 1"},{"id":"memory-2","url":"https://picsum.photos/seed/anime2/800/600","title":"Lost in Anime Lore","caption":"May your journey ahead be filled with happiness, success, and endless smiles😊💕","date":"Lost in Anime Lore","alt":"Anime 2"},{"id":"memory-3","url":"https://picsum.photos/seed/anime3/800/600","title":"Her Smile Says It All","caption":"You're truly one of the sweetest girls I know, and I feel lucky to have a person like you❤️","date":"Her Smile Says It All","alt":"Anime 3"},{"id":"memory-4","url":"https://picsum.photos/seed/anime4/800/600","title":"One More Beautiful Memory","caption":"A little extra memory to make this story even more special. ✨💖","date":"One More Beautiful Memory","alt":"Anime 4"}]},"videos":{"title":"A Special Video Message","nextButton":"See your letter 💌","items":[{"id":"video-1","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4","title":"Happy Birthday Anarkoli ❤️🎂","caption":"A little birthday video message just for this special story. 🎥💖","poster":"","alt":"Happy Birthday video"},{"id":"video-2","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4","title":"Another Special Memory 🎬","caption":"A second demo video slot so you can test adding and editing more than one video.","poster":"","alt":"Second demo video"}]},"soundtrack":{"items":[{"id":"track-1","title":"Birthday wishing audio","artist":"","sourceType":"youtube","url":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","cover":""}]},"letter":{"title":"A Letter for My favourite chapter..  💌","paragraphs":["Every laugh, every chat, and every moment we once shared will always hold a special place in my heart.💫","Even though time and things have changed, I'm still grateful for the bond we had and the beautiful energy you brought into my life.","On your birthday, I sincerely wish you endless happiness, peace, and success in everything you do.🌸","You deserve all the joy in the world—keep shining as you always have.✨","Happy Birthday💝"],"signature":"","buttonText":"Again, Happy Birthday Anarkoli.."},"puzzle":{"enabled":true,"name":"","badge":"Name Puzzle","title":"Arrange the Birthday Name","subtitle":"Rearrange the letters below to reveal the hidden name.","hint":"✦ Hint: A name that shines brighter than gold ✦","hintButton":"✦ Hint","resetButton":"↻ Reset","lettersLabel":"Letters","wrongMessage":"✖ Not quite right — the letters will return","resetMessage":"↻ Letters reshuffled — try again!","winBadge":"Name Revealed","winTitle":"Happy Birthday","winMessage":"Wishing you the most magical day,\n{name}\nMay this year bring you everything your heart desires — love, laughter, and dreams fulfilled. 💖","continueButton":"Continue →"},"secret":{"image":"https://picsum.photos/seed/anime4/800/600","imageAlt":"Secret Memory","buttonText":"See Your Friend","buttonIcon":"instagram","socialPlatform":"Instagram","socialUrl":"https://www.instagram.com/rafahimn"},"theme":{"main":"#ff69b4","secondary":"#9b6dff","accent":"#d4145a","button":"#ff69b4","text":"#4a4a4a","glow":"#ffb6d9","overlay":"linear-gradient(135deg, rgba(255,192,203,0.3), rgba(147,112,219,0.3))","backgroundImage":"","backgroundVideo":"https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp4","mode":"light","fontPreset":"original","animationIntensity":"full"},"effects":{"butterflies":true,"flowers":true,"hearts":true,"sparkles":true,"customCursor":true,"confetti":true,"smoke":true,"soundEffects":true,"vibration":true,"microphone":true}};
+  const DEFAULT = {"recipientName":"Anarkoli","senderName":"","age":17,"birthdayDate":"2030-01-08","birthdayTime":"00:00","timezone":"Asia/Dhaka","pageTitle":"Something's Coming 💫","browserTitle":"Loading... 💫","ogTitle":"Something's Coming 💫","ogDescription":"Tap to open when the time is right ✨","ogImage":"","customSlug":"","countdown":{"title":"Something special is unlocking...⌛","message":"⏰ Something is coming soon...","audioUrl":"https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3","audioEnabled":true},"wishingAudioUrl":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","greeting":{"heading":"Happy Birthday Anarkoli..❤️🎂💫","text":"Hey You Know What! You're the most adorable human i ever met! 💖","enterButton":"Click to enter your world 💕"},"cake":{"cakeText":"happy","birthdayText":"birthday","recipientName":"Anarkoli","ageCandleCount":24,"wishTitle":"Close your eyes and make a wish...","wishSubtitle":"Then blow out the candles 🕯️","micHint":"🎤 Blow into your mic to blow out the candles, or tap them","cakeStatus":"🎉 Cake cut! Happy Birthday! 🎉","cutInstruction":"🔪 Press and drag anywhere on the cake — cut it your way","nextButton":"Enter your storyline 💫","microphoneEnabled":true,"soundEffects":true,"vibration":true},"reasons":{"heading":"Happy birthday princess 👑","note":"","items":[{"id":"reason-1","text":"You're such a kind and wonderful person, and I feel lucky to share such a good bond with you.","emoji":"🌟"},{"id":"reason-2","text":"May your day be filled with love, laughter, and endless joy.","emoji":"💗"},{"id":"reason-3","text":"Wishing you success, happiness, and everything your heart desires.","emoji":"💕"},{"id":"reason-4","text":"Stay the amazing girl you are—always spreading positivity around. Have the happiest year ahead! 🥳","emoji":"🌟"}],"buttonText":"Click Here... 💕","finalButtonText":"You're the BESTEST ! 💖"},"memories":{"heading":"The Beautiful Moments ","subtitle":"Every moment spent with you has been magical. Let's cherish these precious memories Anarkoli...","nextButton":"Again Your Storylane 🎥","items":[{"id":"memory-1","url":"https://picsum.photos/seed/anime1/800/600","title":"A Magical Reflection 💖","caption":"A reflection of pure grace, elegance, and unmatched beauty. 🌹👑","date":"A Magical Reflection 💖","alt":"Anime 1"},{"id":"memory-2","url":"https://picsum.photos/seed/anime2/800/600","title":"Lost in Anime Lore","caption":"May your journey ahead be filled with happiness, success, and endless smiles😊💕","date":"Lost in Anime Lore","alt":"Anime 2"},{"id":"memory-3","url":"https://picsum.photos/seed/anime3/800/600","title":"Her Smile Says It All","caption":"You're truly one of the sweetest girls I know, and I feel lucky to have a person like you❤️","date":"Her Smile Says It All","alt":"Anime 3"},{"id":"memory-4","url":"https://picsum.photos/seed/anime4/800/600","title":"One More Beautiful Memory","caption":"A little extra memory to make this story even more special. ✨💖","date":"One More Beautiful Memory","alt":"Anime 4"}]},"videos":{"title":"A Special Video Message","nextButton":"See your letter 💌","items":[{"id":"video-1","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4","title":"Happy Birthday Anarkoli ❤️🎂","caption":"A little birthday video message just for this special story. 🎥💖","poster":"","alt":"Happy Birthday video"},{"id":"video-2","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4","title":"Another Special Memory 🎬","caption":"A second demo video slot so you can test adding and editing more than one video.","poster":"","alt":"Second demo video"}]},"soundtrack":{"items":[{"id":"track-1","title":"Birthday wishing audio","artist":"","sourceType":"youtube","url":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","cover":""}]},"letter":{"title":"A Letter for My favourite chapter..  💌","paragraphs":["Every laugh, every chat, and every moment we once shared will always hold a special place in my heart.💫","Even though time and things have changed, I'm still grateful for the bond we had and the beautiful energy you brought into my life.","On your birthday, I sincerely wish you endless happiness, peace, and success in everything you do.🌸","You deserve all the joy in the world—keep shining as you always have.✨","Happy Birthday💝"],"signature":"","buttonText":"Again, Happy Birthday Anarkoli.."},"puzzle":{"enabled":true,"word":"","name":"","badge":"Word Puzzle","title":"Arrange the Secret Word","subtitle":"Rearrange the letters below to reveal the hidden word.","hint":"","hintButton":"Hint","resetButton":"Reset","lettersLabel":"Letters","wrongMessage":"✖ Not quite right — the letters will return","resetMessage":"↻ Letters reshuffled — try again!","winBadge":"Name Revealed","winTitle":"Happy Birthday","winMessage":"Wishing you the most magical day,\n{name}\nMay this year bring you everything your heart desires — love, laughter, and dreams fulfilled. 💖","continueButton":"Continue"},"secret":{"image":"https://picsum.photos/seed/anime4/800/600","imageAlt":"Secret Memory","buttonText":"See Your Friend","buttonIcon":"instagram","socialPlatform":"Instagram","socialUrl":"https://www.instagram.com/rafahimn"},"theme":{"main":"#ff69b4","secondary":"#9b6dff","accent":"#d4145a","button":"#ff69b4","text":"#4a4a4a","glow":"#ffb6d9","overlay":"linear-gradient(135deg, rgba(255,192,203,0.3), rgba(147,112,219,0.3))","backgroundImage":"","backgroundVideo":"https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp4","mode":"light","fontPreset":"original","animationIntensity":"full"},"effects":{"butterflies":true,"flowers":true,"hearts":true,"sparkles":true,"customCursor":true,"confetti":true,"smoke":true,"soundEffects":true,"vibration":true,"microphone":true}};
   // Reset/default target is controlled by lib/master-birthday.ts (2030-01-08).
   DEFAULT.birthdayDate = '2030-01-08';
   DEFAULT.birthdayTime = '00:00';
@@ -2674,7 +2727,7 @@
   // Owned by this runtime so Edit / Preview / Live / Demo all share one flow.
   // Navigation helpers (goToPuzzleScreen / goToSecretScreen) live in the first
   // script block; they call window.__bbPuzzle.enter() when the screen opens.
-  const PZ_MAX = 12;
+  const PZ_MAX = 20;
   let PZ_MARK, PZ_ALNUM, PZ_VIRAMA;
   try { PZ_MARK = new RegExp('[\\p{M}\\u200c\\u200d]', 'u'); PZ_ALNUM = new RegExp('[\\p{L}\\p{N}]', 'u'); }
   catch (_) { PZ_MARK = /[\u0300-\u036f\u0900-\u0903\u093a-\u094f\u0980-\u0983\u09bc-\u09d7\u200c\u200d]/; PZ_ALNUM = /[A-Za-z0-9\u00c0-\u024f\u0900-\u097f\u0980-\u09ff]/; }
@@ -2690,18 +2743,36 @@
     }
     return out;
   }
+  // The answer can be ANY word. Priority: puzzle.word -> (legacy) puzzle.name -> recipient name.
   function pzRawName() {
-    return String(state.puzzle?.name || '').trim() || String(state.recipientName || '').trim() || String(state.cake?.recipientName || '').trim();
+    return String(state.puzzle?.word || '').trim() || String(state.puzzle?.name || '').trim() || String(state.recipientName || '').trim() || String(state.cake?.recipientName || '').trim();
   }
-  function pzDisplayName() { return pzRawName().replace(/[\s.\u2026\u00b7,!?\-_~]+$/g, '') || pzRawName(); }
+  function pzTrim(v) { v = String(v || ''); return v.replace(/[\s.\u2026\u00b7,!?\-_~]+$/g, '') || v; }
+  function pzDisplayWord() { return pzTrim(pzRawName()); }
+  // {name} on the success page = the recipient (or legacy puzzle name); {word} = the puzzle answer.
+  function pzDisplayName() {
+    return pzTrim(String(state.puzzle?.name || '').trim() || String(state.recipientName || '').trim() || String(state.cake?.recipientName || '').trim() || pzRawName());
+  }
+  const PZ_OLD_DEFAULT_HINT = '\u2726 Hint: A name that shines brighter than gold \u2726';
+  // Auto hint: built from the word itself, so any word gets a useful hint.
+  function pzAutoHint() {
+    const l = pz.target && pz.target.length ? pz.target : pzLetters();
+    if (!l.length) return '';
+    const parts = [l.length + ' letters'];
+    parts.push('starts with \u201c' + l[0] + '\u201d');
+    if (l.length > 3) parts.push('ends with \u201c' + l[l.length - 1] + '\u201d');
+    return '\u2726 Hint: ' + parts.join(' \u00b7 ') + ' \u2726';
+  }
+  function pzHintLine() {
+    const raw = String(state.puzzle?.hint ?? '').trim();
+    if (!raw || raw === PZ_OLD_DEFAULT_HINT) return pzAutoHint();
+    const l = pzLetters();
+    return raw.replace(/\{count\}/g, String(l.length)).replace(/\{first\}/g, l[0] || '').replace(/\{last\}/g, l[l.length - 1] || '');
+  }
   function pzLetters() {
     const raw = pzRawName();
     let cl = pzClusters(raw);
-    if (cl.length > PZ_MAX) {
-      const first = pzClusters(raw.split(/\s+/).filter(Boolean)[0] || '');
-      if (first.length >= 3) cl = first;
-      cl = cl.slice(0, PZ_MAX);
-    }
+    if (cl.length > PZ_MAX) cl = cl.slice(0, PZ_MAX);
     return cl.map(c => c.toLocaleUpperCase());
   }
   function pzAvailable() { return state.puzzle?.enabled !== false && pzLetters().length >= 2; }
@@ -2735,7 +2806,7 @@
   function pzProgress(label) {
     const total = pz.slots.length || 1, filled = pz.slots.filter(s => s !== null).length, pct = Math.round(filled / total * 100);
     const f = q('#pzProgressFill'); if (f) f.style.width = pct + '%';
-    const l = q('#pzProgressLabel'); if (l) l.textContent = label || (pct === 100 ? 'All letters placed \u2014 verifying\u2026' : pct + '% Revealed');
+    const l = q('#pzProgressLabel'); if (l) l.textContent = label || (pct === 100 ? 'All letters placed \u2014 verifying\u2026' : pct + '% Revealed \u00b7 ' + pz.slots.length + ' letters');
   }
   function pzActivateKey(fn) { return e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } }; }
   function pzRender() {
@@ -2743,7 +2814,8 @@
     // Balanced rows: one row when it fits, otherwise split evenly (e.g. 8 -> 4+4, 12 -> 6+6).
     try {
       const n = pz.slots.length, wide = window.matchMedia('(min-width:600px)').matches, one = wide ? 8 : 5;
-      q('#pzCard')?.style.setProperty('--pz-cols', String(n <= one ? Math.max(n, 1) : Math.ceil(n / 2)));
+      const rows = Math.max(1, Math.ceil(n / one));
+      q('#pzCard')?.style.setProperty('--pz-cols', String(Math.max(1, Math.ceil(n / rows))));
     } catch (_) {}
     slotsEl.innerHTML = ''; tilesEl.innerHTML = '';
     pz.slots.forEach((tileId, i) => {
@@ -2772,6 +2844,9 @@
       }
       tilesEl.appendChild(t);
     });
+    // Every letter box / tile opens the "Puzzle word" edit box while editing.
+    qa('#pzSlots .pz-slot, #pzTiles .pz-tile').forEach(el => el.setAttribute('data-bb-key', 'mb.puzzle.word'));
+    try { markEditableTargets(); } catch (_) {}
   }
   function pzSparkle(el) {
     if (!pzFx() || state.effects?.sparkles === false || !el) return;
@@ -2862,16 +2937,16 @@
     const name = pzDisplayName();
     String(state.puzzle?.winMessage ?? DEFAULT.puzzle.winMessage).split('\n').forEach((line, li) => {
       if (li > 0) box.appendChild(document.createElement('br'));
-      line.split('{name}').forEach((part, pi) => {
-        if (pi > 0) { const sp = document.createElement('span'); sp.className = 'pz-name'; sp.textContent = name; box.appendChild(sp); }
-        if (part) box.appendChild(document.createTextNode(part));
+      line.split(/(\{name\}|\{word\})/).forEach(part => {
+        if (part === '{name}' || part === '{word}') { const sp = document.createElement('span'); sp.className = 'pz-name'; sp.textContent = part === '{word}' ? pzDisplayWord() : name; box.appendChild(sp); }
+        else if (part) box.appendChild(document.createTextNode(part));
       });
     });
   }
   function applyPuzzle() {
     const p = Object.assign({}, DEFAULT.puzzle, state.puzzle || {});
     const set = (sel, v) => { const el = q(sel); if (el) el.textContent = String(v ?? ''); };
-    set('#pzBadge', p.badge); set('#pzTitle', p.title); set('#pzSub', p.subtitle); set('#pzHint', p.hint);
+    set('#pzBadge', p.badge); set('#pzTitle', p.title); set('#pzSub', p.subtitle);
     set('#pzHintBtn', p.hintButton); set('#pzResetBtn', p.resetButton); set('#pzTilesLabel', p.lettersLabel);
     set('#pzWinBadge', p.winBadge); set('#pzWinTitle', p.winTitle); set('#pzContinueBtn', p.continueButton);
     pzBuildWinMessage();
@@ -2879,6 +2954,7 @@
     // If the name changed (editor live update) rebuild the board for the new name.
     const letters = pzLetters();
     if (letters.join('|') !== pz.sig || !pz.tiles.length) { pzReset(letters); }
+    set('#pzHint', pzHintLine());
     pzRender(); pzProgress(pz.solved ? '\u2726 Solved \u2726' : undefined);
   }
   function pzEnter() {
@@ -2886,12 +2962,13 @@
     if (letters.join('|') !== pz.sig || !pz.tiles.length || (pz.locked && !pz.solved)) pzReset(letters);
     if (pz.solved && !window.__BB_EDITOR_MODE) { pzView(true); }
     else { pzView(false); }
+    const hl = q('#pzHint'); if (hl) hl.textContent = pzHintLine();
     pzRender(); pzProgress(pz.solved ? '\u2726 Solved \u2726' : undefined);
   }
   q('#pzHintBtn')?.addEventListener('click', pzHint);
   q('#pzResetBtn')?.addEventListener('click', pzResetGame);
   q('#pzContinueBtn')?.addEventListener('click', () => { if (window.__BB_EDITOR_MODE) return; window.goToSecretScreen && window.goToSecretScreen('puzzleScreen'); });
-  window.__bbPuzzle = { enter: pzEnter, isAvailable: pzAvailable, leave: pzClearTimers };
+  window.__bbPuzzle = { enter: pzEnter, isAvailable: pzAvailable, leave: pzClearTimers, showWin: function (on) { pzView(!!on); } };
 
   function syncAudioToggle(){
     const btn=q('#bbAudioToggle'); if(!btn)return;
@@ -3384,7 +3461,7 @@
 
   });
 
-  const EDITOR_TARGET_SELECTOR='[data-bb-key],h1,h2,h3,h4,p,text,button,img,video,.photo-card,.photo-date,.photo-caption,.video-card,.bb-video-caption,.bb-editor-audio-control,.bb-editor-link-edit,.bb-inline-edit-control,.reason-card,.reason-card .reason-text,.countdown-box,.count-item,.count-number';
+  const EDITOR_TARGET_SELECTOR='[data-bb-key],.pz-slot,.pz-tile,#pzWinMsg,#pzWinBadge,h1,h2,h3,h4,p,text,button,img,video,.photo-card,.photo-date,.photo-caption,.video-card,.bb-video-caption,.bb-editor-audio-control,.bb-editor-link-edit,.bb-inline-edit-control,.reason-card,.reason-card .reason-text,.countdown-box,.count-item,.count-number';
   function markEditableTargets(){
     qa(EDITOR_TARGET_SELECTOR).forEach(el=>{
       if(el.closest('#bbAudioToggle') || el.closest('.lightbox') || el.id==='tableKnife') return;
@@ -3428,10 +3505,16 @@
     if(t.matches('#letterScreen .letter-container h2')) return {key:'mb.letter.title',label:'Letter title',value:t.innerText,kind:'text'};
     if(t.matches('#letterContent p')){const lines=qa('#letterContent p');return {key:'mb.letter.paragraphs',label:`Letter paragraph ${lines.indexOf(t)+1}`,index:lines.indexOf(t),value:t.innerText,kind:'text'};}
     if(t.matches('.letter-return-btn')) return {key:'mb.letter.buttonText',label:'Letter button',value:t.innerText,kind:'button'};
+    if(t.matches('.pz-slot, .pz-tile')) return {key:'mb.puzzle.word',label:'Puzzle word',value:pzDisplayWord(),kind:'text'};
+    if(t.matches('#pzTilesLabel')) return {key:'mb.puzzle.lettersLabel',label:'Letters label',value:t.innerText,kind:'text'};
+    if(t.matches('#pzWinBadge')) return {key:'mb.puzzle.winBadge',label:'Success badge',value:t.innerText,kind:'text'};
+    if(t.matches('#pzWinTitle')) return {key:'mb.puzzle.winTitle',label:'Success title',value:t.innerText,kind:'text'};
+    if(t.matches('#pzWinMsg')) return {key:'mb.puzzle.winMessage',label:'Success message',value:String(state.puzzle?.winMessage ?? DEFAULT.puzzle.winMessage),kind:'text'};
+    if(t.matches('#pzContinueBtn')) return {key:'mb.puzzle.continueButton',label:'Continue button',value:t.innerText,kind:'button'};
     if(t.matches('#pzBadge')) return {key:'mb.puzzle.badge',label:'Puzzle badge',value:t.innerText,kind:'text'};
     if(t.matches('#pzTitle')) return {key:'mb.puzzle.title',label:'Puzzle title',value:t.innerText,kind:'text'};
     if(t.matches('#pzSub')) return {key:'mb.puzzle.subtitle',label:'Puzzle instructions',value:t.innerText,kind:'text'};
-    if(t.matches('#pzHint')) return {key:'mb.puzzle.hint',label:'Puzzle hint line',value:t.innerText,kind:'text'};
+    if(t.matches('#pzHint')) return {key:'mb.puzzle.hint',label:'Puzzle hint line',value:String(state.puzzle?.hint||'')||t.innerText,kind:'text'};
     if(t.matches('#pzHintBtn')) return {key:'mb.puzzle.hintButton',label:'Hint button',value:t.innerText,kind:'button'};
     if(t.matches('#pzResetBtn')) return {key:'mb.puzzle.resetButton',label:'Reset button',value:t.innerText,kind:'button'};
     if(t.matches('#secretScreen .secret-photo')) return {key:'mb.secret.image',label:'Secret image',kind:'image'};
@@ -3470,10 +3553,11 @@
 
   // Ensure navigation state is visible to the editor without changing the source flow.
   const pushHistory=window.updateHistory;
-  const editorScreenOrder=['countdown','greeting','cake','reasons','photo','video','letter','puzzle','secret'];
+  const editorScreenOrder=['countdown','greeting','cake','reasons','photo','video','letter','puzzle','puzzleWin','secret'];
   let editorHistoryIndex=0;
   function currentEditorScreen(){
     const visible=editorScreenOrder.find(screen=>{
+      if(screen==='puzzleWin') return !!q('#puzzleScreen')?.classList.contains('show') && !!q('#pzWin')?.classList.contains('show');
       if(screen==='countdown') return !q('#countdownScreen')?.classList.contains('hide');
       const el=q('#'+({greeting:'greetingScreen',cake:'cakeScreen',reasons:'reasonsScreen',photo:'photoScreen',video:'videoScreen',letter:'letterScreen',puzzle:'puzzleScreen',secret:'secretScreen'}[screen]||''));
       return !!el?.classList.contains('show');
@@ -3537,7 +3621,12 @@
     }
     if(nextScreen==='letter') { try { resetEnvelope?.(); } catch(_) {} }
     if(nextScreen==='cake') { try { loadCakeState?.(); } catch(_) {} }
-    showScreen(nextScreen);
+    // Puzzle has two editor pages: the game, then the "puzzle solved" page.
+    showScreen(nextScreen==='puzzleWin' ? 'puzzle' : nextScreen);
+    if(nextScreen==='puzzle' || nextScreen==='puzzleWin'){
+      try { window.__bbPuzzle?.showWin(nextScreen==='puzzleWin'); } catch(_) {}
+      editorHistoryIndex=editorScreenOrder.indexOf(nextScreen);
+    }
     if(nextScreen==='letter' && window.__BB_EDITOR_MODE){
       try {
         const scene = q('#envelopeScene');
