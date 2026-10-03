@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cloud, Sun, Battery, Heart, Frown, Smile, Play, Pause, Volume2, Mic, Shrink } from 'lucide-react';
-import { getSiteConfig } from '../utils/siteConfig';
+import { useSiteConfig, useEditorMode, bb, t } from '../utils/siteConfig';
 
 interface Mood {
   id: string;
@@ -64,7 +64,8 @@ const DEFAULT_MOODS: Mood[] = [
 ];
 
 export const ComfortCorner: React.FC = () => {
-  const siteConfig = getSiteConfig();
+  const siteConfig = useSiteConfig();
+  const editor = useEditorMode();
   const overrides = siteConfig.comfortResponses || {};
   const MOODS: Mood[] = DEFAULT_MOODS.map((mood) => {
     const o = overrides[mood.id];
@@ -80,11 +81,11 @@ export const ComfortCorner: React.FC = () => {
   return (
     <section className="w-full max-w-4xl mx-auto px-4 py-12 text-center">
       <div className="mb-10">
-        <h2 className="font-serif text-3xl md:text-5xl mb-4 text-love-text dark:text-love-dark-text tracking-tight">
-          Comfort Corner
+        <h2 className="font-serif text-3xl md:text-5xl mb-4 text-love-text dark:text-love-dark-text tracking-tight" {...bb('texts.comfortTitle', 'Comfort corner title')}>
+          {t(siteConfig, 'comfortTitle')}
         </h2>
-        <p className="font-sans text-xs md:text-sm tracking-[0.2em] uppercase text-love-accent dark:text-love-dark-accent/80 font-medium">
-          A safe space for any emotions you may be feeling
+        <p className="font-sans text-xs md:text-sm tracking-[0.2em] uppercase text-love-accent dark:text-love-dark-accent/80 font-medium" {...bb('texts.comfortSubtitle', 'Comfort corner subtitle')}>
+          {t(siteConfig, 'comfortSubtitle')}
         </p>
         <div className="w-16 h-[1px] bg-love-accent/30 dark:bg-love-dark-accent/30 mx-auto mt-6"></div>
       </div>
@@ -109,14 +110,25 @@ export const ComfortCorner: React.FC = () => {
               {React.cloneElement(mood.icon as React.ReactElement, {
                 className: `w-4 h-4 ${isActive ? 'text-white' : 'text-current'}`
               })}
-              <span>{mood.label}</span>
+              <span {...(editor ? bb(`comfortResponses.${mood.id}`, `${mood.label} — button & message`) : {})}>{mood.label}</span>
             </motion.button>
           );
         })}
       </div>
 
+      {editor && (
+        <div className="mx-auto grid max-w-4xl grid-cols-1 gap-4 text-left md:grid-cols-2">
+          {MOODS.map((mood) => (
+            <div key={mood.id} className="rounded-2xl border border-love-accent/20 bg-white p-6 shadow-md dark:bg-zinc-800/80" {...bb(`comfortResponses.${mood.id}`, `${mood.label} — button & message`)}>
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-love-accent">{mood.label}</p>
+              <p className="font-serif italic leading-relaxed text-gray-700 dark:text-gray-200">"{mood.response}"</p>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Content Area */}
-      <div className="min-h-[350px] flex items-center justify-center relative">
+      <div className={`min-h-[350px] flex items-center justify-center relative ${editor ? 'hidden' : ''}`}>
         <AnimatePresence mode="wait">
           {activeMood ? (
             <motion.div
@@ -158,7 +170,7 @@ export const ComfortCorner: React.FC = () => {
               className="flex flex-col items-center gap-6 text-love-accent/30 dark:text-love-dark-accent/30 pointer-events-none select-none"
             >
               <Heart className="w-16 h-16 stroke-[0.5]" />
-              <p className="text-xs uppercase tracking-[0.3em] font-medium opacity-60">Select a feeling to minimize the distance</p>
+              <p className="text-xs uppercase tracking-[0.3em] font-medium opacity-60" {...bb('texts.comfortHint', 'Comfort corner hint')}>{t(siteConfig, 'comfortHint')}</p>
             </motion.div>
           )}
         </AnimatePresence>

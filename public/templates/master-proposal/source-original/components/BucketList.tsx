@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Star, Plane, GraduationCap, Dog, Home, Camera } from 'lucide-react';
-import { getSiteConfig } from '../utils/siteConfig';
+import { useSiteConfig, useEditorMode, bb, t } from '../utils/siteConfig';
 
 interface BucketItem {
   id: string;
@@ -19,7 +19,8 @@ const DEFAULT_BUCKET_ITEMS: BucketItem[] = [
 ];
 
 export const BucketList: React.FC = () => {
-  const siteConfig = getSiteConfig();
+  const siteConfig = useSiteConfig();
+  const editor = useEditorMode();
   const BUCKET_ITEMS: BucketItem[] = siteConfig.bucketList?.length
     ? siteConfig.bucketList.map((text, i) => ({ id: String(i), text, icon: DEFAULT_BUCKET_ITEMS[i % DEFAULT_BUCKET_ITEMS.length].icon }))
     : DEFAULT_BUCKET_ITEMS;
@@ -37,11 +38,11 @@ export const BucketList: React.FC = () => {
   return (
     <div className="w-full max-w-3xl mx-auto px-6">
       <div className="text-center mb-16">
-        <h2 className="font-serif text-3xl md:text-5xl mb-4 text-love-text dark:text-love-dark-text">
-          Our Bucket List
+        <h2 className="font-serif text-3xl md:text-5xl mb-4 text-love-text dark:text-love-dark-text" {...bb('texts.bucketTitle', 'Bucket list title')}>
+          {t(siteConfig, 'bucketTitle')}
         </h2>
-        <p className="text-love-accent dark:text-love-dark-accent/80 text-sm md:text-base tracking-wide uppercase">
-          Dreams for Someday
+        <p className="text-love-accent dark:text-love-dark-accent/80 text-sm md:text-base tracking-wide uppercase" {...bb('texts.bucketSubtitle', 'Bucket list subtitle')}>
+          {t(siteConfig, 'bucketSubtitle')}
         </p>
       </div>
 
@@ -82,7 +83,7 @@ export const BucketList: React.FC = () => {
                   ? 'text-love-text dark:text-love-dark-text line-through opacity-60 decoration-love-accent' 
                   : 'text-love-text dark:text-love-dark-text'}
               `}>
-                {item.text}
+                <span {...(editor ? bb('bucketList', `Bucket list item ${index + 1}`, index) : {})}>{item.text}</span>
               </span>
 
               {/* Subtle background fill animation */}
@@ -92,8 +93,14 @@ export const BucketList: React.FC = () => {
         })}
       </div>
       
-      <p className="mt-12 text-center text-xs text-love-text/40 dark:text-love-dark-text/40 italic font-serif">
-        Checking these off, one by one, with you.
+      {editor && (
+        <div className="mt-8 flex justify-center">
+          <div className="cursor-pointer rounded-full border border-dashed border-love-accent/60 px-6 py-3 text-xs uppercase tracking-widest text-love-accent" {...bb('bucketList', 'Add a bucket list item', BUCKET_ITEMS.length)}>＋ Add a dream</div>
+        </div>
+      )}
+
+      <p className="mt-12 text-center text-xs text-love-text/40 dark:text-love-dark-text/40 italic font-serif" {...bb('texts.bucketFooter', 'Bucket list footer line')}>
+        {t(siteConfig, 'bucketFooter')}
       </p>
     </div>
   );

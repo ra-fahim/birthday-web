@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Utensils, Map, BookOpen, Send, Ticket, Heart, Clock, Sparkles, Palette, Coffee, Building2, Feather, Gamepad2, Loader2 } from 'lucide-react';
 import { Toast } from './Toast';
 import { getTicketConfig } from '../utils/ticketConfig';
-import { getSiteConfig } from '../utils/siteConfig';
+import { useSiteConfig, useEditorMode, bb } from '../utils/siteConfig';
 
 interface DateOption {
   id: string;
@@ -84,7 +84,8 @@ const DEFAULT_DATE_OPTIONS: DateOption[] = [
 ];
 
 export const DatePlanner: React.FC = () => {
-  const siteConfig = getSiteConfig();
+  const siteConfig = useSiteConfig();
+  const editor = useEditorMode();
   const planner = siteConfig.datePlanner || {};
   const HEADING = planner.heading?.trim() || "Let's Plan Our Date Together";
   const SUBTITLE = planner.subtitle?.trim() || 'Pick what your heart desires.';
@@ -108,7 +109,9 @@ export const DatePlanner: React.FC = () => {
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [isSending, setIsSending] = useState(false);
 
-  const selectedOption = DATE_OPTIONS.find(opt => opt.id === selected);
+  // Editing: the first plan ticket is always shown so its text can be clicked and edited.
+  const selectedOption = DATE_OPTIONS.find(opt => opt.id === selected) || (editor ? DATE_OPTIONS[0] : undefined);
+  const selectedIndex = selectedOption ? DATE_OPTIONS.indexOf(selectedOption) : -1;
 
   const handleSendTicket = async () => {
     if (!selectedOption || isSending) return;
@@ -251,6 +254,12 @@ ${config.fromLabel}
         ))}
       </div>
 
+      {editor && (
+        <div className="mb-6 inline-block cursor-pointer rounded-full border border-dashed border-love-accent/50 px-5 py-2 text-xs uppercase tracking-widest text-love-accent" {...bb('ticketSettings', 'Ticket delivery (who receives it)')}>
+          🎫 Ticket delivery: {getTicketConfig().toName} ← {getTicketConfig().fromName}
+        </div>
+      )}
+
       <div className="min-h-[450px] flex justify-center items-start">
         <AnimatePresence mode="wait">
           {selectedOption ? (
@@ -286,10 +295,10 @@ ${config.fromLabel}
                     <Heart className="w-48 h-48" />
                   </div>
 
-                  <h3 className="font-serif text-2xl md:text-3xl text-love-text dark:text-love-dark-text mb-4">
+                  <h3 className="font-serif text-2xl md:text-3xl text-love-text dark:text-love-dark-text mb-4" {...bb('datePlanner.options', `Date option ${selectedIndex + 1} — plan title`, selectedIndex)}>
                     {selectedOption.planTitle}
                   </h3>
-                  <p className="text-sm md:text-base text-love-text/70 dark:text-love-dark-text/70 leading-relaxed mb-6">
+                  <p className="text-sm md:text-base text-love-text/70 dark:text-love-dark-text/70 leading-relaxed mb-6" {...bb('datePlanner.options', `Date option ${selectedIndex + 1} — plan description`, selectedIndex)}>
                     {selectedOption.planDescription}
                   </p>
 

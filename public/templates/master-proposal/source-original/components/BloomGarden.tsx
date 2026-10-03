@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flower, Flower2, Heart } from 'lucide-react';
+import { useSiteConfig, bb, t } from '../utils/siteConfig';
 
 interface PlantedFlower {
   id: number;
@@ -20,6 +21,7 @@ const COLORS = [
 ];
 
 export const BloomGarden: React.FC = () => {
+  const siteConfig = useSiteConfig();
   const [flowers, setFlowers] = useState<PlantedFlower[]>([]);
   const [clickCount, setClickCount] = useState(0);
 
@@ -51,14 +53,14 @@ export const BloomGarden: React.FC = () => {
   return (
     <div className="w-full max-w-4xl mx-auto px-6 relative">
       <div className="text-center mb-10">
-        <h2 className="font-serif text-3xl md:text-5xl mb-4 text-love-text dark:text-love-dark-text">
-          The Digital Garden
+        <h2 className="font-serif text-3xl md:text-5xl mb-4 text-love-text dark:text-love-dark-text" {...bb('texts.gardenTitle', 'Garden title')}>
+          {t(siteConfig, 'gardenTitle')}
         </h2>
-        <p className="text-love-accent dark:text-love-dark-accent/80 text-sm md:text-base tracking-wide uppercase">
-          I can't bring you flowers every hour, so I built you a garden that never dies.
+        <p className="text-love-accent dark:text-love-dark-accent/80 text-sm md:text-base tracking-wide uppercase" {...bb('texts.gardenSubtitle', 'Garden subtitle')}>
+          {t(siteConfig, 'gardenSubtitle')}
         </p>
-        <p className="text-xs text-love-text/50 dark:text-love-dark-text/50 mt-2">
-          (Tap anywhere in the box below to plant a flower)
+        <p className="text-xs text-love-text/50 dark:text-love-dark-text/50 mt-2" {...bb('texts.gardenHint', 'Garden hint')}>
+          {t(siteConfig, 'gardenHint')}
         </p>
       </div>
 
@@ -89,8 +91,8 @@ export const BloomGarden: React.FC = () => {
         
         {flowers.length === 0 && (
            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-             <span className="text-love-text/10 dark:text-love-dark-text/10 font-serif text-4xl italic">
-               Plant me...
+             <span className="pointer-events-auto text-love-text/10 dark:text-love-dark-text/10 font-serif text-4xl italic" {...bb('texts.gardenEmpty', 'Garden empty-box text')}>
+               {t(siteConfig, 'gardenEmpty')}
              </span>
            </div>
         )}
@@ -106,8 +108,8 @@ export const BloomGarden: React.FC = () => {
       </div>
 
       <div className="text-center mt-6">
-         <span className="font-serif italic text-love-accent dark:text-love-dark-accent text-lg">
-           {clickCount > 0 ? `${clickCount} flowers planted for you` : "Waiting for your touch..."}
+         <span className="font-serif italic text-love-accent dark:text-love-dark-accent text-lg" {...bb('texts.gardenWaiting', 'Garden counter lines')}>
+           {clickCount > 0 ? t(siteConfig, 'gardenCount').replace('{count}', String(clickCount)) : t(siteConfig, 'gardenWaiting')}
          </span>
       </div>
     </div>

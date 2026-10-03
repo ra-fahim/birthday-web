@@ -98,9 +98,9 @@ export default function AuthExperience({ mode }: { mode: Mode }) {
       <div className="ax-orb ax-orb-b" aria-hidden />
 
       <section className="ax-brand">
-        <Link href="/" className="ax-lockup" aria-label="Wishly home">
+        <Link href="/" className="ax-lockup" aria-label="Wishes home">
           <span className="ax-mark">✦</span>
-          <span><b>Wishly</b><small>Create moments</small></span>
+          <span><b>Wishes</b><small>Create moments</small></span>
         </Link>
 
         <div className="ax-brand-body">
@@ -127,11 +127,11 @@ export default function AuthExperience({ mode }: { mode: Mode }) {
           </ul>
         </div>
 
-        <p className="ax-foot">© Wishly · Made for the moments that matter</p>
+        <p className="ax-foot">© Wishes · Made for the moments that matter</p>
       </section>
 
       <section className="ax-formside">
-        <Link href="/" className="ax-lockup ax-lockup-m" aria-label="Wishly home"><span className="ax-mark">✦</span><span><b>Wishly</b><small>Create moments</small></span></Link>
+        <Link href="/" className="ax-lockup ax-lockup-m" aria-label="Wishes home"><span className="ax-mark">✦</span><span><b>Wishes</b><small>Create moments</small></span></Link>
         <div className="ax-card">
           <div className="ax-tabs" role="tablist" aria-label="Account">
             <Link role="tab" aria-selected={!isSignup} className={!isSignup ? 'on' : ''} href={loginHref}>Log in</Link>
@@ -191,7 +191,7 @@ export default function AuthExperience({ mode }: { mode: Mode }) {
           </form>
 
           <p className="ax-switch">
-            {isSignup ? <>Already have an account? <Link href={loginHref}>Log in</Link></> : <>New to Wishly? <Link href={signupHref}>Create a free account</Link></>}
+            {isSignup ? <>Already have an account? <Link href={loginHref}>Log in</Link></> : <>New to Wishes? <Link href={signupHref}>Create a free account</Link></>}
           </p>
           <p className="ax-legal">Your content stays private until you publish a link.</p>
         </div>

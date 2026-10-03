@@ -166,17 +166,26 @@ function injectBridge(frame: HTMLIFrameElement) {
     if(enabled) postHistory();
   }
   function select(el){
+    // Templates that tag their own content (data-bb-key) get a dedicated editor field, not a DOM-path edit.
+    var kel=el.closest?el.closest('[data-bb-key]:not([data-bb-ignore])'):null;
+    if(kel){
+      var sel={key:kel.getAttribute('data-bb-key'),label:kel.getAttribute('data-bb-label')||kel.getAttribute('data-bb-key'),value:(kel.innerText||kel.textContent||'').trim(),kind:'text'};
+      var ix=kel.getAttribute('data-bb-index');
+      if(ix!==null&&ix!=='') sel.index=Number(ix);
+      parent.postMessage({type:'BB_ELEMENT_SELECTED',selection:sel},'*');
+      return;
+    }
     var k=keyFor(el), e=edits[k]||{}, value='';
     if(el.tagName==='IMG'||el.tagName==='VIDEO'||el.tagName==='AUDIO'||el.tagName==='IFRAME') value=el.getAttribute('src')||'';
     else value=(el.innerText||el.textContent||'').trim();
     parent.postMessage({type:'BB_ELEMENT_SELECTED',selection:{key:k,label:labelFor(el),value:value,kind:kind(el)}},'*');
   }
-  function interactionTarget(target){ return target&&target.closest?target.closest('[data-bb-generic-key],[data-bb-editor-nav],[data-bb-ignore],.bb-inline-edit,.bb-edit-btn,.bb-editor-audio-control,.bb-editor-link-edit,#bb-global-edit-actions'):null; }
+  function interactionTarget(target){ return target&&target.closest?target.closest('[data-bb-generic-key],[data-bb-key]:not([data-bb-ignore]),[data-bb-editor-nav],[data-bb-ignore],.bb-inline-edit,.bb-edit-btn,.bb-editor-audio-control,.bb-editor-link-edit,#bb-global-edit-actions'):null; }
   function guardPointer(e){
     if(!enabled) return;
     var t=interactionTarget(e.target);
     if(t && t.matches('[data-bb-editor-nav],.bb-inline-edit,.bb-edit-btn,.bb-editor-audio-control,.bb-editor-link-edit,#bb-global-edit-actions')) return;
-    if(t && t.matches('[data-bb-generic-key]')) { e.preventDefault(); if(e.type==='click') select(t); e.stopImmediatePropagation(); return; }
+    if(t && t.matches('[data-bb-generic-key],[data-bb-key]')) { e.preventDefault(); if(e.type==='click') select(t); e.stopImmediatePropagation(); return; }
     if(t && t.matches('[data-bb-ignore]')) { e.preventDefault(); e.stopImmediatePropagation(); return; }
     e.preventDefault(); e.stopImmediatePropagation();
   }
@@ -201,7 +210,7 @@ function injectBridge(frame: HTMLIFrameElement) {
     if(Math.hypot(t.clientX-start.x,t.clientY-start.y)>12 || Date.now()-start.time>800) return;
     var el=interactionTarget(e.target);
     if(e.cancelable) e.preventDefault();
-    if(el && el.matches('[data-bb-generic-key]')){ lastTap=Date.now(); select(el); }
+    if(el && el.matches('[data-bb-generic-key],[data-bb-key]')){ lastTap=Date.now(); select(el); }
   },{capture:true,passive:false});
   document.addEventListener('keydown',function(e){
     if(!enabled) return;
@@ -209,7 +218,7 @@ function injectBridge(frame: HTMLIFrameElement) {
     var t=interactionTarget(e.target);
     if(t && t.matches('[data-bb-editor-nav],.bb-inline-edit,.bb-edit-btn,.bb-editor-audio-control,.bb-editor-link-edit,#bb-global-edit-actions')) return;
     e.preventDefault(); e.stopImmediatePropagation();
-    if(t && t.matches('[data-bb-generic-key]')) select(t);
+    if(t && t.matches('[data-bb-generic-key],[data-bb-key]')) select(t);
   },true);
   window.BB_EDITOR_NAVIGATE=window.BB_EDITOR_NAVIGATE||function(delta){
     if(!enabled || !screens.length) return;
@@ -237,6 +246,10 @@ export default function GenericEditableIframe({ title, src, srcDoc, content, edi
     frameRef.current?.contentWindow?.postMessage({ type: 'BB_CANVAS_HISTORY', direction }, '*');
   };
 
+  // Latest values for replying when the template itself asks for its content (BB_CONFIG_REQUEST).
+  const latest = useRef({ editorMode, genericEdits, extraMessages });
+  latest.current = { editorMode, genericEdits, extraMessages };
+
   useEffect(() => {
     const frame = frameRef.current;
     if (!frame) return;
@@ -255,6 +268,13 @@ export default function GenericEditableIframe({ title, src, srcDoc, content, edi
   useEffect(() => {
     const handler = (event: MessageEvent) => {
       if (event.source !== frameRef.current?.contentWindow || !event.data) return;
+      if (event.data.type === 'BB_CONFIG_REQUEST') {
+        const win = frameRef.current?.contentWindow;
+        const cur = latest.current;
+        win?.postMessage({ type: 'BB_EDITOR_MODE', enabled: cur.editorMode }, '*');
+        win?.postMessage({ type: 'BB_GENERIC_EDITS', edits: cur.genericEdits || {} }, '*');
+        (cur.extraMessages || []).forEach((message) => win?.postMessage(message, '*'));
+      }
       if (event.data.type === 'BB_ELEMENT_SELECTED') onElementSelect?.(event.data.selection);
       if (event.data.type === 'BB_CANVAS_HISTORY_STATE') {
         const next = { canBack: !!event.data.canBack, canForward: !!event.data.canForward, screen: event.data.screen || '' };

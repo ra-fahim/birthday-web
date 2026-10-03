@@ -4,34 +4,62 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { ADMIN_MODULES } from '@/lib/admin-nav';
+import { ADMIN_GROUPS } from '@/lib/admin-nav';
 
 export default async function Admin() {
   try { await requireAdmin(); } catch { redirect('/login?error=admin_required'); }
   const [users, sites, templates, demos, media, published] = await Promise.all([
     db.user.count(), db.website.count(), db.template.count(), db.demoSite.count(), db.media.count(), db.website.count({where:{status:'published'}}),
   ]);
-  const modules = ADMIN_MODULES.map(([label,href]) => ({label,href}));
+  const [draft, archived] = await Promise.all([db.website.count({where:{status:'draft'}}), db.website.count({where:{status:'archived'}})]);
+  const kpis: [string, number, string, string, string][] = [
+    ['Users', users, 'All accounts', '👥', 'blue'],
+    ['Live websites', published, 'Currently published', '🌐', 'green'],
+    ['All websites', sites, `${draft} draft · ${archived} archived`, '🎂', 'pink'],
+    ['Media files', media, 'Photos, video and music', '🖼️', 'violet'],
+  ];
+  const quick: [string, string, string, string][] = [
+    ['User 360°', 'Profile, websites, live links and media for any user.', '/admin/users', '👥'],
+    ['Website control', 'Publish, unpublish, archive or remove a website.', '/admin/websites', '🌐'],
+    ['Media library', 'Review uploads and clean up stored files.', '/admin/media', '🖼️'],
+    ['Settings', 'Approval rules, invite link and site options.', '/admin/settings', '⚙️'],
+  ];
 
-  return <main className="mx-auto max-w-7xl px-6 py-8 md:px-10 md:py-10">
-    <div className="admin-hero">
-      <section className="admin-hero-card">
-        <div className="text-xs font-black uppercase tracking-[.18em] text-pink-300">Wishly Control Room</div>
-        <h1 className="mt-3 text-4xl font-black tracking-tight md:text-5xl">Everything under control.</h1>
-        <p className="mt-4 max-w-xl text-sm leading-7">See every user, every celebration, every uploaded file and every live link from one place. Open a user's 360° view whenever you need the full story.</p>
-        <div className="mt-6 flex flex-wrap gap-2"><Link className="rounded-xl bg-white px-4 py-2 text-sm font-extrabold text-slate-900" href="/admin/users">View all users</Link><Link className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-extrabold text-white" href="/admin/websites">Manage websites</Link></div>
-      </section>
-      <section className="admin-kpis">
-        {[['Users',users,'All accounts'],['Live websites',published,'Currently published'],['All websites',sites,'Draft + live + archived'],['Media files',media,'Photos, video and music']].map(([a,b,c])=><div className="admin-kpi" key={String(a)}><span>{a}</span><b>{Number(b).toLocaleString()}</b><small>{c}</small></div>)}
-      </section>
-    </div>
+  return <main className="adm-page">
+    <section className="adm-hero">
+      <div>
+        <span className="adm-eyebrow">Wishes Control Room</span>
+        <h1>Everything under control.</h1>
+        <p>See every user, every celebration, every uploaded file and every live link from one place.</p>
+        <div className="adm-hero-actions">
+          <Link className="adm-btn adm-btn-light" href="/admin/users">View all users</Link>
+          <Link className="adm-btn adm-btn-ghost" href="/admin/websites">Manage websites</Link>
+        </div>
+      </div>
+      <div className="adm-hero-art" aria-hidden><span>✦</span><span>♥</span><span>🎂</span></div>
+    </section>
 
-    <div className="mt-8 grid gap-4 md:grid-cols-3">
-      <Link href="/admin/users" className="card block p-5 transition hover:-translate-y-0.5"><span className="text-xs font-black uppercase tracking-[.15em] text-blue-500">01</span><h2 className="mt-2 text-lg font-black">User 360°</h2><p className="mt-2 text-sm leading-6 text-zinc-500">Open any user and see their profile, all websites, live links and uploaded media.</p></Link>
-      <Link href="/admin/websites" className="card block p-5 transition hover:-translate-y-0.5"><span className="text-xs font-black uppercase tracking-[.15em] text-pink-500">02</span><h2 className="mt-2 text-lg font-black">Website control</h2><p className="mt-2 text-sm leading-6 text-zinc-500">Publish, unpublish, archive or permanently remove a user's website and its media.</p></Link>
-      <Link href="/admin/media" className="card block p-5 transition hover:-translate-y-0.5"><span className="text-xs font-black uppercase tracking-[.15em] text-emerald-500">03</span><h2 className="mt-2 text-lg font-black">Media library</h2><p className="mt-2 text-sm leading-6 text-zinc-500">Review stored uploads and clean up files when needed.</p></Link>
-    </div>
+    <section className="adm-kpi-grid">
+      {kpis.map(([label, value, sub, icon, tone]) => <div className={`adm-kpi tone-${tone}`} key={label}>
+        <div className="adm-kpi-ico">{icon}</div>
+        <div><span>{label}</span><b>{Number(value).toLocaleString()}</b><small>{sub}</small></div>
+      </div>)}
+    </section>
 
-    <div className="mt-10"><div className="mb-4"><h2 className="text-xl font-black">Admin modules</h2><p className="mt-1 text-sm text-zinc-500">Everything else is one click away.</p></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{modules.map((m,i)=><Link href={m.href} key={m.href} className="card p-4 transition hover:bg-white/10"><div className="flex items-center justify-between"><b className="text-sm">{m.label}</b><span className="text-xs text-zinc-400">{String(i+1).padStart(2,'0')}</span></div><p className="mt-2 text-xs text-zinc-500">Open →</p></Link>)}</div></div>
+    <section className="adm-section">
+      <div className="adm-section-head"><h2>Quick actions</h2><p>The things you will do most often.</p></div>
+      <div className="adm-quick-grid">
+        {quick.map(([title, text, href, icon]) => <Link key={href} href={href} className="adm-quick">
+          <span className="adm-quick-ico">{icon}</span><h3>{title}</h3><p>{text}</p><em>Open →</em>
+        </Link>)}
+      </div>
+    </section>
+
+    {ADMIN_GROUPS.filter(([g]) => g !== 'Overview').map(([group, items]) => <section className="adm-section" key={group}>
+      <div className="adm-section-head"><h2>{group}</h2></div>
+      <div className="adm-module-grid">
+        {items.map(([label, href, icon]) => <Link key={href} href={href} className="adm-module"><span>{icon}</span><b>{label}</b><i>→</i></Link>)}
+      </div>
+    </section>)}
   </main>;
 }

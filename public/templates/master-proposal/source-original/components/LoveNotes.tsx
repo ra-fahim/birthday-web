@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Sparkles, RefreshCw, X } from 'lucide-react';
-import { getSiteConfig } from '../utils/siteConfig';
+import { useSiteConfig, useEditorMode, bb, t } from '../utils/siteConfig';
 
 const DEFAULT_NOTES = [
   "I love how hard you work for your dreams.",
@@ -23,7 +23,8 @@ const DEFAULT_NOTES = [
 ];
 
 export const LoveNotes: React.FC = () => {
-  const siteConfig = getSiteConfig();
+  const siteConfig = useSiteConfig();
+  const editor = useEditorMode();
   const NOTES = siteConfig.loveNotes?.length ? siteConfig.loveNotes : DEFAULT_NOTES;
   const [currentNote, setCurrentNote] = useState<string | null>(null);
   const [isShaking, setIsShaking] = useState(false);
@@ -48,11 +49,11 @@ export const LoveNotes: React.FC = () => {
   return (
     <div className="w-full max-w-2xl mx-auto px-6 text-center">
       <div className="mb-12">
-        <h2 className="font-serif text-3xl md:text-5xl mb-4 text-love-text dark:text-love-dark-text">
-          The Love Jar
+        <h2 className="font-serif text-3xl md:text-5xl mb-4 text-love-text dark:text-love-dark-text" {...bb('texts.jarTitle', 'Love jar title')}>
+          {t(siteConfig, 'jarTitle')}
         </h2>
-        <p className="text-love-accent dark:text-love-dark-accent/80 text-sm md:text-base tracking-wide uppercase">
-          Pull a note whenever you need a reminder
+        <p className="text-love-accent dark:text-love-dark-accent/80 text-sm md:text-base tracking-wide uppercase" {...bb('texts.jarSubtitle', 'Love jar subtitle')}>
+          {t(siteConfig, 'jarSubtitle')}
         </p>
       </div>
 
@@ -93,7 +94,7 @@ export const LoveNotes: React.FC = () => {
           
           <div className="mt-8">
              <button className="px-6 py-2 rounded-full bg-love-accent/10 dark:bg-love-dark-accent/10 text-love-accent dark:text-love-dark-accent text-sm font-medium uppercase tracking-widest hover:bg-love-accent hover:text-white dark:hover:bg-love-dark-accent dark:hover:text-love-dark-bg transition-colors duration-300">
-               {isShaking ? "Shaking..." : "Pull a Note"}
+               {isShaking ? "Shaking..." : <span {...bb('texts.jarButton', 'Pull-a-note button')}>{t(siteConfig, 'jarButton')}</span>}
              </button>
           </div>
         </motion.div>
@@ -150,6 +151,18 @@ export const LoveNotes: React.FC = () => {
            )}
         </AnimatePresence>
       </div>
+
+      {editor && (
+        <div className="mt-6 text-left">
+          <p className="mb-3 text-center text-xs uppercase tracking-widest text-love-text/50">All notes in the jar — tap one to edit</p>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {NOTES.map((note, i) => (
+              <div key={i} className="rounded-lg border border-love-accent/20 bg-white/50 px-3 py-2 text-sm text-love-text dark:bg-white/5 dark:text-love-dark-text" {...bb('loveNotes', `Love note ${i + 1}`, i)}>{note}</div>
+            ))}
+            <div className="cursor-pointer rounded-lg border border-dashed border-love-accent/60 px-3 py-2 text-center text-xs uppercase tracking-widest text-love-accent" {...bb('loveNotes', 'Add a love note', NOTES.length)}>＋ Add a note</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

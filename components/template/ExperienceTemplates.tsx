@@ -61,32 +61,16 @@ export function getMissYouDefaults() {
 }
 
 function MasterProposalTemplate({ content, editorMode, onElementSelect, onHistoryState }: { content: BirthdayContent; editorMode?: boolean; onElementSelect?: (selection: { key: string; label: string; index?: number; value?: string; kind?: string }) => void; onHistoryState?: (state: { canBack?: boolean; canForward?: boolean; screen?: string }) => void }) {
-  const [config, setConfig] = React.useState(() => ({ ...getMasterProposalDefaults(), ...(content.templateConfig || {}) }));
-  const frameRef = React.useRef<HTMLIFrameElement>(null);
-  React.useEffect(() => {
-    const next = { ...getMasterProposalDefaults(), ...(content.templateConfig || {}) };
-    setConfig(next);
+  // The template (a separate Vite app inside the iframe) reads ALL of its content from this config.
+  // It is sent with BB_SITE_CONFIG on request and after every edit; the app re-renders live without
+  // reloading, so the current position in the page is kept while typing.
+  const config = React.useMemo(() => {
+    const { genericEdits: _ignored, ...rest } = { ...getMasterProposalDefaults(), ...(content.templateConfig || {}) } as Record<string, unknown>;
+    return rest;
   }, [content.templateConfig]);
   const src = React.useMemo(() => '/templates/master-proposal/index.html?bbEdit=1', []);
-  React.useEffect(() => {
-    const frame = frameRef.current;
-    if (!frame) return;
-    const post = () => { frame.contentWindow?.postMessage({ type: 'BB_EDITOR_MODE', enabled: !!editorMode }, '*'); frame.contentWindow?.postMessage({ type: 'BB_CONTENT', content }, '*'); };
-    const onLoad = () => post();
-    frame.addEventListener('load', onLoad);
-    post();
-    return () => frame.removeEventListener('load', onLoad);
-  }, [editorMode, src, content]);
-  React.useEffect(() => {
-    const handler = (event: MessageEvent) => {
-      if (event.source !== frameRef.current?.contentWindow || !event.data) return;
-      if (event.data.type === 'BB_ELEMENT_SELECTED') onElementSelect?.(event.data.selection);
-      if (event.data.type === 'BB_CANVAS_HISTORY_STATE') onHistoryState?.(event.data);
-    };
-    window.addEventListener('message', handler);
-    return () => window.removeEventListener('message', handler);
-  }, [onElementSelect, onHistoryState]);
-  return <GenericEditableIframe title="Master Proposal" src={src} content={content} editorMode={editorMode} genericEdits={((content.templateConfig||{}) as any).genericEdits || {}} extraMessages={[{ type: 'BB_CONTENT', content }, { type: 'BB_EDITOR_MODE', enabled: !!editorMode }]} minHeight={720} background="#FAF9F6" onElementSelect={onElementSelect} onHistoryState={onHistoryState} />}
+  const extraMessages = React.useMemo(() => [{ type: 'BB_SITE_CONFIG', config }], [config]);
+  return <GenericEditableIframe title="Master Proposal" src={src} content={content} editorMode={editorMode} genericEdits={((content.templateConfig||{}) as any).genericEdits || {}} extraMessages={extraMessages} minHeight={720} background="#FAF9F6" onElementSelect={onElementSelect} onHistoryState={onHistoryState} />}
 
 export function getMasterProposalDefaults() {
   return {
@@ -112,6 +96,14 @@ export function getMasterProposalDefaults() {
       { id: '6', type: 'image', url: '/museum-gallery/6.jpg', title: 'Your First Birthday with Me!', date: 'October 2025', description: 'We Celebrated your first birthday with me! I love you so much!' },
     ],
     bgMusicUrl: '',
+    texts: {
+      museumTitle: 'Museum of Our Love', museumSubtitle: 'A Curated Collection of Us',
+      comfortTitle: 'Comfort Corner', comfortSubtitle: 'A safe space for any emotions you may be feeling', comfortHint: 'Select a feeling to minimize the distance',
+      gardenTitle: 'The Digital Garden', gardenSubtitle: "I can't bring you flowers every hour, so I built you a garden that never dies.", gardenHint: '(Tap anywhere in the box below to plant a flower)', gardenEmpty: 'Plant me...', gardenWaiting: 'Waiting for your touch...', gardenCount: '{count} flowers planted for you',
+      jarTitle: 'The Love Jar', jarSubtitle: 'Pull a note whenever you need a reminder', jarButton: 'Pull a Note',
+      bucketTitle: 'Our Bucket List', bucketSubtitle: 'Dreams for Someday', bucketFooter: 'Checking these off, one by one, with you.',
+      footer: 'Made with love, for you.',
+    },
     loveNotes: [
       'I love how hard you work for your dreams.',
       'Your smile is literally the best part of my day.',

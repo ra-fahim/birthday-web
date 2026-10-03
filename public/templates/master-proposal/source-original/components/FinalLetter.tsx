@@ -1,10 +1,11 @@
 import React from 'react';
 import { Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getSiteConfig } from '../utils/siteConfig';
+import { useSiteConfig, useEditorMode, bb } from '../utils/siteConfig';
 
 export const FinalLetter: React.FC = () => {
-  const siteConfig = getSiteConfig();
+  const siteConfig = useSiteConfig();
+  const editor = useEditorMode();
   const letter = siteConfig.finalLetter;
   const title = letter?.title?.trim() || "Happy Valentine's Day";
   const paragraphs = letter?.paragraphs?.length ? letter.paragraphs : [
@@ -29,16 +30,17 @@ export const FinalLetter: React.FC = () => {
       >
         <Heart className="w-6 h-6 mx-auto text-love-accent dark:text-love-dark-accent mb-8" fill="currentColor" />
         
-        <h3 className="font-serif text-3xl md:text-4xl italic text-love-text dark:text-love-dark-text mb-8">
+        <h3 className="font-serif text-3xl md:text-4xl italic text-love-text dark:text-love-dark-text mb-8" {...bb('finalLetter.title', 'Letter title')}>
           {title}
         </h3>
         
         <div className="space-y-6 font-light text-love-text/90 dark:text-love-dark-text/90 leading-loose">
-          {paragraphs.map((p, i) => <p key={i}>{p}</p>)}
+          {paragraphs.map((p, i) => <p key={i} {...bb('finalLetter.paragraphs', `Letter paragraph ${i + 1}`, i)}>{p}</p>)}
+          {editor && <p className="cursor-pointer rounded-lg border border-dashed border-love-accent/50 py-2 text-xs uppercase tracking-widest text-love-accent" {...bb('finalLetter.paragraphs', 'Add a letter paragraph', paragraphs.length)}>＋ Add a paragraph</p>}
         </div>
 
         <div className="mt-12 pt-8 border-t border-love-accent/10 dark:border-love-dark-accent/10">
-          <p className="font-serif italic text-xl text-love-text dark:text-love-dark-text">{signoff}</p>
+          <p className="font-serif italic text-xl text-love-text dark:text-love-dark-text" {...bb('finalLetter.signoff', 'Letter sign-off')}>{signoff}</p>
         </div>
       </motion.div>
     </div>

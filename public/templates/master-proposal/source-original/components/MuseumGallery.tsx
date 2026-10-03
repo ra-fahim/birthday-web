@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, X } from 'lucide-react';
 import { OptimizedImage } from './OptimizedImage';
 import { getYouTubeId, youtubeThumbnail } from '../utils/youtube';
-import { getSiteConfig } from '../utils/siteConfig';
+import { useSiteConfig, useEditorMode, bb, t } from '../utils/siteConfig';
 
 // Types for our museum items
 type MediaType = 'image' | 'video';
@@ -82,7 +82,8 @@ const DEFAULT_MUSEUM_ITEMS: MuseumItem[] = [
 
 export const MuseumGallery: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<MuseumItem | null>(null);
-  const siteConfig = getSiteConfig();
+  const siteConfig = useSiteConfig();
+  const editor = useEditorMode();
   const MUSEUM_ITEMS = siteConfig.museum?.length ? siteConfig.museum : DEFAULT_MUSEUM_ITEMS;
 
   const closeLightbox = useCallback(() => setSelectedItem(null), []);
@@ -103,11 +104,11 @@ export const MuseumGallery: React.FC = () => {
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-12">
       <div className="text-center mb-20">
-        <h2 className="font-serif text-4xl md:text-6xl mb-4 text-love-text dark:text-love-dark-text tracking-tight">
-          Museum of Our Love
+        <h2 className="font-serif text-4xl md:text-6xl mb-4 text-love-text dark:text-love-dark-text tracking-tight" {...bb('texts.museumTitle', 'Museum title')}>
+          {t(siteConfig, 'museumTitle')}
         </h2>
-        <p className="font-sans text-xs md:text-sm tracking-[0.3em] uppercase text-love-accent dark:text-love-dark-text font-bold opacity-90">
-          A Curated Collection of Us
+        <p className="font-sans text-xs md:text-sm tracking-[0.3em] uppercase text-love-accent dark:text-love-dark-text font-bold opacity-90" {...bb('texts.museumSubtitle', 'Museum subtitle')}>
+          {t(siteConfig, 'museumSubtitle')}
         </p>
         <div className="w-16 h-[1px] bg-love-accent/30 dark:bg-love-dark-accent/30 mx-auto mt-6"></div>
       </div>
@@ -122,6 +123,12 @@ export const MuseumGallery: React.FC = () => {
           />
         ))}
       </div>
+
+      {editor && (
+        <div className="mt-12 flex justify-center">
+          <div className="cursor-pointer rounded-full border border-dashed border-love-accent/60 px-6 py-3 text-xs uppercase tracking-widest text-love-accent" {...bb('museum', 'Add a new memory', MUSEUM_ITEMS.length)}>＋ Add a photo / video memory</div>
+        </div>
+      )}
 
       <Lightbox item={selectedItem} onClose={closeLightbox} />
     </div>
@@ -294,7 +301,7 @@ const MuseumFrame: React.FC<{
             aspect-ratio CSS is not supported on older mobile browsers (iOS <15, Android WebView <93).
             padding-bottom: 133.33% = 4/3 ratio (height = 133.33% of width)
           */}
-          <div className="relative w-full" style={{ paddingBottom: '133.33%' }}>
+          <div className="relative w-full" style={{ paddingBottom: '133.33%' }} {...bb('museum', `Memory ${index + 1} — photo / video`, index)}>
             <button
               type="button"
               onClick={onOpenFullView}
@@ -329,13 +336,13 @@ const MuseumFrame: React.FC<{
           <div className="absolute bottom-2 left-2 w-1.5 h-1.5 rounded-full bg-[#bf953f] shadow-sm" />
           <div className="absolute bottom-2 right-2 w-1.5 h-1.5 rounded-full bg-[#bf953f] shadow-sm" />
 
-          <h3 className="font-serif text-xl text-gray-900 dark:text-gray-100 italic font-medium mb-1">
+          <h3 className="font-serif text-xl text-gray-900 dark:text-gray-100 italic font-medium mb-1" {...bb('museum', `Memory ${index + 1} — title`, index)}>
             {item.title}
           </h3>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400 mb-2">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400 mb-2" {...bb('museum', `Memory ${index + 1} — date`, index)}>
             {item.date}
           </p>
-          <p className="font-serif text-sm text-gray-600 dark:text-gray-300 leading-relaxed italic">
+          <p className="font-serif text-sm text-gray-600 dark:text-gray-300 leading-relaxed italic" {...bb('museum', `Memory ${index + 1} — description`, index)}>
             {item.description}
           </p>
         </div>

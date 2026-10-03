@@ -695,7 +695,7 @@ export default function Builder() {
     <header className="builder-topbar">
       <div className="builder-brand">
         <div className="builder-logo">W</div>
-        <div><strong>Wishly</strong><span>Website editor</span></div>
+        <div><strong>Wishes</strong><span>Website editor</span></div>
       </div>
       <div className="builder-top-actions">
         <div className={`builder-status ${dirty ? 'is-dirty' : ''}`}><i />{dirty ? 'Unsaved changes' : status === 'published' ? 'Published' : 'All changes saved'}</div>

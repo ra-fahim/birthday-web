@@ -20,8 +20,8 @@ export function generateMetadata({ params }: { params: { category: string } }) {
   const seo = CATEGORY_SEO[category];
   const label = labels[category] || category;
   return pageMeta({
-    title: seo ? `${seo.title} | Wishly` : `${label} Wish Website Templates | Wishly`,
-    description: seo?.description || `Create a ${label.toLowerCase()} website with Wishly and share it with one link.`,
+    title: seo ? `${seo.title} | Wishes` : `${label} Wish Website Templates | Wishes`,
+    description: seo?.description || `Create a ${label.toLowerCase()} website with Wishes and share it with one link.`,
     path: `/templates/${category}`,
     keywords: seo?.keywords || [],
   });

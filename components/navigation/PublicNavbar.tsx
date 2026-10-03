@@ -47,7 +47,7 @@ export default function PublicNavbar({ user }: { user: PublicNavbarUser }) {
       <div className="premium-container premium-nav-inner" ref={wrapRef}>
         <Link href="/" className="brand-lockup" onClick={close}>
           <span className="brand-mark">✦</span>
-          <span><b>Wishly</b><small>Create moments</small></span>
+          <span><b>Wishes</b><small>Create moments</small></span>
         </Link>
 
         <div className="premium-nav-links">
@@ -64,7 +64,7 @@ export default function PublicNavbar({ user }: { user: PublicNavbarUser }) {
               <div className="profile-popover">
                 <div className="profile-popover-head">
                   <div className="profile-avatar-lg">{avatar ? <img src={avatar} alt="" /> : initial}</div>
-                  <div><strong>{user?.name || (user ? 'Creator' : 'Welcome to Wishly')}</strong><small>{user?.email || 'Create a free account to start'}</small></div>
+                  <div><strong>{user?.name || (user ? 'Creator' : 'Welcome to Wishes')}</strong><small>{user?.email || 'Create a free account to start'}</small></div>
                 </div>
                 {user ? <>
                   <div className="profile-quick-grid">
@@ -86,7 +86,7 @@ export default function PublicNavbar({ user }: { user: PublicNavbarUser }) {
           <div className="mobile-nav-panel">
             <div className="mobile-nav-panel-profile">
               <div className="profile-avatar-lg">{avatar ? <img src={avatar} alt="" /> : initial}</div>
-              <div><strong>{user?.name || (user ? 'Creator' : 'Welcome')}</strong><small>{user?.email || 'Explore Wishly'}</small></div>
+              <div><strong>{user?.name || (user ? 'Creator' : 'Welcome')}</strong><small>{user?.email || 'Explore Wishes'}</small></div>
             </div>
             <div className="mobile-nav-links">
               {links.map(([href, label]) => <Link key={href} href={href} onClick={close}>{label}<span>↗</span></Link>)}

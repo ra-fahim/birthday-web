@@ -27,7 +27,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { pend
   return (
     <main className="workspace-dashboard">
       <aside className="workspace-dashboard-sidebar">
-        <div className="workspace-wordmark"><span>✦</span><div><b>Wishly</b><small>Create moments</small></div></div>
+        <div className="workspace-wordmark"><span>✦</span><div><b>Wishes</b><small>Create moments</small></div></div>
         <nav>
           <Link className="active" href="/dashboard">▦ <span>My Websites</span></Link>
           <Link href="/templates">◈ <span>Template Library</span></Link>

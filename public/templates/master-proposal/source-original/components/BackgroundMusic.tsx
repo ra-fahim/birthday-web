@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, VolumeX } from 'lucide-react';
+import { useEditorMode, bb } from '../utils/siteConfig';
 
 interface BackgroundMusicProps {
   /** Becomes true once the intro gate is finished (the "Yes, forever" moment). */
@@ -14,7 +15,7 @@ const TARGET_VOLUME = 0.4;
 /**
  * One single looping background track for the whole experience.
  * It never renders a playlist — the site owner uploads exactly one file
- * in Wishly Studio (Music tab) and it starts right after the intro gate.
+ * in Wishes Studio (Music tab) and it starts right after the intro gate.
  */
 export const BackgroundMusic: React.FC<BackgroundMusicProps> = ({ start, src }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -22,13 +23,14 @@ export const BackgroundMusic: React.FC<BackgroundMusicProps> = ({ start, src }) 
   const [isMuted, setIsMuted] = useState(false);
 
   const url = (src || '').trim();
+  const editor = useEditorMode();
 
   // Start (or stop) playback with the intro gate.
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !url) return;
 
-    if (!start) {
+    if (!start || editor) { // never autoplay while editing
       audio.pause();
       setIsPlaying(false);
       return;
@@ -56,7 +58,7 @@ export const BackgroundMusic: React.FC<BackgroundMusicProps> = ({ start, src }) 
       window.removeEventListener('keydown', retry);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [start, url]);
+  }, [start, url, editor]);
 
   const toggle = () => {
     const audio = audioRef.current;
@@ -73,10 +75,20 @@ export const BackgroundMusic: React.FC<BackgroundMusicProps> = ({ start, src }) 
     }
   };
 
-  if (!url) return null;
+  const editChip = editor ? (
+    <div
+      className="fixed bottom-6 left-6 z-[60] cursor-pointer rounded-full border border-dashed border-love-accent/70 bg-white/90 px-4 py-2 text-xs uppercase tracking-widest text-love-accent shadow-md"
+      {...bb('bgMusicUrl', 'Background music')}
+    >
+      🎵 {url ? 'Background music' : 'Add background music'}
+    </div>
+  ) : null;
+
+  if (!url) return editChip;
 
   return (
     <>
+      {editChip}
       <audio ref={audioRef} src={url} loop preload="auto" playsInline />
 
       <AnimatePresence>

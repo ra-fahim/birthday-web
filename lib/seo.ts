@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { normalizeAppUrl } from '@/lib/app-url';
 
-export const SITE_NAME = 'Wishly';
+export const SITE_NAME = 'Wishes';
 export const SITE_URL = normalizeAppUrl(process.env.NEXT_PUBLIC_APP_URL) || 'http://localhost:3000';
 
 // ---- Keyword groups -------------------------------------------------------
@@ -57,7 +57,7 @@ export const KEYWORDS = {
     'wish website maker', 'wish maker', 'greeting website maker', 'celebration website maker', 'create wish website free', 'free birthday website', 'no code website builder',
     'personalized wish link', 'custom wish link', 'send wish online', 'wish for loved ones', 'digital gift', 'digital celebration', 'interactive greeting card',
     'gift for girlfriend', 'gift for boyfriend', 'romantic gift idea', 'online surprise',
-    'birthday website bangladesh', 'wish website bangladesh', 'bangla wish website', 'বাংলাদেশ উইশ ওয়েবসাইট', 'উইশ ওয়েবসাইট', 'wishly',
+    'birthday website bangladesh', 'wish website bangladesh', 'bangla wish website', 'বাংলাদেশ উইশ ওয়েবসাইট', 'উইশ ওয়েবসাইট', 'wishes', 'wishes website',
   ],
 } as const;
 

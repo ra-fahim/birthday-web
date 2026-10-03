@@ -5,8 +5,7 @@ import { Section } from './components/Section';
 import { IntroGate } from './components/IntroGate';
 import { InAppBrowserGuard } from './components/InAppBrowserGuard';
 import { STORY_DATA as DEFAULT_STORY_DATA } from './data';
-import { getSiteConfig } from './utils/siteConfig';
-import { initEditorBridge } from './utils/editorBridge';
+import { useSiteConfig, useEditorMode, bb, t } from './utils/siteConfig';
 
 // Lazy load heavy components
 const FinalLetter = React.lazy(() => import('./components/FinalLetter').then(module => ({ default: module.FinalLetter })));
@@ -207,12 +206,37 @@ const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<ThemeType>('blush');
   const [showThemePicker, setShowThemePicker] = useState(false);
-  const siteConfig = getSiteConfig();
+  const siteConfig = useSiteConfig();
+  const editor = useEditorMode();
   const heroTitle = siteConfig.heroTitle?.trim() || 'To My Dearest';
   const heroSubtitle = siteConfig.heroSubtitle?.trim() || 'Scroll slowly';
   const STORY_DATA = siteConfig.story?.length ? siteConfig.story : DEFAULT_STORY_DATA;
 
-  useEffect(() => { initEditorBridge(); }, []);
+  // ---- Studio edit mode: Previous / Next walk through the page section by section.
+  const EDIT_STEPS = ['Intro', 'Opening', 'Story', 'Museum', 'Comfort corner', 'Date planner', 'Garden', 'Love jar', 'Bucket list', 'Final letter'];
+  const EDIT_IDS = ['', 'bb-sec-hero', 'bb-sec-story', 'bb-sec-museum', 'bb-sec-comfort', 'bb-sec-date', 'bb-sec-garden', 'bb-sec-jar', 'bb-sec-bucket', 'bb-sec-letter'];
+  const [editStep, setEditStep] = useState(0);
+  const wasEditor = React.useRef(false);
+
+  useEffect(() => {
+    if (!editor) {
+      // Leaving edit mode (Preview): the visitor experience starts from the very beginning again.
+      if (wasEditor.current) { wasEditor.current = false; setEditStep(0); setIsIntroComplete(false); window.scrollTo(0, 0); }
+      return;
+    }
+    wasEditor.current = true;
+    (window as any).__BB_CUSTOM_HISTORY__ = true;
+    (window as any).BB_EDITOR_NAVIGATE = (delta: number) => setEditStep((cur) => Math.max(0, Math.min(EDIT_STEPS.length - 1, cur + (delta < 0 ? -1 : 1))));
+  }, [editor]);
+
+  useEffect(() => {
+    if (!editor) return;
+    try { window.parent.postMessage({ type: 'BB_CANVAS_HISTORY_STATE', canBack: editStep > 0, canForward: editStep < EDIT_STEPS.length - 1, screen: EDIT_STEPS[editStep] }, '*'); } catch { /* ignore */ }
+    if (editStep === 0) { setIsIntroComplete(false); window.scrollTo(0, 0); return; }
+    setIsIntroComplete(true);
+    const timer = setTimeout(() => document.getElementById(EDIT_IDS[editStep])?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
+    return () => clearTimeout(timer);
+  }, [editor, editStep]);
 
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
@@ -377,7 +401,7 @@ const App: React.FC = () => {
       />
 
       {/* Intro / Hero */}
-      <Section className="min-h-screen flex flex-col justify-center items-center text-center px-6 relative z-10">
+      <Section id="bb-sec-hero" className="min-h-screen flex flex-col justify-center items-center text-center px-6 relative z-10">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={isIntroComplete ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
@@ -421,7 +445,7 @@ const App: React.FC = () => {
 
       {/* Story Sections */}
       {STORY_DATA.map((item, index) => (
-        <Section key={index} className="min-h-screen flex flex-col justify-center items-center px-6 md:px-20 py-20 z-10">
+        <Section key={index} id={index === 0 ? 'bb-sec-story' : undefined} className="min-h-screen flex flex-col justify-center items-center px-6 md:px-20 py-20 z-10">
           <div className="max-w-3xl text-center flex flex-col items-center">
             {/* Number with Blur Reveal */}
             <motion.span
@@ -461,57 +485,63 @@ const App: React.FC = () => {
         </Section>
       ))}
 
+      {editor && (
+        <div className="relative z-10 flex justify-center py-6">
+          <div className="cursor-pointer rounded-full border border-dashed border-love-accent/60 px-6 py-3 text-xs uppercase tracking-widest text-love-accent" {...bb('story', 'Add a story chapter', STORY_DATA.length)}>＋ Add a story chapter</div>
+        </div>
+      )}
+
       {/* Museum of Our Love — uses raw section to avoid double scroll-reveal opacity gate on mobile */}
-      <section className="w-full relative flex flex-col items-center px-4 py-20 z-10">
+      <section id="bb-sec-museum" className="w-full relative flex flex-col items-center px-4 py-20 z-10">
         <div className="bg-love-card/80 dark:bg-love-dark-card/60 backdrop-blur-xl w-full py-10 rounded-3xl border border-love-accent/10 shadow-xl">
           <MuseumGallery />
         </div>
       </section>
 
       {/* Comfort Corner */}
-      <Section className="min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10">
+      <Section id="bb-sec-comfort" className="min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10">
         <React.Suspense fallback={<SectionLoader />}>
           <ComfortCorner />
         </React.Suspense>
       </Section>
 
       {/* Date Planner Section */}
-      <Section className="min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10">
+      <Section id="bb-sec-date" className="min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10">
         <React.Suspense fallback={<SectionLoader />}>
           <DatePlanner />
         </React.Suspense>
       </Section>
 
       {/* Bloom Garden */}
-      <Section className="min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10">
+      <Section id="bb-sec-garden" className="min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10">
         <React.Suspense fallback={<SectionLoader />}>
           <BloomGarden />
         </React.Suspense>
       </Section>
 
       {/* Love Note Jar */}
-      <Section className="min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10">
+      <Section id="bb-sec-jar" className="min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10">
         <React.Suspense fallback={<SectionLoader />}>
           <LoveNotes />
         </React.Suspense>
       </Section>
 
       {/* Future Bucket List Section */}
-      <Section className="min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10">
+      <Section id="bb-sec-bucket" className="min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10">
         <React.Suspense fallback={<SectionLoader />}>
           <BucketList />
         </React.Suspense>
       </Section>
 
       {/* Final Letter */}
-      <Section className="min-h-screen flex justify-center items-center px-4 py-20 z-10">
+      <Section id="bb-sec-letter" className="min-h-screen flex justify-center items-center px-4 py-20 z-10">
         <React.Suspense fallback={<SectionLoader />}>
           <FinalLetter />
         </React.Suspense>
       </Section>
 
       <footer className="py-8 text-center text-love-text/30 dark:text-love-dark-text/30 text-xs tracking-widest uppercase relative z-10 font-medium">
-        Made with love, for you.
+        <span {...bb('texts.footer', 'Footer line')}>{t(siteConfig, 'footer')}</span>
       </footer>
 
       {/* In-App Browser Detection */}

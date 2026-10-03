@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Wishly — Birthday Wish & Proposal Website Maker',
-    short_name: 'Wishly',
+    name: 'Wishes — Birthday Wish & Proposal Website Maker',
+    short_name: 'Wishes',
     description: 'Create birthday wish, proposal, anniversary and surprise websites and share them with one link.',
     start_url: '/',
     display: 'standalone',

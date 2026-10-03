@@ -2,11 +2,11 @@ import Link from 'next/link';
 import { getSessionUser } from '@/lib/auth';
 import PublicNavbar from '@/components/navigation/PublicNavbar';
 import { pageMeta } from '@/lib/seo';
-export const metadata = pageMeta({ title: 'About Wishly — Wish Website Maker', description: 'Wishly helps you turn birthday wishes, proposals, anniversaries and apologies into beautiful interactive websites you can share with one link.', path: '/about', keywords: [] });
+export const metadata = pageMeta({ title: 'About Wishes — Wish Website Maker', description: 'Wishes helps you turn birthday wishes, proposals, anniversaries and apologies into beautiful interactive websites you can share with one link.', path: '/about', keywords: [] });
 
 const values = [
   ['01', 'Simple by default', 'Choose a template, click what you want to change, save your work and publish. The interface stays quiet until you need it.'],
-  ['02', 'Made for real people', 'Wishly is built for people who want a beautiful result without having to learn HTML, CSS or JavaScript.'],
+  ['02', 'Made for real people', 'Wishes is built for people who want a beautiful result without having to learn HTML, CSS or JavaScript.'],
   ['03', 'Every template stays unique', 'Templates can have different sections, media, music layers and interactive moments. The editor adapts to the experience.'],
 ];
 
@@ -15,9 +15,9 @@ export default async function AboutPage() {
   return <main className="premium-site">
     <PublicNavbar user={u} />
     <section className="premium-container inner-hero about-hero">
-      <p className="section-kicker">ABOUT WISHLY</p>
+      <p className="section-kicker">ABOUT WISHES</p>
       <h1>Small moments deserve<br/><span>a beautiful place online.</span></h1>
-      <p>Wishly helps anyone turn a birthday, proposal, wedding, memory or personal story into an interactive experience they can share with one link.</p>
+      <p>Wishes helps anyone turn a birthday, proposal, wedding, memory or personal story into an interactive experience they can share with one link.</p>
     </section>
     <section className="premium-container about-story">
       <div className="about-story-card"><span>✦</span><h2>We hide the complexity.</h2><p>Under the surface, the templates can be rich and interactive. In the editor, people simply work with the thing they can see.</p></div>

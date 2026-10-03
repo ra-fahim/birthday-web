@@ -41,7 +41,7 @@ export default async function HowToMakeWebsite() {
     </section>
 
     <section className="premium-container howto-section">
-      <div className="howto-intro"><div><p className="section-kicker">THE BASIC FLOW</p><h2>Template → Edit → Save → Publish</h2></div><p>Wishly keeps the original template code and lets the editor change the data exposed by that specific template.</p></div>
+      <div className="howto-intro"><div><p className="section-kicker">THE BASIC FLOW</p><h2>Template → Edit → Save → Publish</h2></div><p>Wishes keeps the original template code and lets the editor change the data exposed by that specific template.</p></div>
       <div className="howto-step-grid">{steps.map(([n,title,desc]) => <article className="howto-step" key={n}><span>{n}</span><div><h3>{title}</h3><p>{desc}</p></div></article>)}</div>
     </section>
 
@@ -49,6 +49,6 @@ export default async function HowToMakeWebsite() {
 
     <section className="premium-container howto-section"><div className="howto-checklist"><div><p className="section-kicker">BEFORE YOU PUBLISH</p><h2>Quick final check.</h2><p>Open Preview and make sure your content, media and countdown are correct. Save your draft, then publish when you are happy.</p></div><div className="howto-checklist-card">{['Recipient / names look correct','Photos and videos are the right ones','Music slots are correct','Countdown date and time are correct','Buttons and links open the right destination','Draft is saved before publishing'].map(item=><div key={item}><i>✓</i><span>{item}</span></div>)}</div></div></section>
 
-    <footer className="premium-footer"><div className="premium-container footer-inner"><div className="brand-lockup"><span className="brand-mark">✦</span><span><b>Wishly</b><small>Create moments</small></span></div><div className="footer-links"><Link href="/templates">Templates</Link><Link href="/about">About</Link><Link href="/faq">FAQ</Link><Link href="/contact">Contact</Link></div><small>© {new Date().getFullYear()} Wishly</small></div></footer>
+    <footer className="premium-footer"><div className="premium-container footer-inner"><div className="brand-lockup"><span className="brand-mark">✦</span><span><b>Wishes</b><small>Create moments</small></span></div><div className="footer-links"><Link href="/templates">Templates</Link><Link href="/about">About</Link><Link href="/faq">FAQ</Link><Link href="/contact">Contact</Link></div><small>© {new Date().getFullYear()} Wishes</small></div></footer>
   </main>;
 }

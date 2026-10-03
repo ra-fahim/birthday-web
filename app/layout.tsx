@@ -6,7 +6,7 @@ const DESC = 'Create a personalized birthday wish, proposal, anniversary, sorry 
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: 'Wishly — Birthday Wish, Proposal & Surprise Website Maker', template: '%s' },
+  title: { default: 'Wishes — Birthday Wish, Proposal & Surprise Website Maker', template: '%s' },
   description: DESC,
   keywords: ALL_KEYWORDS,
   applicationName: SITE_NAME,
@@ -15,8 +15,8 @@ export const metadata: Metadata = {
   publisher: SITE_NAME,
   category: 'lifestyle',
   alternates: { canonical: '/' },
-  openGraph: { type: 'website', siteName: SITE_NAME, title: 'Wishly — Birthday Wish, Proposal & Surprise Website Maker', description: DESC, url: SITE_URL, locale: 'en_US', images: [{ url: '/api/og', width: 1200, height: 630, alt: 'Wishly' }] },
-  twitter: { card: 'summary_large_image', title: 'Wishly — Birthday Wish, Proposal & Surprise Website Maker', description: DESC, images: ['/api/og'] },
+  openGraph: { type: 'website', siteName: SITE_NAME, title: 'Wishes — Birthday Wish, Proposal & Surprise Website Maker', description: DESC, url: SITE_URL, locale: 'en_US', images: [{ url: '/api/og', width: 1200, height: 630, alt: 'Wishes' }] },
+  twitter: { card: 'summary_large_image', title: 'Wishes — Birthday Wish, Proposal & Surprise Website Maker', description: DESC, images: ['/api/og'] },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1, 'max-video-preview': -1 } },
   formatDetection: { telephone: false, email: false, address: false },
   verification: process.env.GOOGLE_SITE_VERIFICATION ? { google: process.env.GOOGLE_SITE_VERIFICATION } : undefined,

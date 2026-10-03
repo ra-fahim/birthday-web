@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { Heart } from 'lucide-react';
-import { getSiteConfig } from '../utils/siteConfig';
+import { useSiteConfig, useEditorMode, bb } from '../utils/siteConfig';
 
 interface IntroGateProps {
   onComplete: () => void;
@@ -22,7 +22,8 @@ const DEFAULT_SILLY_PROMPTS = [
 ];
 
 export const IntroGate: React.FC<IntroGateProps> = ({ onComplete }) => {
-  const siteConfig = getSiteConfig();
+  const siteConfig = useSiteConfig();
+  const editor = useEditorMode();
   const gate = siteConfig.introGate || {};
   const FIRST_LINE = gate.firstLine?.trim() || 'I made this just for you.';
   const SECOND_LINE_LABEL = gate.secondLineLabel?.trim() || 'But first';
@@ -36,6 +37,7 @@ export const IntroGate: React.FC<IntroGateProps> = ({ onComplete }) => {
   const [rejectionCount, setRejectionCount] = useState(0);
 
   useEffect(() => {
+    if (editor) return; // editing: everything stays visible, nothing auto-advances
     // Sequence timing: 
     // Step 0 (Start): "I made this..."
     // Step 1 (2.5s): "Before anything else..."
@@ -48,7 +50,7 @@ export const IntroGate: React.FC<IntroGateProps> = ({ onComplete }) => {
       clearTimeout(timer1);
       clearTimeout(timer2);
     };
-  }, []);
+  }, [editor]);
 
   const handleYes = () => {
     onComplete();
@@ -58,7 +60,9 @@ export const IntroGate: React.FC<IntroGateProps> = ({ onComplete }) => {
     setRejectionCount((prev) => Math.min(prev + 1, SILLY_PROMPTS.length - 1));
   };
 
-  const currentPrompt = SILLY_PROMPTS[rejectionCount];
+  // Editing: the "question" slot after the last one is an empty slot used to add a new question.
+  const editIndex = Math.min(rejectionCount, SILLY_PROMPTS.length);
+  const currentPrompt = SILLY_PROMPTS[editor ? editIndex : rejectionCount] || { title: 'Write a new question…', subtitle: 'Add a subtitle' };
   
   // Calculate Yes button scale based on rejections (grow slightly each time)
   const yesButtonScale = 1 + (rejectionCount * 0.1);
@@ -78,6 +82,36 @@ export const IntroGate: React.FC<IntroGateProps> = ({ onComplete }) => {
       transition: { duration: 1.0, ease: "easeInOut" }
     }
   };
+
+  if (editor) {
+    const total = SILLY_PROMPTS.length;
+    const navBtn = 'px-3 py-1.5 rounded-full border border-love-accent/40 text-love-accent text-xs tracking-widest uppercase hover:bg-love-accent/10 disabled:opacity-30';
+    return (
+      <div className="fixed inset-0 z-50 overflow-y-auto bg-love-bg dark:bg-love-dark-bg px-6 py-10 flex flex-col items-center gap-10 text-center">
+        <div>
+          <h2 className="font-serif text-3xl md:text-5xl text-love-text dark:text-love-dark-text font-light italic tracking-wide" {...bb('introGate.firstLine', 'Intro — first line')}>{FIRST_LINE}</h2>
+        </div>
+        <div>
+          <p className="font-sans text-xs md:text-sm tracking-[0.3em] uppercase text-love-accent/80 dark:text-love-dark-accent/80 mb-4" {...bb('introGate.secondLineLabel', 'Intro — second line label')}>{SECOND_LINE_LABEL}</p>
+          <h2 className="font-serif text-3xl md:text-5xl text-love-text dark:text-love-dark-text font-light italic tracking-wide" {...bb('introGate.secondLine', 'Intro — second line')}>{SECOND_LINE}</h2>
+        </div>
+        <div className="max-w-3xl w-full">
+          <div className="flex items-center justify-center gap-3 mb-6" data-bb-editor-nav="1">
+            <button type="button" data-bb-editor-nav="1" className={navBtn} disabled={editIndex <= 0} onClick={() => setRejectionCount(Math.max(0, editIndex - 1))}>‹ Prev</button>
+            <span className="text-xs tracking-widest uppercase text-love-text/60">{editIndex >= total ? 'New question' : `Question ${editIndex + 1} of ${total}`}</span>
+            <button type="button" data-bb-editor-nav="1" className={navBtn} disabled={editIndex >= total} onClick={() => setRejectionCount(Math.min(total, editIndex + 1))}>{editIndex === total - 1 ? '＋ Add' : 'Next ›'}</button>
+          </div>
+          <h1 className="font-serif text-3xl md:text-5xl text-love-text dark:text-love-dark-text italic mb-4 leading-tight px-4" {...bb('introGate.prompts', `Question ${editIndex + 1}`, editIndex)}>{currentPrompt.title}</h1>
+          <p className="text-lg md:text-xl text-love-text/60 dark:text-love-dark-text/60 font-light" {...bb('introGate.prompts', `Question ${editIndex + 1} subtitle`, editIndex)}>{currentPrompt.subtitle}</p>
+          <div className="mt-10 flex flex-col md:flex-row items-center justify-center gap-6">
+            <span className="px-12 py-5 rounded-full border border-love-accent/40 font-sans text-sm tracking-[0.25em] uppercase text-love-text dark:text-love-dark-text" {...bb('introGate.yesButtonText', 'Yes button text')}>{YES_TEXT}</span>
+            <span className="px-8 py-4 rounded-full text-love-text/60 dark:text-love-dark-text/60 font-sans text-xs tracking-[0.2em] uppercase" {...bb('introGate.noButtonText', 'No button text (first tap)')}>{NO_TEXT_FIRST}</span>
+            <span className="px-8 py-4 rounded-full text-love-text/60 dark:text-love-dark-text/60 font-sans text-xs tracking-[0.2em] uppercase" {...bb('introGate.noButtonTextRepeat', 'No button text (after that)')}>{NO_TEXT_REPEAT}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
