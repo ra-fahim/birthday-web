@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { defaultContent, BirthdayContent } from '@/lib/types';
+import { defaultContent, BirthdayContent, weddingProposalDefaults } from '@/lib/types';
 import MasterBirthdayTemplate from '@/components/template/MasterBirthdayTemplate';
 import MasterBirthdayEditor from './MasterBirthdayEditor';
 import { masterBirthdayDefaults, mergeMasterBirthdayConfig } from '@/lib/master-birthday';
@@ -380,6 +380,7 @@ export default function Builder() {
         templateConfig: { masterBirthday: mb },
       };
     }
+    if (targetTemplate === 'wedding-proposal') return { ...base, ...weddingProposalDefaults() } as BirthdayContent;
     if (targetTemplate === 'miss-you-1') return { ...base, templateConfig: { ...getMissYouDefaults() } };
     if (targetTemplate === 'master-proposal') return { ...base, templateConfig: { ...getMasterProposalDefaults() } };
     return base;

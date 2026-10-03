@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getSessionUser, isApprovalRequired } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { defaultContent } from '@/lib/types';
+import { defaultContent, weddingProposalDefaults } from '@/lib/types';
 import { templateBySlug } from '@/lib/templates';
 
 export default async function New({ searchParams }: { searchParams?: { template?: string; occasion?: string } }) {
@@ -30,7 +30,7 @@ export default async function New({ searchParams }: { searchParams?: { template?
     redirect(`/builder/${existingDraft.id}?template=${encodeURIComponent(template.slug)}`);
   }
 
-  const seed = { ...defaultContent, occasion, templateId: template.slug };
+  const seed = { ...defaultContent, ...(template.slug === 'wedding-proposal' ? weddingProposalDefaults() : {}), occasion, templateId: template.slug };
   const label = `${template.name} — ${occasion[0].toUpperCase()}${occasion.slice(1)} `;
   const s = await db.website.create({ data: { userId: u.id, slug: `celebration-${Date.now()}`, title: label.trim(), templateId: template.slug, content: seed, status: 'draft' } });
   redirect(`/builder/${s.id}?template=${encodeURIComponent(template.slug)}`);

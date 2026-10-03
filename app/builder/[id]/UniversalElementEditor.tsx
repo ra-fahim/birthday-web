@@ -70,6 +70,17 @@ export default function UniversalElementEditor({ selected, content, templateId, 
     if (templateId === 'wedding-proposal' && key.startsWith('proposal')) {
       const stored = (content as any)[key];
       const text = typeof stored === 'string' ? stored : String(selected.value ?? '');
+      if (key === 'proposalHintText') {
+        const audioUrl = typeof content.proposalAudioUrl === 'string' ? content.proposalAudioUrl : '';
+        return <>
+          <TextField value={text} onChange={value => onChange({ [key]: value } as Partial<BirthdayContent>)} />
+          <div className="universal-editor-media-head"><div className="universal-editor-icon"><Music2 size={16}/></div><div><b>Background audio</b><span>{audioUrl ? 'Your audio plays after Begin' : 'Default music is playing — upload your own to replace it'}</span></div></div>
+          <SingleMediaUpload kind="audio" url={audioUrl} websiteId={websiteId} onChange={url => onChange({ proposalAudioUrl: url } as Partial<BirthdayContent>)} />
+          {audioUrl && <audio controls preload="none" src={audioUrl} style={{ width: '100%', marginTop: 8 }} />}
+          {audioUrl && <button type="button" className="builder-mini-btn" onClick={() => onChange({ proposalAudioUrl: '' } as Partial<BirthdayContent>)}><RotateCcw size={14}/> Use default music</button>}
+          <p className="builder-note">Audio starts when the receiver taps <b>Begin</b>, and loops. The 🔊 button on the page can mute it.</p>
+        </>;
+      }
       return <>
         <TextField value={text} multiline={text.length > 40 || text.includes('\n')} onChange={value => onChange({ [key]: value } as Partial<BirthdayContent>)} />
         <p className="builder-note">Use <b>{'{name}'}</b> for the receiver's name and <b>{'{sender}'}</b> for your name. Leave empty to use the default text.</p>

@@ -7,7 +7,7 @@ export type BirthdayContent={
  name:string; birthday:string; greeting:string; message:string; relationship:string;
  heroTitle:string; heroSubtitle:string; reasons:string[]; gallery:GalleryItem[]; videoUrl:string; videoCaption?:string;
  letter:string[]; secret:string; musicUrl:string; theme:string; font:string; primaryColor:string;
- buttonText:string; countdownTitle:string; countdownMessage:string; countdownDaysLabel:string; countdownHoursLabel:string; countdownMinutesLabel:string; countdownSecondsLabel:string; countdownStyle:string; countdownAudioUrl:string; wishingAudioUrl:string; cakeNextButton:string; proposalEyebrow:string; proposalIntroText:string; proposalStartButton:string; proposalLetterText:string; proposalContinueButton:string; proposalQuestion:string; proposalYesButton:string; proposalNoButton:string; reasonsButton:string; photoTitle:string; photoSubtitle:string; photoNextButton:string; videoTitle:string; videoNextButton:string; letterTitle:string; letterButton:string; secretTitle:string; secretButton:string; countdown:boolean; confetti:boolean; fireworks:boolean; hearts:boolean; balloons:boolean;
+ buttonText:string; countdownTitle:string; countdownMessage:string; countdownDaysLabel:string; countdownHoursLabel:string; countdownMinutesLabel:string; countdownSecondsLabel:string; countdownStyle:string; countdownAudioUrl:string; wishingAudioUrl:string; cakeNextButton:string; proposalEyebrow:string; proposalIntroText:string; proposalStartButton:string; proposalLetterText:string; proposalContinueButton:string; proposalQuestion:string; proposalYesButton:string; proposalNoButton:string; proposalAudioUrl?:string; reasonsButton:string; photoTitle:string; photoSubtitle:string; photoNextButton:string; videoTitle:string; videoNextButton:string; letterTitle:string; letterButton:string; secretTitle:string; secretButton:string; countdown:boolean; confetti:boolean; fireworks:boolean; hearts:boolean; balloons:boolean;
  timeline:{date:string;title:string;description:string}[]; memories:string[]; wishlist:string[]; guestbook:boolean;
  social:{facebook?:string;instagram?:string;tiktok?:string;youtube?:string}; seoTitle:string; seoDescription:string;
  shareImage?:string; favicon?:string; passwordProtection:boolean; customCss:string;
@@ -38,3 +38,15 @@ export const defaultContent:BirthdayContent={
  timeCapsuleMessage:'A message from the past 💌',collaborativeWishesEnabled:true,liveReactionsEnabled:true,pdfDownloadEnabled:true,
  language:'en',translations:{},googlePhotosEnabled:false
 };
+
+/** Default receiver / sender for the Wedding Proposal template (new sites and "Reset"). */
+export const WEDDING_PROPOSAL_DEFAULT_NAME='Anarkoli';
+export const WEDDING_PROPOSAL_DEFAULT_SENDER='Salim';
+export function weddingProposalDefaults():Partial<BirthdayContent>{
+ return {
+  name:WEDDING_PROPOSAL_DEFAULT_NAME,
+  letter:[`Dear ${WEDDING_PROPOSAL_DEFAULT_NAME},`,...defaultContent.letter.slice(1)],
+  profile:{...(defaultContent.profile||{}),displayName:WEDDING_PROPOSAL_DEFAULT_SENDER},
+  proposalAudioUrl:'',
+ };
+}

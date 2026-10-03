@@ -90,6 +90,30 @@ function renderTemplate(field: WeddingField, template: string, receiver: string,
   return field.br ? html.replaceAll('\n', '<br>') : html.replaceAll('\n', ' ');
 }
 
+/** Custom background audio chosen in the editor (empty = the built-in synthesized music). */
+export function weddingAudioUrl(content: BirthdayContent) {
+  const v = asLoose(content).proposalAudioUrl;
+  return typeof v === 'string' && /^https?:\/\//i.test(v.trim()) ? v.trim() : '';
+}
+
+/**
+ * Replaces the template's synthesized background music with the chosen audio file.
+ * The template keeps calling Sound.startMusic() / Sound.stopMusic() (Begin button and the
+ * sound toggle), so those two methods are swapped for an <audio> element with fades.
+ * Sound effects (clicks, sparkles) stay untouched.
+ */
+function buildWeddingAudioOverride(url: string) {
+  return `<script id="BB_WEDDING_AUDIO">(function(){
+try{
+var a=new Audio();a.preload='auto';a.loop=true;a.src=${safeJson(url)};a.volume=0;
+var t=null;
+function fade(to,ms,done){clearInterval(t);var from=a.volume,n=20,i=0;t=setInterval(function(){i++;a.volume=Math.max(0,Math.min(1,from+(to-from)*i/n));if(i>=n){clearInterval(t);if(done)done();}},ms/n);}
+Sound.startMusic=function(){this.musicOn=true;var p=a.play();if(p&&p.catch)p.catch(function(){});fade(0.7,1500);};
+Sound.stopMusic=function(){this.musicOn=false;fade(0,800,function(){a.pause();});};
+}catch(e){}
+})();</script>`;
+}
+
 export function buildWeddingHtml(source: string, content: BirthdayContent, editorMode = false) {
   const { receiver, sender } = weddingNames(content);
   const loose = asLoose(content);
@@ -113,6 +137,8 @@ export function buildWeddingHtml(source: string, content: BirthdayContent, edito
   html = html.replace('<p class="tap-count">', () => '<p class="tap-count" data-bb-ignore="1">');
 
   if (editorMode) html = html.replace('</body>', () => buildWeddingBridge(content) + '</body>');
+  const audioUrl = weddingAudioUrl(content);
+  if (!editorMode && audioUrl) html = html.replace('</body>', () => buildWeddingAudioOverride(audioUrl) + '</body>');
   return html;
 }
 
