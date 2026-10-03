@@ -2315,6 +2315,28 @@
   try { Object.defineProperty(window, 'state', { configurable: true, get: function(){ return state; } }); } catch (_) {}
   try { window.zonedDateTimeToDate = zonedDateTimeToDate; } catch (_) {}
   // Same bridge for the other closure-scoped values that the first script reads.
+  // Pause the simulated 10-second countdown (Preview / Demo) while this template is scrolled
+  // out of view or the tab is hidden. Without this the timer keeps running off-screen, so
+  // scrolling back finds the Greeting already open instead of the countdown. The real
+  // published birthday clock is not touched.
+  (function(){
+    var inView=true, last=Date.now();
+    try{
+      if('IntersectionObserver' in window){
+        new IntersectionObserver(function(en){ en.forEach(function(x){ inView=x.isIntersecting; }); },{threshold:0.01}).observe(document.documentElement);
+      }
+    }catch(_){}
+    setInterval(function(){
+      var now=Date.now(), dt=now-last; last=now;
+      if(inView && !document.hidden) return;
+      if(dt>1000) dt=250; // timer throttling in background tabs: don't over-shift
+      try{
+        if(window.__BB_PREVIEW_MODE && !window.__BB_PREVIEW_COUNTDOWN_COMPLETED && window.__BB_PREVIEW_COUNTDOWN_END_AT) window.__BB_PREVIEW_COUNTDOWN_END_AT+=dt;
+        if(window.__bbShiftDemoTarget) window.__bbShiftDemoTarget(dt);
+      }catch(_){}
+    },250);
+  })();
+
   try { window.postEditorHistoryState = postEditorHistoryState; } catch (_) {}
   try { Object.defineProperty(window, 'bbSiteKey', { configurable: true, get: function(){ return bbSiteKey; } }); } catch (_) {}
   try { Object.defineProperty(window, 'musicEnabled', { configurable: true, get: function(){ return musicEnabled; } }); } catch (_) {}
@@ -3289,7 +3311,9 @@
     const demoScreens=['countdownScreen','greetingScreen','cakeScreen','reasonsScreen','photoScreen','videoScreen','letterScreen','puzzleScreen','secretScreen'];
     demoScreens.forEach(id=>{ const el=q('#'+id); if(!el)return; el.classList.remove('show','hide'); el.style.display='none'; el.style.pointerEvents='none'; });
     const demoCountdown=q('#countdownScreen'); if(demoCountdown){ demoCountdown.classList.remove('hide'); demoCountdown.style.display='flex'; demoCountdown.style.pointerEvents='auto'; }
-    const target=demoCountdownEndsAt;
+    let target=demoCountdownEndsAt;
+    // Lets the off-screen pause (below) push the end time forward while the demo is not visible.
+    window.__bbShiftDemoTarget=(ms)=>{ if(demoTimer){ target+=ms; demoCountdownEndsAt=target; } };
     const resetDemoScreenVisibility=(activeId)=>{
       demoScreens.forEach(id=>{
         const el=q('#'+id);
@@ -3319,7 +3343,7 @@
         try { const ca=q('#countdownAudio'); if(ca){ ca.muted=false; ca.play().then(()=>{ countdownAudioPlayed=true; }).catch(()=>{}); } } catch(_) {}
       }
       if(left<=0){
-        clearInterval(demoTimer); demoTimer=null;
+        clearInterval(demoTimer); demoTimer=null; window.__bbShiftDemoTarget=null;
         resetDemoScreenVisibility('greetingScreen');
         q('#greetingScreen')?.classList.add('show');
         window.__BB_DEMO_UNLOCKED = true;
