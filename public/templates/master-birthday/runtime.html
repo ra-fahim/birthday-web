@@ -2104,6 +2104,12 @@
   const BB_RUNTIME_PARAMS = new URLSearchParams(location.search);
   window.__BB_CATALOG_MODE = BB_RUNTIME_PARAMS.get('catalog') === '1' || BB_RUNTIME_PARAMS.get('bbCatalog') === '1';
   let state = JSON.parse(JSON.stringify(DEFAULT));
+  // The countdown helpers (getConfiguredBirthdayTarget / getBirthdayCycle / updateCountdown)
+  // live in the page's first script, outside this closure. Without this bridge they throw
+  // "state is not defined", the error is swallowed, and the countdown stays at 00:00:00:00
+  // on the editor canvas, the preview and the published website.
+  try { Object.defineProperty(window, 'state', { configurable: true, get: function(){ return state; } }); } catch (_) {}
+  try { window.zonedDateTimeToDate = zonedDateTimeToDate; } catch (_) {}
   let demoStarted = BB_FORCE_DEMO;
   let receivedContent = false;
   let demoTimer = null;
