@@ -2,6 +2,7 @@ import {NextResponse} from 'next/server';
 import {cookies} from 'next/headers';
 import {googleStateCookie,googleVerifierCookie,googleInviteCookie,setSessionCookie} from '@/lib/auth';
 import {supabaseRest} from '@/lib/supabase-rest';
+import {normalizeAppUrl} from '@/lib/app-url';
 export const runtime='nodejs';export const dynamic='force-dynamic';
 export async function GET(req:Request){
  try{
@@ -12,7 +13,7 @@ export async function GET(req:Request){
   const providerError=u.searchParams.get('error_description')||u.searchParams.get('error');
   if(!code&&providerError){console.error('google login provider error:',providerError);return NextResponse.redirect(new URL('/login?error=google_login_failed',req.url));}
   if(!code||!verifier||(state&&saved&&state!==saved))return NextResponse.redirect(new URL('/login?error=google_invalid_state',req.url));
-  const supabase=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,app=process.env.NEXT_PUBLIC_APP_URL||u.origin;if(!supabase||!key)return NextResponse.redirect(new URL('/login?error=supabase_not_configured',req.url));
+  const supabase=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,app=normalizeAppUrl(process.env.NEXT_PUBLIC_APP_URL)||u.origin;if(!supabase||!key)return NextResponse.redirect(new URL('/login?error=supabase_not_configured',req.url));
   const r=await fetch(`${supabase.replace(/\/$/,'')}/auth/v1/token?grant_type=pkce`,{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({auth_code:code,code_verifier:verifier}),cache:'no-store'});
   const d=await r.json().catch(()=>({}));if(!r.ok||!d.access_token){console.error('google token exchange failed:',r.status,JSON.stringify(d).slice(0,300));return NextResponse.redirect(new URL('/login?error=google_token_failed',req.url));}
   const authUser=d.user; if(!authUser?.id||!authUser.email)return NextResponse.redirect(new URL('/login?error=google_profile_failed',req.url));

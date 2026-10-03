@@ -1,9 +1,10 @@
 import {NextResponse} from 'next/server';
 import crypto from 'node:crypto';
 import {googleStateCookie,googleVerifierCookie,googleInviteCookie} from '@/lib/auth';
+import {normalizeAppUrl} from '@/lib/app-url';
 function base64url(b:Buffer){return b.toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
 export async function GET(req:Request){
- const supabase=process.env.NEXT_PUBLIC_SUPABASE_URL, app=process.env.NEXT_PUBLIC_APP_URL||new URL(req.url).origin;
+ const supabase=process.env.NEXT_PUBLIC_SUPABASE_URL, app=normalizeAppUrl(process.env.NEXT_PUBLIC_APP_URL)||new URL(req.url).origin;
  if(!supabase)return NextResponse.redirect(new URL('/login?error=supabase_not_configured',req.url));
  const invite=new URL(req.url).searchParams.get('invite')||'';
  const nextRaw=new URL(req.url).searchParams.get('next')||''; const nextPath=nextRaw.startsWith('/')&&!nextRaw.startsWith('//')&&!nextRaw.includes('\\')?nextRaw:'';

@@ -1,11 +1,12 @@
 import {NextResponse} from 'next/server';
 import crypto from 'node:crypto';
 import {googleVerifierCookie} from '@/lib/auth';
+import {normalizeAppUrl} from '@/lib/app-url';
 function b64(b:Buffer){return b.toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
 export const runtime='nodejs';
 export async function POST(req:Request){
  try{
-  const {email}=await req.json(); const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,app=process.env.NEXT_PUBLIC_APP_URL||new URL(req.url).origin;
+  const {email}=await req.json(); const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,app=normalizeAppUrl(process.env.NEXT_PUBLIC_APP_URL)||new URL(req.url).origin;
   if(!url||!key)return NextResponse.json({error:'Supabase Auth is not configured'},{status:500});
   // Same PKCE dance as signup/Google login: without a code_challenge here, the
   // recovery link Supabase emails can't be exchanged for a session later, and

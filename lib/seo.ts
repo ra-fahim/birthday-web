@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
+import { normalizeAppUrl } from '@/lib/app-url';
 
 export const SITE_NAME = 'Wishly';
-export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
+export const SITE_URL = normalizeAppUrl(process.env.NEXT_PUBLIC_APP_URL) || 'http://localhost:3000';
 
 // ---- Keyword groups -------------------------------------------------------
 // English, Banglish and Bangla spellings, grouped by occasion. Used for the

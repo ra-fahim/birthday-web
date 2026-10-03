@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { getPublishedSite, supabaseRest } from '@/lib/supabase-rest';
 import { templateBySlug } from '@/lib/templates';
 import { mergeMasterBirthdayConfig } from '@/lib/master-birthday';
+import { normalizeAppUrl } from '@/lib/app-url';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -15,7 +16,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const title = mb?.browserTitle || mb?.ogTitle || c.seoTitle || c.greeting || 'Happy Birthday';
   const description = mb?.ogDescription || c.seoDescription || 'A special birthday website.';
   const image = mb?.ogImage || '';
-  const base = process.env.NEXT_PUBLIC_APP_URL || '';
+  const base = normalizeAppUrl(process.env.NEXT_PUBLIC_APP_URL);
   return { title, description, openGraph: { title: mb?.ogTitle || title, description, images: image ? [{ url: image }] : [{ url: `${base}/api/og?slug=${encodeURIComponent(params.slug)}` }] } };
 }
 

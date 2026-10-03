@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { normalizeAppUrl } from '@/lib/app-url';
 
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 const clean = (v: string) => v.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/-{2,}/g, '-').replace(/^-+/, '');
@@ -17,7 +18,7 @@ export default function PublishPage() {
   const [copied, setCopied] = useState(false);
   const seq = useRef(0);
 
-  const origin = (process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '')).replace(/\/$/, '');
+  const origin = normalizeAppUrl(process.env.NEXT_PUBLIC_APP_URL) || (typeof window !== 'undefined' ? window.location.origin : '');
   const host = origin.replace(/^https?:\/\//, '');
 
   useEffect(() => {
