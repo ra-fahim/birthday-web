@@ -20,7 +20,9 @@ function movable(el,dy){
     el=el.parentElement;
   }
   var se=document.scrollingElement||document.documentElement;
-  if(se&&se.scrollHeight>se.clientHeight+1){
+  var ov=function(n){try{return getComputedStyle(n).overflowY;}catch(_){return 'visible';}};
+  var vo=ov(document.documentElement);if(vo==='visible'&&document.body)vo=ov(document.body);
+  if(se&&vo!=='hidden'&&vo!=='clip'&&se.scrollHeight>se.clientHeight+1){
     if(dy>0&&se.scrollTop+se.clientHeight<se.scrollHeight-1)return true;
     if(dy<0&&se.scrollTop>0)return true;
   }
@@ -39,7 +41,7 @@ window.addEventListener('touchmove',function(e){
   if(mode===0)mode=movable(target,dy)?1:2;
   if(mode===2&&e.cancelable){
     e.preventDefault();
-    try{window.parent.scrollBy(0,dy);}catch(_){}
+    try{window.parent.scrollBy({top:dy,left:0,behavior:'instant'});}catch(_){try{window.parent.scrollBy(0,dy);}catch(__){}}
   }
 },{capture:true,passive:false});
 window.addEventListener('touchend',function(){y0=null;},{capture:true,passive:true});
