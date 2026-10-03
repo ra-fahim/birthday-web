@@ -747,3 +747,8 @@ main.builder-shell .builder-context-editor-body select{max-width:100%;box-sizing
   main.builder-shell .builder-top-actions>*{flex:0 0 auto}
   main.builder-shell .builder-top-view-switch{order:10;flex:1 1 100%;padding:2px}
 }
+
+/* Taller preview box on computers: use almost the whole window height */
+@media(min-width:1025px){
+  main.builder-shell[data-viewport="desktop"] .builder-preview-frame{height:max(780px,calc(100vh - var(--bb-top) - 24px))!important;height:max(780px,calc(100dvh - var(--bb-top) - 24px))!important}
+}

@@ -357,7 +357,18 @@
             .photo-container { grid-template-columns:1fr; }
             .video-grid { grid-template-columns:1fr; }
         }
+        /* Until the real birthday date arrives from the host, don't paint the countdown:
+           otherwise a past date flashes the countdown screen before jumping to Greeting. */
+        html.bb-wait-content #countdownScreen { visibility: hidden !important; }
     </style>
+    <script>
+    (function(){try{
+        var q=new URLSearchParams(location.search);
+        if(q.get('edit')==='1'||q.get('bbEdit')==='1'||q.get('demo')==='1'||q.get('bbDemo')==='1'||q.get('catalog')==='1'||q.get('bbCatalog')==='1') return;
+        document.documentElement.classList.add('bb-wait-content');
+        setTimeout(function(){document.documentElement.classList.remove('bb-wait-content');},2500);
+    }catch(e){}})();
+    </script>
 </head>
 <body>
     <div class="floating-elements" id="floatingElements"></div>
@@ -1023,6 +1034,17 @@
         function __bbActivateScreen(id, displayMode='flex') {
             const el = document.getElementById(id);
             if (!el) return;
+            // Switch every OTHER screen fully off. After the fade-out a screen used to stay
+            // in the page at opacity 0 with pointer-events on, covering the new screen so
+            // none of its buttons/candles/cards could be clicked (live site + Preview).
+            ['countdownScreen','greetingScreen','cakeScreen','reasonsScreen','photoScreen','videoScreen','letterScreen','secretScreen'].forEach(other => {
+                if (other === id) return;
+                const o = document.getElementById(other);
+                if (!o) return;
+                if (other === 'countdownScreen') o.classList.add('hide'); else o.classList.remove('show');
+                o.style.pointerEvents = 'none';
+                o.style.display = 'none';
+            });
             el.style.display = displayMode;
             el.style.pointerEvents = 'auto';
             el.classList.remove('hide');
@@ -1052,6 +1074,7 @@
             const targetId = showMap[screen] || 'countdownScreen';
             const target = document.getElementById(targetId);
             if (target) {
+                try { gsap.killTweensOf(target); gsap.set(target, { opacity: 1, y: 0, scale: 1 }); } catch (_) {}
                 target.classList.remove('hide');
                 if (targetId !== 'countdownScreen') target.classList.add('show');
                 target.style.pointerEvents = 'auto';
@@ -1539,12 +1562,13 @@
                 return;
             }
 
-            navigator.mediaDevices.getUserMedia({ audio: true })
+            navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } })
                 .then(stream => {
                     audioStream = stream;
                     const enableBtn = document.getElementById('micEnableBtn');
                     if (enableBtn) enableBtn.classList.remove('show');
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'playback' });
+                    if (audioContext.state === 'suspended') { try { audioContext.resume(); } catch (_) {} }
                     analyser = audioContext.createAnalyser();
                     const source = audioContext.createMediaStreamSource(stream);
                     source.connect(analyser);
@@ -1571,7 +1595,7 @@
                         for (let i = 0; i < dataArray.length; i++) { sum += dataArray[i]; if (dataArray[i] > peak) peak = dataArray[i]; }
                         const avg = sum / dataArray.length;
                         const nowMs = Date.now();
-                        const loudEnough = avg > 24 || peak > 105;
+                        const loudEnough = avg > 18 || peak > 95; // AGC is off now, so thresholds are a little lower
                         if (loudEnough && nowMs - lastBlowAt > 500) {
                             lastBlowAt = nowMs;
                             blowMultipleCandles(2 + Math.floor(Math.random() * 2));
@@ -1925,13 +1949,13 @@
             if (isTransitioning) return;
             const targetIndex = Number.isInteger(reasonIndex) ? reasonIndex : currentReasonIndex;
 
-            if (targetIndex < 0) {
-                editorScreen === 'reasons' ? editorShowScreen('cake') : null;
-                return;
-            }
+            if (targetIndex < 0) return;
             if (targetIndex >= reasons.length) {
-                if (isEditorMode) editorShowScreen('photo');
-                else goToPhotoScreen();
+                // These used to call isEditorMode / editorShowScreen, which don't exist, so the
+                // last "Click Here" threw an error and never reached the photo screen.
+                // The editor arrows handle their own navigation; live + Preview move on here.
+                if (window.__BB_EDITOR_MODE && !window.__BB_PREVIEW_MODE) return;
+                goToPhotoScreen();
                 return;
             }
 
@@ -2075,11 +2099,11 @@
             window.open('https://www.instagram.com/rafahimn', '_blank');
         };
 
-        function confetti(options) {
-            if (typeof window.confetti === 'function') {
-                window.confetti(options);
-            }
-        }
+        // IMPORTANT: do not declare `function confetti` here. A global function declaration
+        // replaces window.confetti (the canvas-confetti library), then calls itself forever
+        // ("Maximum call stack size exceeded") and aborts candle-blowing / cake-cutting code.
+        // If the library failed to load (blocked CDN), fall back to a harmless no-op instead.
+        if (typeof window.confetti !== 'function') { window.confetti = function () {}; }
 
         // Countdown scheduling is initialized after the runtime state exists.
         // This guard keeps the early bootstrap script from aborting before the
@@ -2670,6 +2694,9 @@
             if (window.__BB_PREVIEW_MODE && state?.birthdayDate) {
                 const previewCycle = getBirthdayCycle(now);
                 if (previewCycle.inGreetingWindow) {
+                    // Already moved to Greeting once: don't yank the viewer back on every tick,
+                    // otherwise Enter / Next / every other button appears dead in Preview.
+                    if (countdownFinished && window.__BB_PREVIEW_COUNTDOWN_COMPLETED) return;
                     window.__BB_PREVIEW_COUNTDOWN_COMPLETED = true;
                     window.__BB_PREVIEW_COUNTDOWN_END_AT = null;
                     countdownFinished = true;
@@ -2879,6 +2906,7 @@
   window.addEventListener('message',function(event){
     const data=event.data||{};
     if(data.type==='BB_CONTENT'){receivedContent=true;
+      Promise.resolve().then(function(){document.documentElement.classList.remove('bb-wait-content');});
       const previousDate=String(state?.birthdayDate||'');
       const previousTime=String(state?.birthdayTime||'');
       window.BB_CONTENT=data.content||{};bbSiteKey=String(data.siteKey||data.websiteSlug||'');
