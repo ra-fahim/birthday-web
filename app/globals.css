@@ -1075,3 +1075,17 @@ main.builder-shell .builder-context-empty-icon{width:34px;height:34px;display:gr
     overflow:visible!important;
   }
 }
+
+
+/* MASTER BIRTHDAY EDIT MODE — remove nested host scroll traps. The iframe owns template scrolling;
+   when its document cannot move, the runtime forwards the gesture to the builder page. */
+@media (min-width: 0px){
+  main.builder-shell[data-preview="0"] .builder-preview-canvas,
+  main.builder-shell[data-preview="0"] .builder-canvas-stage{
+    overflow:visible!important;
+    overscroll-behavior:auto!important;
+  }
+  main.builder-shell[data-preview="0"] .builder-canvas-stage{
+    touch-action:auto!important;
+  }
+}

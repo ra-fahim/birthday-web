@@ -41,7 +41,7 @@ export const templateInspections: Record<string, TemplateInspection> = {
     summary: 'Proposal experience with one background soundtrack and a museum containing mixed photo/video memories.',
     media: [
       { key: 'bgMusicUrl', label: 'Background music', kind: 'audio', behavior: 'Loops as the proposal soundtrack.', sourceType: 'file-or-url' },
-      { key: 'museum', label: 'Museum memories', kind: 'image', behavior: 'Each museum item can independently be a photo or video; video supports direct links and YouTube.', sourceType: 'file-or-url', count: 3 },
+      { key: 'museum', label: 'Museum memories', kind: 'image', behavior: 'Each museum item can independently be a photo or video; video supports direct links and YouTube.', sourceType: 'file-or-url', count: 6 },
     ],
     editableAreas: ['opening gate', 'story chapters', 'museum photo/video items', 'background music', 'date planner', 'buttons', 'letter']
   },

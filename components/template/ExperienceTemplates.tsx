@@ -89,8 +89,11 @@ export function getMasterProposalDefaults() {
     ],
     museum: [
       { id: '1', type: 'image', url: '/museum-gallery/1.jpg', title: 'The First Glance', date: 'January 2025', description: 'The moment our paths crossed personally.' },
-      { id: '2', type: 'image', url: '/museum-gallery/4.jpg', title: 'My First Birthday with You!', date: 'November 2025', description: 'We celebrated a beautiful little memory together.' },
-      { id: '3', type: 'video', url: '/museum-gallery/2.mp4', thumbnail: '/museum-gallery/2-thumb.png', title: 'Samgyeopsal and Moral Support', date: 'March 2025', description: 'We shared a meal and a laugh together. I love your laughs.' },
+      { id: '2', type: 'video', url: '/museum-gallery/2.mp4', thumbnail: '/museum-gallery/2-thumb.png', title: 'Samgyeopsal and Moral Support', date: 'March 2025', description: 'We shared a meal and a laugh together. I love your laughs.' },
+      { id: '3', type: 'video', url: '/museum-gallery/3.mp4', thumbnail: '/museum-gallery/3-thumb.png', title: 'Anniversary Dinner', date: 'January 2026', description: 'We dressed up, ate too much, and had a great time together.' },
+      { id: '4', type: 'image', url: '/museum-gallery/4.jpg', title: 'My First Birthday with You!', date: 'November 2025', description: 'We Celebrated my first birthday with you!' },
+      { id: '5', type: 'video', url: '/museum-gallery/5.mp4', thumbnail: '/museum-gallery/5-thumb.jpg', title: 'Home is where you are!', date: 'June 2025', description: "Every time I see you, I feel like I'm home." },
+      { id: '6', type: 'image', url: '/museum-gallery/6.jpg', title: 'Your First Birthday with Me!', date: 'October 2025', description: 'We Celebrated your first birthday with me! I love you so much!' },
     ],
     bgMusicUrl: '',
     texts: {

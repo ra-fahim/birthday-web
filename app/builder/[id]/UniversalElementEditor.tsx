@@ -43,8 +43,7 @@ export default function UniversalElementEditor({ selected, content, templateId, 
   };
 
   const setMasterArrayItem = (field: string, patch: Record<string, unknown>, remove = false) => {
-    const defaults = master ? ((getMasterProposalDefaults() as Record<string, any>)[field] || []) : [];
-    const items = Array.isArray(templateConfig[field]) ? [...templateConfig[field]] : [...defaults];
+    const items = Array.isArray(templateConfig[field]) ? [...templateConfig[field]] : [];
     const i = selected.index ?? -1;
     if (i < 0) return;
     if (remove) items.splice(i, 1); else items[i] = { ...(items[i] || {}), ...patch };
@@ -358,8 +357,7 @@ export default function UniversalElementEditor({ selected, content, templateId, 
       {templateConfig.bgMusicUrl ? <button type="button" className="universal-danger" onClick={() => onTemplateConfigChange({ bgMusicUrl: '' })}><Trash2 size={14}/> Remove music</button> : null}
     </>;
     if (master && key === 'museum' && typeof selected.index === 'number') {
-      const masterDefaults = getMasterProposalDefaults() as Record<string, any>;
-      const museum = Array.isArray(templateConfig.museum) ? [...templateConfig.museum] : [...(masterDefaults.museum || [])];
+      const museum = Array.isArray(templateConfig.museum) ? [...templateConfig.museum] : [];
       if (selected.index >= museum.length) {
         return <><div className="universal-editor-media-head"><div className="universal-editor-icon"><ImagePlus size={16}/></div><div><b>Add gallery item</b><span>New memory</span></div></div><button type="button" className="builder-upload-btn" onClick={()=>onTemplateConfigChange({ museum:[...museum,{id:String(Date.now()),type:'image',url:'',title:'New Memory',date:'',description:''}] })}><ImagePlus size={14}/> Create gallery item</button></>;
       }
@@ -375,8 +373,7 @@ export default function UniversalElementEditor({ selected, content, templateId, 
       </>;
     }
     if (master && key === 'story' && typeof selected.index === 'number') {
-      const masterDefaults = getMasterProposalDefaults() as Record<string, any>;
-      const storyList: any[] = Array.isArray(templateConfig.story) ? templateConfig.story : [...(masterDefaults.story || [])];
+      const storyList: any[] = Array.isArray(templateConfig.story) ? templateConfig.story : [];
       if (selected.index >= storyList.length) return <><div className="universal-editor-media-head"><div className="universal-editor-icon"><Edit3 size={16}/></div><div><b>Add a story chapter</b><span>Appears after the last chapter</span></div></div><button type="button" className="builder-upload-btn" onClick={() => onTemplateConfigChange({ story: [...storyList, { title: 'New chapter', body: 'Write your chapter here…' }] })}>＋ Create chapter</button></>;
       const item = storyList[selected.index] || {};
       return <>
@@ -387,9 +384,7 @@ export default function UniversalElementEditor({ selected, content, templateId, 
     }
     if (master && key.startsWith('introGate.')) {
       const field = key.split('.')[1];
-      const masterDefaults = getMasterProposalDefaults() as Record<string, any>;
-      const gate = { ...(masterDefaults.introGate || {}), ...((templateConfig.introGate || {}) as Record<string, any>) } as Record<string, any>;
-      if (!Array.isArray(gate.prompts)) gate.prompts = [...(masterDefaults.introGate?.prompts || [])];
+      const gate = (templateConfig.introGate || {}) as Record<string, any>;
       if (field === 'prompts' && typeof selected.index === 'number') {
         const item = (Array.isArray(gate.prompts) ? gate.prompts : [])[selected.index] || {};
         const set = (patch: Record<string, unknown>) => {
@@ -400,37 +395,18 @@ export default function UniversalElementEditor({ selected, content, templateId, 
         const promptList: any[] = Array.isArray(gate.prompts) ? gate.prompts : [];
         return <><Field label={selected.index >= promptList.length ? 'New question' : `Question ${selected.index + 1}`}><input autoFocus value={String(item.title || '')} onChange={e => set({ title: e.target.value })} /></Field><Field label="Subtitle"><input value={String(item.subtitle || '')} onChange={e => set({ subtitle: e.target.value })} /></Field>{selected.index < promptList.length && promptList.length > 1 && <button type="button" className="universal-danger" onClick={() => onTemplateConfigChange({ introGate: { ...gate, prompts: promptList.filter((_, idx) => idx !== selected.index) } })}><Trash2 size={14}/> Remove this question</button>}<p className="builder-note">Each time the receiver taps “No”, the next question appears.</p></>;
       }
-      if (field === 'yesButtonText' || field === 'noButtonText' || field === 'noButtonTextRepeat' || field === 'firstLine' || field === 'secondLineLabel' || field === 'secondLine') return <TextField value={String(gate[field] ?? '')} multiline={field === 'firstLine' || field === 'secondLine'} onChange={value => onTemplateConfigChange({ introGate: { ...gate, [field]: value } })} />;
+      if (field === 'yesButtonText' || field === 'noButtonText' || field === 'noButtonTextRepeat' || field === 'firstLine' || field === 'secondLineLabel' || field === 'secondLine') return <TextField value={String(gate[field] || '')} multiline={field === 'firstLine' || field === 'secondLine'} onChange={value => onTemplateConfigChange({ introGate: { ...gate, [field]: value } })} />;
     }
     if (master && key.startsWith('datePlanner.')) {
       const field = key.split('.')[1];
-      const masterDefaults = getMasterProposalDefaults() as Record<string, any>;
-      const planner = { ...(masterDefaults.datePlanner || {}), ...((templateConfig.datePlanner || {}) as Record<string, any>) } as Record<string, any>;
+      const planner = (templateConfig.datePlanner || {}) as Record<string, any>;
       if (field === 'options' && typeof selected.index === 'number') {
-        const item = (Array.isArray(planner.options) ? planner.options : (masterDefaults.datePlanner?.options || []))[selected.index] || {};
-        const set = (patch: Record<string, unknown>) => { const next = [...(Array.isArray(planner.options) ? planner.options : (masterDefaults.datePlanner?.options || []))]; next[selected.index!] = { ...(next[selected.index!] || {}), ...patch }; onTemplateConfigChange({ datePlanner: { ...planner, options: next } }); };
+        const item = (Array.isArray(planner.options) ? planner.options : [])[selected.index] || {};
+        const set = (patch: Record<string, unknown>) => { const next = [...(Array.isArray(planner.options) ? planner.options : [])]; next[selected.index!] = { ...(next[selected.index!] || {}), ...patch }; onTemplateConfigChange({ datePlanner: { ...planner, options: next } }); };
         return <><Field label="Option label"><input value={String(item.label || '')} onChange={e => set({ label: e.target.value })} /></Field><Field label="Plan title"><input value={String(item.planTitle || '')} onChange={e => set({ planTitle: e.target.value })} /></Field><Field label="Description"><textarea rows={6} value={String(item.planDescription || '')} onChange={e => set({ planDescription: e.target.value })} /></Field><Field label="Budget"><input value={String(item.budget || '')} onChange={e => set({ budget: e.target.value })} /></Field></>;
       }
       return <TextField value={String(planner[field] || '')} multiline={field === 'heading' || field === 'subtitle'} onChange={value => onTemplateConfigChange({ datePlanner: { ...planner, [field]: value } })} />;
     }
-    if (master) {
-      const mdef = getMasterProposalDefaults() as Record<string, any>;
-      const getPath = (source: any, path: string) => path.split('.').reduce((acc: any, part: string) => acc?.[part], source);
-      const fallbackValue = getPath(mdef, key);
-      if (typeof fallbackValue === 'string' || typeof fallbackValue === 'number') {
-        const currentValue = getPath(templateConfig, key);
-        const value = currentValue !== undefined && currentValue !== null && String(currentValue).length ? String(currentValue) : String(selected.value ?? fallbackValue ?? '');
-        const parts = key.split('.');
-        const updateScalar = (nextValue: string) => {
-          if (parts.length === 1) return onTemplateConfigChange({ [key]: nextValue });
-          const group = { ...(templateConfig[parts[0]] || {}) };
-          group[parts[1]] = nextValue;
-          onTemplateConfigChange({ [parts[0]]: group });
-        };
-        return <TextField value={value} multiline={value.length > 70 || value.includes('\n')} onChange={updateScalar} />;
-      }
-    }
-
     if (key === 'missYou') { const cfg = templateConfig; const set=(field:string,value:any)=>onTemplateConfigChange({[field]:value}); return <><Field label="Name 1"><input value={String(cfg.name1||'')} onChange={e=>set('name1',e.target.value)} /></Field><Field label="Name 2"><input value={String(cfg.name2||'')} onChange={e=>set('name2',e.target.value)} /></Field><Field label="Main line"><input value={String(cfg.seedText||'')} onChange={e=>set('seedText',e.target.value)} /></Field><Field label="Paragraph 1"><textarea rows={6} value={Array.isArray(cfg.paragraph1)?cfg.paragraph1.join('\n'):String(cfg.paragraph1||'')} onChange={e=>set('paragraph1',e.target.value.split('\n'))} /></Field><Field label="Paragraph 2"><textarea rows={6} value={Array.isArray(cfg.paragraph2)?cfg.paragraph2.join('\n'):String(cfg.paragraph2||'')} onChange={e=>set('paragraph2',e.target.value.split('\n'))} /></Field><Field label="Paragraph 3"><textarea rows={6} value={Array.isArray(cfg.paragraph3)?cfg.paragraph3.join('\n'):String(cfg.paragraph3||'')} onChange={e=>set('paragraph3',e.target.value.split('\n'))} /></Field><div className="mt-3"><b className="builder-eyebrow">BACKGROUND MUSIC</b><div className="mt-2"><SingleMediaUpload kind="audio" url={String(cfg.musicUrl||'')} websiteId={websiteId} onChange={url=>set('musicUrl',url)} /></div></div></>; }
     if (key in content) return <TextField value={String(common ?? '')} multiline={['message','greeting','heroSubtitle','secret','buttonText'].includes(key)} onChange={value => onChange({ [key]: value } as Partial<BirthdayContent>)} />;
     return <div className="builder-note">This element is visible in the template but does not expose a direct editor field yet.</div>;

@@ -37,14 +37,6 @@ const DEFAULT_MUSEUM_ITEMS: MuseumItem[] = [
   },
   {
     id: '2',
-    type: 'image',
-    url: '/museum-gallery/4.jpg',
-    title: 'My First Birthday with You!',
-    date: 'November 2025',
-    description: 'We celebrated a beautiful little memory together.',
-  },
-  {
-    id: '3',
     type: 'video',
     url: '/museum-gallery/2.mp4',
     thumbnail: '/museum-gallery/2-thumb.png',
@@ -52,6 +44,40 @@ const DEFAULT_MUSEUM_ITEMS: MuseumItem[] = [
     date: 'March 2025',
     description: 'We shared a meal and a laugh together. I love your laughs.',
   },
+  {
+    id: '3',
+    type: 'video',
+    url: '/museum-gallery/3.mp4',
+    thumbnail: '/museum-gallery/3-thumb.png',
+    title: 'Anniversary Dinner',
+    date: 'January 2026',
+    description: 'We dressed up, ate too much, and had a great time together.',
+  },
+  {
+    id: '4',
+    type: 'image',
+    url: '/museum-gallery/4.jpg',
+    title: 'My First Birthday with You!',
+    date: 'November 2025',
+    description: 'We Celebrated my first birthday with you!',
+  },
+  {
+    id: '5',
+    type: 'video',
+    url: '/museum-gallery/5.mp4',
+    thumbnail: '/museum-gallery/5-thumb.jpg',
+    title: 'Home is where you are!',
+    date: 'June 2025',
+    description: 'Every time I see you, I feel like I\'m home.',
+  },
+  {
+    id: '6',
+    type: 'image',
+    url: '/museum-gallery/6.jpg',
+    title: 'Your First Birthday with Me!',
+    date: 'October 2025',
+    description: 'We Celebrated your first birthday with me! I love you so much!',
+  }
 ];
 
 export const MuseumGallery: React.FC = () => {
@@ -244,27 +270,38 @@ const MuseumFrame: React.FC<{
         Created using CSS gradients for the gold effect and shadows for the molding depth.
       */}
       <div
-        className="museum-frame relative w-full overflow-hidden transition-transform duration-500 hover:-translate-y-1 hover:scale-[1.012]"
+        className="relative w-full shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-transform duration-500 hover:scale-[1.01]"
         style={{
-          background: 'linear-gradient(135deg, #7b5518 0%, #d9b75d 14%, #fff2b4 27%, #b78324 44%, #f7dfa0 63%, #9a6a19 79%, #e7c66e 100%)',
-          padding: '10px',
-          borderRadius: '18px',
-          boxShadow: '0 28px 70px rgba(48, 28, 10, .24), 0 10px 26px rgba(48, 28, 10, .18), inset 0 1px 0 rgba(255,255,255,.8), inset 0 -2px 0 rgba(74,45,10,.35)',
+          // Realistic Metallic Gold Gradient
+          background: 'linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c)',
+          padding: '16px',
+          borderRadius: '4px',
+          boxShadow: `
+            0px 10px 20px rgba(0,0,0,0.4), 
+            inset 0px 0px 0px 2px rgba(139, 69, 19, 0.5), /* Inner dark line */
+            inset 4px 4px 10px rgba(255, 255, 255, 0.5), /* Highlight */
+            inset -4px -4px 10px rgba(0, 0, 0, 0.3) /* Shadow */
+          `
         }}
       >
-        <div className="museum-frame-shimmer absolute inset-y-0 -left-1/2 w-1/3 pointer-events-none" aria-hidden="true" />
-        <div className="absolute inset-[5px] rounded-[13px] border border-white/25 pointer-events-none" aria-hidden="true" />
-        <div className="absolute inset-[9px] rounded-[10px] border border-black/20 pointer-events-none" aria-hidden="true" />
+        {/* Decorative Baroque Pattern Overlay (CSS Pattern) */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-30 mix-blend-multiply"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20c10-10 20 0 20 0s-10 10-20 0zm0 0c-10 10-20 0-20 0s10-10 20 0z' fill='%236b4c1e' fill-opacity='0.4'/%3E%3C/svg%3E")`,
+            backgroundSize: '30px 30px'
+          }}
+        />
 
-        {/* Inner Molding */}
-        <div className="relative bg-[#1a1712] p-[6px] shadow-[inset_0_0_18px_rgba(0,0,0,0.82)] h-full w-full rounded-[12px]">
+        {/* Inner Molding (The dip before the picture) */}
+        <div className="bg-[#2a2a2a] p-[2px] shadow-[inset_0_0_10px_rgba(0,0,0,0.8)] h-full w-full">
           {/* The Artwork/Video Container — click to open full view */}
           {/* 
             Using padding-bottom trick as universal fallback for aspect-ratio.
             aspect-ratio CSS is not supported on older mobile browsers (iOS <15, Android WebView <93).
             padding-bottom: 133.33% = 4/3 ratio (height = 133.33% of width)
           */}
-          <div className="relative w-full" style={{ paddingBottom: '125%' }} {...bb('museum', `Memory ${index + 1} — photo / video`, index)}>
+          <div className="relative w-full" style={{ paddingBottom: '133.33%' }} {...bb('museum', `Memory ${index + 1} — photo / video`, index)}>
             <button
               type="button"
               onClick={onOpenFullView}
@@ -291,8 +328,8 @@ const MuseumFrame: React.FC<{
       </div>
 
       {/* The Museum Label / Plaque */}
-      <div className="mt-6 sm:mt-8 w-full max-w-[92%] sm:max-w-[86%] text-center">
-        <div className="museum-plaque bg-[#fffdf7] dark:bg-zinc-900/95 border border-[#d4b15a]/55 dark:border-[#9b7a34]/40 px-5 sm:px-6 py-4 shadow-[0_14px_30px_rgba(41,27,10,.12)] relative rounded-[12px]">
+      <div className="mt-8 max-w-[85%] text-center">
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 px-6 py-4 shadow-md relative">
           {/* Gold Screw heads */}
           <div className="absolute top-2 left-2 w-1.5 h-1.5 rounded-full bg-[#bf953f] shadow-sm" />
           <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-[#bf953f] shadow-sm" />
@@ -313,34 +350,6 @@ const MuseumFrame: React.FC<{
     </motion.div>
   );
 };
-
-const museumFrameStyles = `
-  .museum-frame { transform: translateZ(0); }
-  .museum-frame-shimmer {
-    top: -20%;
-    height: 140%;
-    transform: rotate(18deg);
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,.42), rgba(255,244,194,.28), transparent);
-    filter: blur(1px);
-    animation: museumFrameShimmer 5.5s ease-in-out infinite;
-  }
-  .museum-frame:hover .museum-frame-shimmer { animation-duration: 3.5s; }
-  @keyframes museumFrameShimmer {
-    0%, 18% { left: -55%; opacity: 0; }
-    28% { opacity: .65; }
-    52%, 100% { left: 125%; opacity: 0; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .museum-frame-shimmer { animation: none; }
-    .museum-frame { transition: none; }
-  }
-`;
-if (typeof document !== 'undefined' && !document.getElementById('museum-frame-premium-styles')) {
-  const style = document.createElement('style');
-  style.id = 'museum-frame-premium-styles';
-  style.textContent = museumFrameStyles;
-  document.head.appendChild(style);
-}
 
 // Grid video: thumbnail + play icon; click is handled by parent (opens lightbox)
 const VideoPlayer: React.FC<{ url: string; thumbnail?: string }> = ({ url, thumbnail }) => {
