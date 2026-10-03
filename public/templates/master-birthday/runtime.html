@@ -3807,84 +3807,90 @@
 
 </script>
 <script>
+/* Builder: keep the editor page scrollable when a finger/wheel is over the template.
+   The embedded template owns its own scrolling only when an actually-scrollable
+   child can consume the gesture. Otherwise the gesture is forwarded to the parent
+   editor page. */
 (function(){
 if(window.__bbScrollFwd)return;window.__bbScrollFwd=1;
 var isActive=function(){return false;};
-var y0=null,target=null,raf=0,pending=0;
-function yOf(t){var o=0;try{if(window.frameElement)o=window.frameElement.getBoundingClientRect().top;}catch(_){}return t.clientY+o;}
+var y0=null,target=null,mode=0,lastForwarded=0;
+
 function movable(el,dy){
   while(el&&el.nodeType===1){
-    var oy=getComputedStyle(el).overflowY;
-    if((oy==='auto'||oy==='scroll')&&el.scrollHeight>el.clientHeight+1){
+    var cs;try{cs=getComputedStyle(el);}catch(_){cs=null;}
+    var oy=cs?cs.overflowY:'visible';
+    if((oy==='auto'||oy==='scroll'||oy==='overlay')&&el.scrollHeight>el.clientHeight+1){
       if(dy>0&&el.scrollTop+el.clientHeight<el.scrollHeight-1)return true;
       if(dy<0&&el.scrollTop>0)return true;
     }
     el=el.parentElement;
   }
-  var se=document.scrollingElement||document.documentElement;
-  var ov=function(n){try{return getComputedStyle(n).overflowY;}catch(_){return 'visible';}};
-  var vo=ov(document.documentElement);if(vo==='visible'&&document.body)vo=ov(document.body);
-  if(se&&vo!=='hidden'&&vo!=='clip'&&se.scrollHeight>se.clientHeight+1){
-    if(dy>0&&se.scrollTop+se.clientHeight<se.scrollHeight-1)return true;
-    if(dy<0&&se.scrollTop>0)return true;
-  }
+  // The runtime frequently locks the iframe viewport on the countdown screen.
+  // In that state there is intentionally no internal scroll target, so the parent
+  // editor must remain the scroll owner.
   return false;
 }
-function parentScroller(){
-  try{
-    var doc=window.parent.document, node=window.frameElement;
-    while(node&&node!==doc.body){
-      node=node.parentElement;
-      if(!node)break;
-      var oy=window.parent.getComputedStyle(node).overflowY;
-      if((oy==='auto'||oy==='scroll')&&node.scrollHeight>node.clientHeight+1)return node;
-    }
-    return doc.scrollingElement||doc.documentElement;
-  }catch(_){return null;}
-}
+
 function scrollParent(dy){
-  if(!dy)return;
+  if(!dy||!window.parent)return false;
   try{
-    var se=parentScroller();
-    if(se){
-      var max=Math.max(0,se.scrollHeight-se.clientHeight),next=Math.max(0,Math.min(max,se.scrollTop+dy));
-      if(next!==se.scrollTop)se.scrollTop=next;
-      return;
-    }
-  }catch(_){}
-  try{window.parent.scrollBy(0,dy);}catch(__){}
+    var doc=window.parent.document;
+    var se=doc.scrollingElement||doc.documentElement;
+    var body=doc.body;
+    var max=Math.max(
+      0,
+      (se?.scrollHeight||0)-(se?.clientHeight||0),
+      (body?.scrollHeight||0)-(body?.clientHeight||0)
+    );
+    var current=Math.max(se?.scrollTop||0,body?.scrollTop||0);
+    var next=Math.max(0,Math.min(max,current+dy));
+    if(Math.abs(next-current)<0.5)return false;
+    // Direct assignment is deliberate: it works even while this iframe gesture is
+    // being prevented and avoids browser differences around behavior:'instant'.
+    if(se)se.scrollTop=next;
+    if(body)body.scrollTop=next;
+    return true;
+  }catch(_){
+    try{window.parent.scrollBy(0,dy);return true;}catch(__){return false;}
+  }
 }
-function flush(){
-  raf=0;
-  if(!pending)return;
-  var dy=pending;pending=0;scrollParent(dy);
-}
-function queueParent(dy){
-  pending+=dy;
-  if(!raf)raf=requestAnimationFrame(flush);
-}
+
 window.addEventListener('touchstart',function(e){
   var t=e.touches&&e.touches[0];
-  if(!t||e.touches.length>1||!isActive()){y0=null;target=null;return;}
-  y0=yOf(t);target=e.target;
+  if(!t||e.touches.length>1||!isActive()){y0=null;target=null;mode=0;return;}
+  // Use the touch coordinates directly. Adding frameElement.getBoundingClientRect().top
+  // double-counts movement once the parent page itself starts scrolling.
+  y0=t.clientY;
+  target=e.target;
+  mode=0;
 },{capture:true,passive:true});
+
 window.addEventListener('touchmove',function(e){
-  if(y0===null||!isActive())return;
+  if(y0===null)return;
   var t=e.touches&&e.touches[0];if(!t)return;
-  var ny=yOf(t),dy=y0-ny;if(!dy)return;
-  y0=ny;
-  if(movable(target,dy)){return;}
-  if(e.cancelable)e.preventDefault();
-  queueParent(dy);
+  var dy=y0-t.clientY;if(!dy)return;
+  y0=t.clientY;
+  if(mode===0)mode=movable(target,dy)?1:2;
+  if(mode===2&&e.cancelable){
+    e.preventDefault();
+    // Forward at most once per animation frame to keep the parent page smooth.
+    var now=performance.now();
+    if(now-lastForwarded>=8){lastForwarded=now;scrollParent(dy);}
+  }
 },{capture:true,passive:false});
-window.addEventListener('touchend',function(){if(raf)cancelAnimationFrame(raf);raf=0;flush();y0=null;target=null;},{capture:true,passive:true});
-window.addEventListener('touchcancel',function(){if(raf)cancelAnimationFrame(raf);raf=0;pending=0;y0=null;target=null;},{capture:true,passive:true});
+
+window.addEventListener('touchend',function(){y0=null;target=null;mode=0;},{capture:true,passive:true});
+window.addEventListener('touchcancel',function(){y0=null;target=null;mode=0;},{capture:true,passive:true});
+
 window.addEventListener('wheel',function(e){
   if(!isActive()||!e||!e.deltaY)return;
-  if(movable(e.target,e.deltaY))return;
+  var dy=e.deltaY;
+  if(movable(e.target,dy))return;
   if(e.cancelable)e.preventDefault();
-  queueParent(e.deltaY);
+  scrollParent(dy);
 },{capture:true,passive:false});
+
 window.__bbScrollFwdSet=function(fn){isActive=fn;};
 })();
 window.__bbScrollFwdSet(function(){return document.documentElement.dataset.bbEditor==='1'||!!window.__BB_PREVIEW_MODE;});

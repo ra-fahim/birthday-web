@@ -1076,16 +1076,13 @@ main.builder-shell .builder-context-empty-icon{width:34px;height:34px;display:gr
   }
 }
 
-
-/* MASTER BIRTHDAY EDIT MODE — remove nested host scroll traps. The iframe owns template scrolling;
-   when its document cannot move, the runtime forwards the gesture to the builder page. */
-@media (min-width: 0px){
-  main.builder-shell[data-preview="0"] .builder-preview-canvas,
-  main.builder-shell[data-preview="0"] .builder-canvas-stage{
-    overflow:visible!important;
-    overscroll-behavior:auto!important;
-  }
-  main.builder-shell[data-preview="0"] .builder-canvas-stage{
-    touch-action:auto!important;
-  }
+/* Master Birthday editor: the iframe is a preview surface, not the page scroll owner.
+   Its runtime forwards gestures that it cannot consume back to the editor page. */
+main.builder-shell[data-preview="0"] .builder-preview-panel,
+main.builder-shell[data-preview="0"] .builder-preview-frame,
+main.builder-shell[data-preview="0"] .builder-canvas-stage{
+  overscroll-behavior-y:auto!important;
+}
+main.builder-shell[data-preview="0"] .builder-canvas-stage iframe{
+  overscroll-behavior-y:auto!important;
 }
