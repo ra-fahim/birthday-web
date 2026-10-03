@@ -33,5 +33,5 @@ export default async function PublishedSite({ params, searchParams }: { params: 
   } catch (error) {
     console.error('view increment failed', error);
   }
-  return <main className="min-h-screen bg-black">{(renderTemplateId === 'master' || renderTemplateId === 'master-birthday') ? <MasterBirthdayTemplate content={c} websiteSlug={params.slug} recipientId={searchParams?.recipient || searchParams?.to || ''} standalone /> : <ExperienceTemplate variant={renderTemplateId} content={{...c, templateId:renderTemplateId}} />}</main>;
+  return <main className="h-[100dvh] min-h-[100dvh] overflow-hidden bg-black">{(renderTemplateId === 'master' || renderTemplateId === 'master-birthday') ? <MasterBirthdayTemplate content={c} websiteSlug={params.slug} recipientId={searchParams?.recipient || searchParams?.to || ''} standalone /> : <ExperienceTemplate variant={renderTemplateId} content={{...c, templateId:renderTemplateId}} />}</main>;
 }

@@ -74,7 +74,7 @@ export default function MasterBirthdayTemplate({ content, demo = false, preview 
     return () => window.removeEventListener('message', handler);
   }, [onElementSelect, onHistoryState]);
 
-  return <div style={{ width: '100%', height: '100%', minHeight: standalone ? '100vh' : 0, position: 'relative' }}>
+  return <div style={{ width: '100%', height: standalone ? '100dvh' : '100%', minHeight: standalone ? '100dvh' : 0, position: 'relative', overflow: 'hidden' }}>
   <iframe
     ref={frameRef}
     title="Master Birthday"
@@ -82,7 +82,7 @@ export default function MasterBirthdayTemplate({ content, demo = false, preview 
     className="h-full min-h-0 w-full border-0"
     allow="autoplay; microphone; fullscreen; picture-in-picture"
     sandbox="allow-forms allow-modals allow-popups allow-same-origin allow-scripts"
-    style={{ width: '100%', height: '100%', minHeight: standalone ? '100vh' : 0, display: 'block', border: 0 }}
+    style={{ width: '100%', height: standalone ? '100dvh' : '100%', minHeight: standalone ? '100dvh' : 0, display: 'block', border: 0 }}
   />
   </div>;
 }
