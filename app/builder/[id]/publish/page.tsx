@@ -72,44 +72,40 @@ export default function PublishPage() {
     finally { setBusy(false); }
   }
 
-  const box: React.CSSProperties = { maxWidth: 560, margin: '0 auto', padding: 24, borderRadius: 20, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.12)' };
-  const btn: React.CSSProperties = { padding: '12px 18px', borderRadius: 12, border: 0, fontWeight: 700, cursor: 'pointer', color: '#fff', background: 'linear-gradient(135deg,#ec4899,#8b5cf6)' };
-  const ghost: React.CSSProperties = { ...btn, background: 'rgba(255,255,255,.1)' };
-
   return (
-    <main style={{ minHeight: '100vh', background: '#0b0b12', color: '#fff', padding: '48px 16px' }}>
-      <div style={box}>
-        <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>{liveUrl ? 'Your website is live ✨' : 'Choose your live link'}</h1>
-        <p style={{ color: '#a1a1aa', marginBottom: 20, fontSize: 14 }}>
+    <main className="bp-publish">
+      <div className="bp-card">
+        <div className="bp-badge" aria-hidden>{liveUrl ? '✨' : '🔗'}</div>
+        <h1>{liveUrl ? 'Your website is live ✨' : 'Choose your live link'}</h1>
+        <p className="bp-sub">
           {liveUrl ? 'Share this link with your special person.' : 'Pick a custom link name. It must be unique — we check it for you.'}
         </p>
-        {!site && !err && <p style={{ color: '#a1a1aa' }}>Loading…</p>}
+        {!site && !err && <p className="bp-loading">Loading…</p>}
         {site && !liveUrl && (<>
-          <label style={{ fontSize: 12, color: '#a1a1aa' }}>CUSTOM LINK</label>
-          <div style={{ display: 'flex', alignItems: 'center', marginTop: 6, borderRadius: 12, border: '1px solid rgba(255,255,255,.18)', background: 'rgba(0,0,0,.35)', overflow: 'hidden' }}>
-            <span style={{ padding: '12px 0 12px 12px', color: '#a1a1aa', fontSize: 14, whiteSpace: 'nowrap' }}>{host}/site/</span>
-            <input value={slug} onChange={e => setSlug(clean(e.target.value))} placeholder="my-birthday" maxLength={63} autoCapitalize="none" autoCorrect="off" spellCheck={false}
-              style={{ flex: 1, minWidth: 0, background: 'transparent', border: 0, outline: 0, color: '#fff', padding: '12px 12px 12px 2px', fontSize: 14 }} />
+          <label className="bp-label">CUSTOM LINK</label>
+          <div className={`bp-input-wrap${check.state === 'ok' ? ' is-ok' : check.state === 'bad' ? ' is-bad' : ''}`}>
+            <span className="bp-input-prefix">{host}/site/</span>
+            <input value={slug} onChange={e => setSlug(clean(e.target.value))} placeholder="my-birthday" maxLength={63} autoCapitalize="none" autoCorrect="off" spellCheck={false} />
           </div>
-          <p style={{ minHeight: 20, marginTop: 8, fontSize: 13, color: check.state === 'ok' ? '#4ade80' : check.state === 'bad' ? '#f87171' : '#a1a1aa' }}>
+          <p className={`bp-hint${check.state === 'ok' ? ' is-ok' : check.state === 'bad' ? ' is-bad' : ''}`}>
             {check.state === 'checking' && 'Checking…'}{check.state === 'ok' && '✓ Available'}{check.state === 'bad' && (check.reason || 'Not available')}
           </p>
-          {err && <p style={{ color: '#f87171', fontSize: 13, marginBottom: 8 }}>{err}</p>}
-          <div style={{ display: 'flex', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
-            <button style={ghost} onClick={() => router.push('/builder/' + id)}>← Back to editor</button>
-            <button style={{ ...btn, opacity: check.state === 'ok' && !busy ? 1 : .5 }} disabled={check.state !== 'ok' || busy} onClick={publish}>{busy ? 'Publishing…' : 'Publish website ↗'}</button>
+          {err && <p className="bp-error">{err}</p>}
+          <div className="bp-actions">
+            <button className="bp-btn bp-btn-ghost" onClick={() => router.push('/builder/' + id)}>← Back to editor</button>
+            <button className="bp-btn bp-btn-primary" disabled={check.state !== 'ok' || busy} onClick={publish}>{busy ? 'Publishing…' : 'Publish website ↗'}</button>
           </div>
         </>)}
         {liveUrl && (<>
-          <div style={{ padding: 14, borderRadius: 12, background: 'rgba(0,0,0,.35)', border: '1px solid rgba(255,255,255,.18)', wordBreak: 'break-all', fontWeight: 700 }}>{liveUrl}</div>
-          <div style={{ display: 'flex', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
-            <button style={btn} onClick={() => { navigator.clipboard?.writeText(liveUrl); setCopied(true); setTimeout(() => setCopied(false), 1500); }}>{copied ? 'Copied ✓' : 'Copy link'}</button>
-            <a href={liveUrl} target="_blank" rel="noreferrer" style={{ ...ghost, textDecoration: 'none', display: 'inline-block' }}>Open ↗</a>
-            <button style={ghost} onClick={() => setLiveUrl('')}>Change link</button>
-            <button style={ghost} onClick={() => router.push('/builder/' + id)}>Back to editor</button>
+          <div className="bp-live-url">{liveUrl}</div>
+          <div className="bp-actions">
+            <button className="bp-btn bp-btn-primary" onClick={() => { navigator.clipboard?.writeText(liveUrl); setCopied(true); setTimeout(() => setCopied(false), 1500); }}>{copied ? 'Copied ✓' : 'Copy link'}</button>
+            <a href={liveUrl} target="_blank" rel="noreferrer" className="bp-btn bp-btn-ghost">Open ↗</a>
+            <button className="bp-btn bp-btn-ghost" onClick={() => setLiveUrl('')}>Change link</button>
+            <button className="bp-btn bp-btn-ghost" onClick={() => router.push('/builder/' + id)}>Back to editor</button>
           </div>
         </>)}
-        {err && !site && <p style={{ color: '#f87171' }}>{err}</p>}
+        {err && !site && <p className="bp-error">{err}</p>}
       </div>
     </main>
   );

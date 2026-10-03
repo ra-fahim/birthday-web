@@ -672,12 +672,12 @@ export default function Builder() {
           <button type="button" className={`builder-device builder-preview-toggle ${previewMode ? 'active' : ''}`} aria-pressed={previewMode} onClick={() => setPreviewMode(v => !v)} title={previewMode ? 'Return to template editing' : 'Preview the website as a visitor'}>{previewMode ? '✎ Preview off' : '▶ Preview'}</button>
           <button type="button" className="builder-device bb-guide-open" onClick={() => setGuideOpen(true)} title="How to edit your website" aria-label="Open editing guide">? Guide</button>
         </div>
-        <button className="builder-ghost" type="button" onClick={undoEdit} disabled={!historyRef.current.past.length} title="Undo last change" aria-label="Undo"><span aria-hidden>↶</span><span className="bb-btn-label"> Undo</span></button>
-        <button className="builder-ghost" type="button" onClick={redoEdit} disabled={!historyRef.current.future.length} title="Redo last undone change" aria-label="Redo"><span aria-hidden>↷</span><span className="bb-btn-label"> Redo</span></button>
-        <button className="builder-ghost" type="button" onClick={resetEdits} title="Restore this template default content">Reset</button>
-        <button className="builder-ghost" onClick={() => { void exitBuilder(); }}>Exit</button>
-        <button className="builder-save" onClick={() => save(false)}>{status === 'published' ? 'Save changes' : 'Save draft'}</button>
-        <button className="builder-publish" onClick={() => { void goToPublish(); }}>Create Live Link ↗</button>
+        <button className="builder-ghost bb-act-undo" type="button" onClick={undoEdit} disabled={!historyRef.current.past.length} title="Undo last change" aria-label="Undo"><span aria-hidden>↶</span><span className="bb-btn-label"> Undo</span></button>
+        <button className="builder-ghost bb-act-redo" type="button" onClick={redoEdit} disabled={!historyRef.current.future.length} title="Redo last undone change" aria-label="Redo"><span aria-hidden>↷</span><span className="bb-btn-label"> Redo</span></button>
+        <button className="builder-ghost bb-act-reset" type="button" onClick={resetEdits} title="Restore this template default content">Reset</button>
+        <button className="builder-ghost bb-act-exit" onClick={() => { void exitBuilder(); }}>Exit</button>
+        <button className="builder-save bb-act-save" onClick={() => save(false)}>{status === 'published' ? 'Save changes' : 'Save draft'}</button>
+        <button className="builder-publish bb-act-publish" onClick={() => { void goToPublish(); }}>Create Live Link ↗</button>
       </div>
     </header>
 
