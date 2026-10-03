@@ -349,7 +349,7 @@ export default function UniversalElementEditor({ selected, content, templateId, 
       </>;
     }
     if (master && key === 'bgMusicUrl') return <>
-      <div className="universal-editor-media-head"><div className="universal-editor-icon"><Music2 size={16}/></div><div><b>Background music</b><span>Master Proposal soundtrack</span></div></div>
+      <div className="universal-editor-media-head"><div className="universal-editor-icon"><Music2 size={16}/></div><div><b>Background music</b><span>Valentine soundtrack</span></div></div>
       <SingleMediaUpload kind="audio" url={String(templateConfig.bgMusicUrl || '')} websiteId={websiteId} onChange={url => onTemplateConfigChange({ bgMusicUrl: url })} />
       <Field label="Audio URL"><input type="url" value={String(templateConfig.bgMusicUrl || '')} onChange={e => onTemplateConfigChange({ bgMusicUrl: e.target.value })} placeholder="https://..." /></Field>
       <MoreSettings rows={[['Autoplay','Starts after the first question is answered'],['Loop','On'],['Player','Mute button for the visitor']]} />

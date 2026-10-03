@@ -67,7 +67,7 @@ function MasterProposalTemplate({ content, editorMode, onElementSelect, onHistor
   }, [content.templateConfig]);
   const src = React.useMemo(() => '/templates/master-proposal/index.html?bbEdit=1&bbVersion=20261003-premium1', []);
   const extraMessages = React.useMemo(() => [{ type: 'BB_SITE_CONFIG', config }], [config]);
-  return <GenericEditableIframe title="Master Proposal" src={src} content={content} editorMode={editorMode} genericEdits={((content.templateConfig||{}) as any).genericEdits || {}} extraMessages={extraMessages} minHeight={720} background="#FAF9F6" onElementSelect={onElementSelect} onHistoryState={onHistoryState} />}
+  return <GenericEditableIframe title="Valentine" src={src} content={content} editorMode={editorMode} genericEdits={((content.templateConfig||{}) as any).genericEdits || {}} extraMessages={extraMessages} minHeight={720} background="#FAF9F6" onElementSelect={onElementSelect} onHistoryState={onHistoryState} />}
 
 export function getMasterProposalDefaults() {
   return {

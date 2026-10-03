@@ -184,6 +184,7 @@ function injectBridge(frame: HTMLIFrameElement) {
   function guardPointer(e){
     if(!enabled) return;
     var t=interactionTarget(e.target);
+    if(!t){ decorate(); t=interactionTarget(e.target); }
     if(t && t.matches('[data-bb-editor-nav],.bb-inline-edit,.bb-edit-btn,.bb-editor-audio-control,.bb-editor-link-edit,#bb-global-edit-actions')) return;
     if(t && t.matches('[data-bb-generic-key],[data-bb-key]')) {
       // Do not cancel pointerdown on an editable target: some desktop/mobile
@@ -215,6 +216,7 @@ function injectBridge(frame: HTMLIFrameElement) {
     if(!start||!t) return;
     if(Math.hypot(t.clientX-start.x,t.clientY-start.y)>12 || Date.now()-start.time>800) return;
     var el=interactionTarget(e.target);
+    if(!el){ decorate(); el=interactionTarget(e.target); }
     if(e.cancelable) e.preventDefault();
     if(el && el.matches('[data-bb-generic-key],[data-bb-key]')){ lastTap=Date.now(); select(el); }
   },{capture:true,passive:false});
@@ -236,7 +238,10 @@ function injectBridge(frame: HTMLIFrameElement) {
     if(e.data.type==='BB_GENERIC_EDITS'){ edits=e.data.edits&&typeof e.data.edits==='object'?e.data.edits:{}; decorate(); }
     if(e.data.type==='BB_CANVAS_HISTORY'){ if(typeof window.BB_EDITOR_NAVIGATE==='function') window.BB_EDITOR_NAVIGATE(e.data.direction==='back'?-1:1); }
   });
-  observer=new MutationObserver(function(){ if(enabled){ discoverScreens(); decorate(); } });
+  var laterT=null;
+  function later(){ if(!enabled) return; clearTimeout(laterT); laterT=setTimeout(function(){ decorate(); setTimeout(function(){ if(enabled) decorate(); },1400); },250); }
+  window.addEventListener('scroll',later,{capture:true,passive:true});
+  observer=new MutationObserver(function(){ if(enabled){ discoverScreens(); decorate(); later(); } });
   observer.observe(document.documentElement,{subtree:true,childList:true});
   decorate();
 })();

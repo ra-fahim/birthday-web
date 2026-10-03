@@ -1,4 +1,4 @@
-import{a as u,j as e,m as y,R as f,A as k}from"./motion-C6c_ebrr.js";import{c as p,u as w,a as j,t as b,b as h,H as v,S as N,d as I}from"./index-CSUfyAfi.js";import"./vendor-B945N0Jz.js";/**
+import{a as u,j as e,m as y,R as f,A as k}from"./motion-C6c_ebrr.js";import{c as p,u as w,a as j,t as b,b as h,H as v,S as N,d as I}from"./index-fixSyntax1.js";import"./vendor-B945N0Jz.js";/**
  * @license lucide-react v0.563.0 - ISC
  *
  * This source code is licensed under the ISC license.

@@ -32,7 +32,7 @@ export const templateCatalog: TemplateDefinition[] = [
   },
   {
     slug: 'master-proposal',
-    name: 'Master Proposal',
+    name: 'Valentine',
     description: 'The exact Valentine experience you supplied, with the date-ticket button sending real email automatically.',
     category: 'proposal',
     emoji: '💌',
