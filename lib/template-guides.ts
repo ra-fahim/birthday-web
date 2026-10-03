@@ -59,6 +59,10 @@ export const templateGuides: Record<string, TemplateGuide> = {
     bn: { intro: 'Miss You 1 template-এর message, names, paragraphs, media এবং music নিজের মতো করে সাজান। Canvas-এর editable item-এ click করে content বদলান এবং Preview-তে final experience দেখুন।', sections: commonBn('Miss You 1') },
     en: { intro: 'Customize Miss You 1 by editing its names, messages, paragraphs, media and music. Click editable items on the canvas, then use Preview to check the final experience.', sections: commonBn('Miss You 1') },
   },
+  'valentine-2026': {
+    bn: { intro: 'Valentine 2026 template-এ intro, story, Digital Garden, Love Jar এবং final letter-এর লেখা canvas থেকেই বদলাতে পারবেন। Preview-তে পুরো interactive flow পরীক্ষা করে Publish করুন।', sections: commonBn('Valentine 2026') },
+    en: { intro: 'Customize the Valentine 2026 template directly from the canvas. Edit the intro, story, Digital Garden, Love Jar and final letter, then use Preview to test the full interactive experience.', sections: commonBn('Valentine 2026') },
+  },
 };
 
 export function getTemplateGuide(template: TemplateDefinition): TemplateGuide {

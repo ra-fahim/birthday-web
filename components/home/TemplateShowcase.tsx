@@ -11,7 +11,7 @@ export default function TemplateShowcase({ loggedIn }: { loggedIn: boolean }) {
         <div className="home-template-topbar"><span>{template.category.toUpperCase()}</span><b>{template.emoji}</b></div>
         <div className="home-template-static-card" style={{ ['--accent' as string]: template.accent }}>
           <span className="home-template-static-kicker">{template.name}</span>
-          <strong>{template.slug === 'wedding-proposal' ? 'A question worth remembering.' : 'Your moment, beautifully yours.'}</strong>
+          <strong>{template.slug === 'wedding-proposal' ? 'A question worth remembering.' : template.slug === 'valentine-2026' ? 'A Valentine story made to be remembered.' : 'Your moment, beautifully yours.'}</strong>
           <p>{template.description}</p>
           <div className="home-template-static-dots"><i /><i /><i /></div>
         </div>

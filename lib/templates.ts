@@ -5,7 +5,7 @@ export type TemplateDefinition = {
   category: string;
   emoji: string;
   accent: string;
-  kind: 'master' | 'master-birthday' | 'wedding-proposal' | 'miss-you-1';
+  kind: 'master' | 'master-birthday' | 'wedding-proposal' | 'miss-you-1' | 'valentine-2026';
   originalHtml?: string;
 };
 
@@ -29,6 +29,16 @@ export const templateCatalog: TemplateDefinition[] = [
     accent: '#ff2d55',
     kind: 'wedding-proposal',
     originalHtml: '/templates/wedding-proposal-original.html',
+  },
+  {
+    slug: 'valentine-2026',
+    name: 'Valentine 2026',
+    description: 'A premium Valentine proposal experience with an interactive reveal, story, digital garden, love jar and final letter.',
+    category: 'proposal',
+    emoji: '💗',
+    accent: '#b86b78',
+    kind: 'valentine-2026',
+    originalHtml: '/templates/valentine-2026/index.html',
   },
   {
     slug: 'miss-you-1',

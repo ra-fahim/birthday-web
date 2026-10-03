@@ -50,6 +50,15 @@ export const templateInspections: Record<string, TemplateInspection> = {
     ],
     editableAreas: ['recipient/sender names', 'proposal copy', 'buttons', 'built-in sound state']
   },
+  'valentine-2026': {
+    slug: 'valentine-2026',
+    sourceFiles: ['/templates/valentine-2026/index.html', '/templates/valentine-2026/script.js', '/templates/valentine-2026/styles.css'],
+    summary: 'Standalone Valentine 2026 proposal experience with interactive intro, story, digital garden, love jar, final letter and theme controls.',
+    media: [
+      { key: 'backgroundMusic', label: 'Background music', kind: 'audio', behavior: 'The original template streams its built-in YouTube soundtrack; editor preview is muted by the generic editor bridge.', sourceType: 'code-generated' },
+    ],
+    editableAreas: ['intro text and buttons', 'hero copy', 'story headings and paragraphs', 'garden labels', 'love jar copy', 'final letter copy', 'interactive buttons']
+  },
 };
 
 export function getTemplateInspection(slug?: string) {

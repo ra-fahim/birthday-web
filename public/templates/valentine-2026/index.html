@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>Happy Valentines, My Sweetheart!</title>
+  <link rel="icon" type="image/png" href="public/chocolate-box.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Cormorant Garamond"', 'serif'],
+            sans: ['"Montserrat"', 'sans-serif']
+          },
+          colors: {
+            'love-bg': 'var(--love-bg)',
+            'love-text': 'var(--love-text)',
+            'love-pink': 'var(--love-pink)',
+            'love-accent': 'var(--love-accent)',
+            'love-card': 'var(--love-card)',
+            'love-dark-bg': 'var(--love-dark-bg)',
+            'love-dark-text': 'var(--love-dark-text)',
+            'love-dark-accent': 'var(--love-dark-accent)',
+            'love-dark-card': 'var(--love-dark-card)'
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app"></div>
+  <script src="script.js"></script>
+</body>
+</html>

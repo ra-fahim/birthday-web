@@ -2,6 +2,7 @@
 import React from 'react';
 import type { BirthdayContent } from '@/lib/types';
 import WeddingProposalTemplate from './WeddingProposalTemplate';
+import Valentine2026Template from './Valentine2026Template';
 import GenericEditableIframe from './GenericEditableIframe';
 
 const presets: Record<string,{label:string;eyebrow:string;headline:string;accent:string;surface:string;emoji:string}> = {
@@ -82,6 +83,7 @@ function Editable({ editorMode, onSelect, selection, className, children }: { ed
 export default function ExperienceTemplate(props:{variant?:string;content:BirthdayContent;editorMode?:boolean;onElementSelect?:(selection:{key:string;label:string;index?:number;value?:string;kind?:string})=>void;onHistoryState?:(state:{canBack?:boolean;canForward?:boolean;screen?:string})=>void}){
  const {variant='romantic',content,editorMode,onElementSelect,onHistoryState}=props;
  if (variant === 'wedding-proposal') return <WeddingProposalTemplate content={content} editorMode={editorMode} onElementSelect={onElementSelect} onHistoryState={onHistoryState} />;
+ if (variant === 'valentine-2026') return <Valentine2026Template content={content} editorMode={editorMode} onElementSelect={onElementSelect} onHistoryState={onHistoryState} />;
  if (variant === 'miss-you-1') return <MissYouTemplate content={content} editorMode={editorMode} onElementSelect={onElementSelect} onHistoryState={onHistoryState} />;
  return <StandardExperienceTemplate variant={variant} content={content} editorMode={editorMode} onElementSelect={onElementSelect} onHistoryState={onHistoryState} />;
 }
