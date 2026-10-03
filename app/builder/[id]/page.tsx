@@ -10,6 +10,7 @@ import ExperienceTemplate, { getMissYouDefaults, getMasterProposalDefaults } fro
 import { SingleMediaUpload, GalleryUpload, InlineMediaField } from './MediaUploader';
 import FeatureControls from './FeatureControls';
 import UniversalElementEditor from './UniversalElementEditor';
+import BuilderGuide, { readGuideSeen } from './BuilderGuide';
 import { TimelineEditor, MemoriesEditor, WishlistEditor, GuestbookToggle } from './ContentListEditors';
 import { templateCatalog } from '@/lib/templates';
 import { getTemplateInspection } from '@/lib/template-inspector';
@@ -201,6 +202,7 @@ export default function Builder() {
   const [occasion, setOccasion] = useState('birthday');
   const [dirty, setDirty] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
   const editorMode = !previewMode;
   const [editGroup, setEditGroup] = useState<EditGroupId>('content');
   const [device, setDevice] = useState<'desktop'|'tablet'|'mobile'>('desktop');
@@ -429,13 +431,17 @@ export default function Builder() {
   }, []);
 
   useEffect(() => {
-    if (!selectedElement || !editorMode || viewport !== 'desktop') return;
+    if (loaded && templateId && !readGuideSeen()) setGuideOpen(true);
+  }, [loaded, templateId]);
+
+  useEffect(() => {
+    if (!selectedElement || !editorMode) return;
     const id = window.setTimeout(() => {
       const panel = document.querySelector<HTMLElement>('.builder-context-editor');
       if (!panel) return;
       const rect = panel.getBoundingClientRect();
-      const fullyVisible = rect.top >= 84 && rect.bottom <= window.innerHeight - 16;
-      if (!fullyVisible) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      const fullyVisible = rect.top >= (viewport === 'desktop' ? 84 : 0) && rect.bottom <= window.innerHeight - 16;
+      if (!fullyVisible) panel.scrollIntoView({ behavior: 'smooth', block: viewport === 'desktop' ? 'nearest' : 'start', inline: 'nearest' });
     }, 30);
     return () => window.clearTimeout(id);
   }, [selectedElement, editorMode, viewport]);
@@ -671,6 +677,7 @@ export default function Builder() {
             ? (['desktop','tablet','mobile'] as const).map(d => <button key={d} type="button" className={`builder-device ${device===d?'active':''}`} onClick={()=>setDevice(d)}>{d[0].toUpperCase()+d.slice(1)}</button>)
             : <span className="builder-device-badge" title="The preview automatically matches the screen you are using">{viewport === 'mobile' ? '📱 Mobile view' : '📲 Tablet view'}</span>}
           <button type="button" className={`builder-device builder-preview-toggle ${previewMode ? 'active' : ''}`} aria-pressed={previewMode} onClick={() => setPreviewMode(v => !v)} title={previewMode ? 'Return to template editing' : 'Preview the website as a visitor'}>{previewMode ? '✎ Preview off' : '▶ Preview'}</button>
+          <button type="button" className="builder-device bb-guide-open" onClick={() => setGuideOpen(true)} title="How to edit your website" aria-label="Open editing guide">? Guide</button>
         </div>
         <button className="builder-ghost" type="button" onClick={undoEdit} disabled={!historyRef.current.past.length} title="Undo last change" aria-label="Undo"><span aria-hidden>↶</span><span className="bb-btn-label"> Undo</span></button>
         <button className="builder-ghost" type="button" onClick={redoEdit} disabled={!historyRef.current.future.length} title="Redo last undone change" aria-label="Redo"><span aria-hidden>↷</span><span className="bb-btn-label"> Redo</span></button>
@@ -689,6 +696,7 @@ export default function Builder() {
             </div>
             <div className="builder-preview-badge">{previewMode ? 'Visitor mode' : 'Edit mode'}</div>
           </div>
+          {editorMode && <div className="bb-edit-hint" role="note"><span aria-hidden>✨</span><p><b>Click</b> <small>(on phone: <b>tap</b>)</small> any <u>highlighted</u> text, photo or button on the preview to edit it.</p></div>}
           {status === 'published' && publicUrl && <div className="builder-live-link"><div><span>YOUR LIVE LINK</span><strong>{publicUrl}</strong></div><div className="builder-live-link-actions"><button onClick={() => navigator.clipboard?.writeText(publicUrl)}>Copy link</button><a href={publicUrl} target="_blank" rel="noreferrer">Open ↗</a></div></div>}
           <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}><div className="builder-canvas-nav-overlay" aria-label="Canvas screen navigation">{editorMode && <><button type="button" className="builder-canvas-nav builder-canvas-nav-prev" onClick={() => handleCanvasHistory('back')} disabled={!canvasHistory.canBack} title="Previous screen" aria-label="Previous screen">←</button><button type="button" className="builder-canvas-nav builder-canvas-nav-next" onClick={() => handleCanvasHistory('forward')} disabled={!canvasHistory.canForward} title="Next screen" aria-label="Next screen">→</button></>}</div><div className="builder-canvas-stage">{!loaded || !previewContent ? <div className="builder-template-empty"><div>…</div><h3>Loading website</h3><p>Preparing the selected template…</p></div> : (templateId === 'master' || templateId === 'master-birthday') ? <MasterBirthdayTemplate key={`${templateId}-${previewMode ? 'preview' : 'edit'}`} content={previewContent} demo={false} preview={previewMode} editorMode={editorMode} websiteSlug={slug} siteKey={id} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div></div>
           {selectedElement && editorMode && (
@@ -713,5 +721,6 @@ export default function Builder() {
       </section>
     </div>
     {msg && <div className="builder-toast">{msg}</div>}
+    {guideOpen && <BuilderGuide onClose={() => setGuideOpen(false)} />}
   </main>;
 }

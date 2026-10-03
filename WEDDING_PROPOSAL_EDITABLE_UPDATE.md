@@ -26,3 +26,28 @@ Scope: **Wedding Proposal template only** (Miss You 1, Master Proposal, Master B
 - `components/template/WeddingProposalTemplate.tsx` (uses the builder, no duplicate listeners)
 - `components/template/GenericEditableIframe.tsx` (one opt-in line: `__BB_CUSTOM_HISTORY__`; other templates unaffected)
 - `app/builder/[id]/UniversalElementEditor.tsx` (new branch for `wedding-proposal` + `proposal*` keys)
+
+---
+# Update 2 – mobile/tablet/PC editing + first-time guide
+
+## Mobile bug (root cause)
+The template iframes called `preventDefault()` on `touchstart`. On phones that cancels the browser's follow-up
+`click`, and selection only happened on `click` → tapping text did nothing. Touch is now handled as a real *tap*
+(`touchstart` records, `touchend` with <12px movement selects, scrolling still works, no double-select).
+Fixed in: `public/templates/master-birthday/runtime.html`, `components/template/GenericEditableIframe.tsx`
+(Miss You 1, Master Proposal), `components/template/wedding-proposal-builder.ts` (Wedding Proposal).
+
+## Highlight
+Editable text/photos/buttons now always show a dashed highlight in edit mode (was hover-only, invisible on touch).
+Generic templates highlight only the innermost element so nested text is not cluttered.
+
+## Edit hint
+Edit mode shows: "Click (on phone: tap) any highlighted text, photo or button on the preview to edit it."
+
+## First-time guide
+`app/builder/[id]/BuilderGuide.tsx` – 5 steps, opens automatically the first time the builder is opened,
+**Skip guide** at any step (also Esc), remembered in localStorage (`wishly_builder_guide_v1`).
+"? Guide" button in the top bar reopens it any time.
+
+## Phone/tablet: edit box
+After selecting an element the page now scrolls to the edit box on phone/tablet too (was desktop-only).

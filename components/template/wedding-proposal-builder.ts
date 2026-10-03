@@ -185,10 +185,32 @@ function select(el){
 document.addEventListener('click',function(e){
   var el=e.target&&e.target.closest?e.target.closest('[data-bb-key]'):null;
   if(!el)return;
-  e.preventDefault();e.stopImmediatePropagation();select(el);
+  e.preventDefault();e.stopImmediatePropagation();
+  if(Date.now()-lastTap<700)return;
+  select(el);
 },true);
+// Mobile: a tap must select too. preventDefault on touchstart would cancel the click,
+// so touch is handled as an explicit tap (touchstart records, touchend selects).
+var tapStart=null,lastTap=0;
+document.addEventListener('touchstart',function(e){
+  var t=e.touches&&e.touches[0];
+  tapStart=t?{x:t.clientX,y:t.clientY,time:Date.now()}:null;
+  if(e.target&&e.target.closest&&e.target.closest('[data-bb-editor-nav]'))return;
+  e.stopImmediatePropagation();
+},{capture:true,passive:true});
+document.addEventListener('touchend',function(e){
+  if(e.target&&e.target.closest&&e.target.closest('[data-bb-editor-nav]'))return;
+  var s0=tapStart;tapStart=null;
+  e.stopImmediatePropagation();
+  var t=e.changedTouches&&e.changedTouches[0];
+  if(!s0||!t)return;
+  if(Math.hypot(t.clientX-s0.x,t.clientY-s0.y)>12||Date.now()-s0.time>800)return;
+  if(e.cancelable)e.preventDefault();
+  var el=e.target&&e.target.closest?e.target.closest('[data-bb-key]'):null;
+  if(el){lastTap=Date.now();select(el);}
+},{capture:true,passive:false});
 // Nothing of the real template flow may run while editing (heart tap, Begin, Yes, "No" running away …)
-['pointerdown','mousedown','touchstart','pointerup','mouseup','pointerenter','mouseenter','pointerover','mouseover'].forEach(function(type){
+['pointerdown','mousedown','pointerup','mouseup','pointerenter','mouseenter','pointerover','mouseover'].forEach(function(type){
   document.addEventListener(type,function(e){
     var t=e.target;
     if(!t||!t.closest)return;
@@ -205,7 +227,7 @@ window.addEventListener('message',function(e){
   else if(d.type==='BB_EDITOR_MODE'){notify();}
 });
 var st=document.createElement('style');
-st.textContent='.bb-w-edit [data-bb-key]{cursor:pointer;outline:2px dashed transparent;outline-offset:5px;transition:outline-color .15s}.bb-w-edit [data-bb-key]:hover{outline-color:rgba(255,255,255,.8)}.bb-w-edit .hud,.bb-w-edit .hud *{pointer-events:auto}.bb-w-edit .sound-btn{pointer-events:none}';
+st.textContent='.bb-w-edit [data-bb-key]{cursor:pointer;outline:2px dashed rgba(255,215,110,.75);outline-offset:5px;transition:outline-color .15s;-webkit-tap-highlight-color:rgba(255,215,110,.3);touch-action:manipulation}.bb-w-edit [data-bb-key]:hover{outline-color:#fff;box-shadow:0 0 0 4px rgba(255,215,110,.25)}.bb-w-edit .hud,.bb-w-edit .hud *{pointer-events:auto}.bb-w-edit .sound-btn{pointer-events:none}';
 document.head.appendChild(st);
 document.body.classList.add('bb-w-edit');
 applyAll();go(0);

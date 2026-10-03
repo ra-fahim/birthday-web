@@ -97,6 +97,7 @@
         html[data-bb-editor="1"] .reason-card .reason-text.bb-editable-target:hover,
         html[data-bb-editor="1"] .reason-card .reason-text.bb-editor-reason-highlight:hover{outline-color:rgba(236,72,153,1)!important;}
         html[data-bb-editor="1"] .reason-card.bb-editor-reason-highlight .reason-text{cursor:pointer!important;}
+        @media (hover: none), (pointer: coarse) { html[data-bb-editor="1"] .bb-editable-target { outline-color:rgba(236,72,153,.8); -webkit-tap-highlight-color:rgba(236,72,153,.25); touch-action:manipulation; } }
         @media(max-width:700px){ html[data-bb-editor="1"] .bb-editable-target::after { top:auto; bottom:-24px; left:50%; transform:translateX(-50%); } }
         html[data-bb-editor="1"] .bb-editor-audio-control { display:inline-flex; align-items:center; justify-content:center; }
         html[data-bb-editor="1"] #bbAudioToggle { display:none !important; }
@@ -3547,9 +3548,41 @@
     e.preventDefault();
     if(e.type==='click' && sel) postEditorSelection(sel);
   }
-  document.addEventListener('click',guardEditorAction,true);
+  // Mobile: preventDefault() on touchstart cancels the browser's follow-up click,
+  // so taps never selected anything. Touch is handled as an explicit "tap":
+  // touchstart only blocks the template, touchend (small movement) selects.
+  let bbTouch=null, bbLastTap=0;
+  function guardEditorTouchStart(e){
+    if(!window.__BB_EDITOR_MODE) return;
+    const target=e.target;
+    if(target?.closest?.('[data-bb-editor-nav]')) return;
+    const t=e.touches&&e.touches[0];
+    bbTouch=t?{x:t.clientX,y:t.clientY,target,time:Date.now()}:null;
+    e.stopImmediatePropagation();
+  }
+  function guardEditorTouchEnd(e){
+    if(!window.__BB_EDITOR_MODE) return;
+    const target=e.target;
+    if(target?.closest?.('[data-bb-editor-nav]')) return;
+    const start=bbTouch; bbTouch=null;
+    e.stopImmediatePropagation();
+    const t=e.changedTouches&&e.changedTouches[0];
+    if(!start||!t) return;
+    const moved=Math.hypot(t.clientX-start.x,t.clientY-start.y);
+    if(moved>12||Date.now()-start.time>800) return; // scroll / long press, not a tap
+    if(target?.closest?.('#envelopeEl')){ if(e.cancelable) e.preventDefault(); return; }
+    const sel=editorSelectionForTarget(target);
+    if(e.cancelable) e.preventDefault(); // no ghost click afterwards
+    if(sel){ bbLastTap=Date.now(); postEditorSelection(sel); }
+  }
+  function guardEditorClick(e){
+    if(Date.now()-bbLastTap<700){ e.stopImmediatePropagation(); e.preventDefault(); return; }
+    guardEditorAction(e);
+  }
+  document.addEventListener('click',guardEditorClick,true);
   document.addEventListener('pointerdown',guardEditorAction,true);
-  document.addEventListener('touchstart',guardEditorAction,{capture:true,passive:false});
+  document.addEventListener('touchstart',guardEditorTouchStart,{capture:true,passive:true});
+  document.addEventListener('touchend',guardEditorTouchEnd,{capture:true,passive:false});
 
   // Ensure navigation state is visible to the editor without changing the source flow.
   const pushHistory=window.updateHistory;
