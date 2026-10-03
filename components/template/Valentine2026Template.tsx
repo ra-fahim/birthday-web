@@ -2,6 +2,7 @@
 
 import React from 'react';
 import GenericEditableIframe from './GenericEditableIframe';
+import { mergeValentine } from '@/lib/valentine';
 import type { BirthdayContent } from '@/lib/types';
 
 type Props = {
@@ -11,13 +12,19 @@ type Props = {
   onHistoryState?: (state:{canBack?:boolean;canForward?:boolean;screen?:string})=>void;
 };
 
+const NO_EDITS = {};
+
 export default function Valentine2026Template({ content, editorMode = false, onElementSelect, onHistoryState }: Props) {
+  // ?bbEdit=1 -> builder canvas (click to edit), ?bb=1 -> published site (renders the saved config).
   const src = React.useMemo(
-    () => `/templates/valentine-2026/index.html${editorMode ? '?bbEdit=1' : ''}`,
+    () => `/templates/valentine-2026/index.html?${editorMode ? 'bbEdit=1' : 'bb=1'}`,
     [editorMode],
   );
-  const genericEdits = ((content.templateConfig || {}) as any).genericEdits || {};
-  const musicUrl = String((content as any).musicUrl || '');
+  const config = React.useMemo(() => mergeValentine(content), [content]);
+  const extraMessages = React.useMemo(
+    () => [{ type: 'BB_VALENTINE_CONFIG', config }, { type: 'BB_EDITOR_MODE', enabled: editorMode }],
+    [config, editorMode],
+  );
 
   return (
     <GenericEditableIframe
@@ -25,8 +32,8 @@ export default function Valentine2026Template({ content, editorMode = false, onE
       src={src}
       content={content}
       editorMode={editorMode}
-      genericEdits={genericEdits}
-      extraMessages={[{ type: 'BB_VALENTINE_CONFIG', config: { musicUrl } }, { type: 'BB_EDITOR_MODE', enabled: editorMode }]}
+      genericEdits={NO_EDITS}
+      extraMessages={extraMessages}
       minHeight={760}
       background="#171418"
       onElementSelect={onElementSelect}

@@ -60,8 +60,8 @@ export const templateGuides: Record<string, TemplateGuide> = {
     en: { intro: 'Customize Miss You 1 by editing its names, messages, paragraphs, media and music. Click editable items on the canvas, then use Preview to check the final experience.', sections: commonBn('Miss You 1') },
   },
   'valentine-2026': {
-    bn: { intro: 'Valentine 2026 template-এ intro, story, Digital Garden, Love Jar এবং final letter-এর লেখা canvas থেকেই বদলাতে পারবেন। Preview-তে পুরো interactive flow পরীক্ষা করে Publish করুন।', sections: commonBn('Valentine 2026') },
-    en: { intro: 'Customize the Valentine 2026 template directly from the canvas. Edit the intro, story, Digital Garden, Love Jar and final letter, then use Preview to test the full interactive experience.', sections: commonBn('Valentine 2026') },
+    bn: { intro: 'Valentine 2026 template-এর সবকিছু canvas থেকে বদলানো যায়: নাম (👤 Names), theme ও dark mode (🎨 Theme), music (🎵 Music), intro ও “No” reaction, story chapter (add/remove/reorder), Digital Garden, Love Jar-এর note, hero/final photo এবং final letter। Preview-তে পুরো interactive flow পরীক্ষা করে Publish করুন।', sections: commonBn('Valentine 2026') },
+    en: { intro: 'Everything in Valentine 2026 is editable from the canvas: names (👤 Names), theme and dark mode (🎨 Theme), music (🎵 Music), the intro question and its “No” reactions, story chapters (add, remove, reorder), the Digital Garden, Love Jar notes, hero/final photos and the final letter. Use Preview to test the full interactive experience.', sections: commonBn('Valentine 2026') },
   },
 };
 

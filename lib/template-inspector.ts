@@ -52,12 +52,12 @@ export const templateInspections: Record<string, TemplateInspection> = {
   },
   'valentine-2026': {
     slug: 'valentine-2026',
-    sourceFiles: ['/templates/valentine-2026/index.html', '/templates/valentine-2026/script.js', '/templates/valentine-2026/styles.css'],
-    summary: 'Standalone Valentine 2026 proposal experience with interactive intro, story, digital garden, love jar, final letter and theme controls.',
+    sourceFiles: ['/templates/valentine-2026/index.html', '/templates/valentine-2026/script.js', '/templates/valentine-2026/styles.css', '/templates/valentine-2026/default-config.json'],
+    summary: 'Valentine 2026 proposal experience rendered entirely from an editable config: intro question with "No" reactions, hero, any number of story chapters, digital garden, love jar notes, final letter, names, themes, photos and music.',
     media: [
-      { key: 'backgroundMusic', label: 'Background music', kind: 'audio', behavior: 'The original template streams its built-in YouTube soundtrack; editor preview is muted by the generic editor bridge.', sourceType: 'code-generated' },
+      { key: 'musicUrl', label: 'Background music', kind: 'audio', behavior: 'Your uploaded song (or a YouTube link) plays after the receiver taps Yes; the default song is used until replaced.', sourceType: 'file-or-url' },
     ],
-    editableAreas: ['intro text and buttons', 'hero copy', 'story headings and paragraphs', 'garden labels', 'love jar copy', 'final letter copy', 'interactive buttons']
+    editableAreas: ['names and {name}/{sender} placeholders', 'intro lines and Yes/No buttons', '"No" reactions', 'hero title, subtitle and photo', 'story chapters (add, remove, reorder)', 'digital garden copy and visibility', 'love jar copy, notes and visibility', 'final letter paragraphs, signature and photo', 'footer', 'color theme and dark mode', 'background music']
   },
 };
 

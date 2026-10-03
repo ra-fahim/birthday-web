@@ -24,66 +24,94 @@ const THEMES = {
   royal: { name: 'Royal Orchid', color: '#8E4DC2', colors: {'--love-bg':'#F7F1FC','--love-text':'#2F1D3B','--love-pink':'#E7D5F1','--love-accent':'#8E4DC2','--love-accent-2':'#BE8FE0','--love-card':'#FFFCFF','--love-dark-bg':'#17111F','--love-dark-text':'#F3EAF8','--love-dark-accent':'#C9A0E5','--love-dark-accent-2':'#965BC5','--love-dark-card':'#291C33','--love-glow':'rgba(201,160,229,.13)','--love-glow-2':'rgba(150,91,197,.09)'} }
 };
 
-const STORY_DATA = [
-  { number:'I', title:'The Beginning', body:'It started with a simple moment, a glance that felt different from all the others. In that instant, the noise of the world faded, and I knew my life was about to change forever.' },
-  { number:'II', title:'The Little Things', body:"It's the way you laugh at my terrible jokes, the warmth of your hand in mine, and the quiet comfort of just being near you. These small moments build a universe I never want to leave." },
-  { number:'III', title:'The Strength', body:'On days when the world feels heavy, you are my sanctuary. Your kindness is a beacon, guiding me back to who I want to be. You make me better, simply by being you.' },
-  { number:'IV', title:'The Promise', body:'To listen when you speak, to support you when you dream, and to hold you when you need rest. My heart is a steady rhythm, beating in time with yours, today and always.' },
-  { number:'V', title:'The Horizon', body:'As we look forward, I see a future painted with our shared dreams. Hand in hand, we will write the rest of this story, creating a masterpiece of moments that lasts a lifetime.' }
-];
+/* --------------------------------------------------------------------------
+ * Valentine 2026 — config-driven runtime.
+ *
+ * Every word, list, image, theme and music choice is read from CFG, which is
+ * default-config.json deep-merged with whatever the website owner saved.
+ *
+ * Modes (chosen by the URL, so the standalone demo stays untouched):
+ *   (none)      standalone demo -> renders default-config.json
+ *   ?bb=1       published site  -> waits for BB_VALENTINE_CONFIG from the host page
+ *   ?bbEdit=1   builder canvas  -> same, plus click-to-edit and step navigation
+ * -------------------------------------------------------------------------- */
+const QS = new URLSearchParams(window.location.search);
+const editMode = QS.get('bbEdit') === '1';
+const embedded = editMode || QS.get('bb') === '1';
 
-const SILLY_PROMPTS = [
-  { title:'Will you be my Valentine?', subtitle:'...and for a lifetime?' },
-  { title:'Wait, did you click the wrong button?', subtitle:'I think your finger slipped!' },
-  { title:'Are you sure? I have snacks!', subtitle:'All your favorites, unlimited supply.' },
-  { title:'What if I promise to do the dishes?', subtitle:'For like... a whole week.' },
-  { title:"I'll give you a foot massage...", subtitle:'Anytime you want. Seriously.' },
-  { title:"Don't break my heart! 🥺", subtitle:'Look at this sad face.' },
-  { title:"I'm going to cry...", subtitle:'Tears are actually forming right now.' },
-  { title:'Okay, seriously, just click Yes.', subtitle:"The 'No' button is getting tired." },
-  { title:"You're being stubborn!", subtitle:'But I still love you.' },
-  { title:'Please? Please? Please?', subtitle:"I'll be the best Valentine ever." },
-  { title:"I'm not taking no for an answer!", subtitle:'Resistance is futile, darling.' }
-];
-
-const NOTES = [
-  'I love how hard you work for your dreams.',
-  "Your smile is literally the best part of my day.",
-  'You make even boring things fun just by being there.',
-  "I'm so proud of everything you've accomplished.",
-  'You give the best hugs in the world.',
-  "I love listening to you talk about things you're passionate about.",
-  'You are beautiful, inside and out.',
-  'Thank you for being my peace in a chaotic world.',
-  'I admire your strength and resilience.',
-  'Just thinking about you makes me smile.',
-  'I love that I can be myself around you.',
-  'You are my favorite person to do nothing with.',
-  'I love the way your eyes light up when you\'re happy.',
-  "You're stuck with me now (and I love it).",
-  'I appreciate how caring you are.',
-  'Every moment with you is a memory I cherish.'
-];
+let DEFAULTS = null;
+let CFG = null;
+let lastCfgJson = '';
+let hasRendered = false;
 
 let isDarkMode = false;
 let currentTheme = 'blush';
 let musicEnabled = true;
 let musicStarted = false;
 let musicFrame = null;
-const BACKGROUND_YOUTUBE_ID = 'AfybMbBSwaA';
 let showThemePicker = false;
 let introComplete = false;
 let gardenFlowers = [];
 let noteOpen = null;
 let rejectionCount = 0;
 let noteTimer = null;
-let customMusicUrl = '';
 
 const app = document.getElementById('app');
 
+/* ---------- helpers ---------- */
+function esc(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+function isPlainObject(v) { return !!v && typeof v === 'object' && !Array.isArray(v); }
+function deepMerge(base, over) {
+  if (Array.isArray(base)) return Array.isArray(over) ? JSON.parse(JSON.stringify(over)) : JSON.parse(JSON.stringify(base));
+  if (isPlainObject(base)) {
+    const out = {};
+    const o = isPlainObject(over) ? over : {};
+    Object.keys(base).forEach(k => { out[k] = deepMerge(base[k], o[k]); });
+    return out;
+  }
+  if (over === undefined || over === null) return base;
+  return typeof over === typeof base ? over : base;
+}
+function getPath(obj, path) {
+  return path.split('.').reduce((cur, k) => (cur == null ? undefined : cur[k]), obj);
+}
+/** Plain-text substitution of {name} / {sender}. */
+function subst(str) {
+  const name = (CFG.recipientName || '').trim() || 'my love';
+  const sender = (CFG.senderName || '').trim() || 'me';
+  return String(str == null ? '' : str).replace(/\{name\}/gi, name).replace(/\{sender\}/gi, sender);
+}
+/** Escaped HTML for a config string (placeholders filled, new lines kept). */
+function T(str) { return esc(subst(str)).replace(/\n/g, '<br>'); }
+/** Editor-only attributes that make an element clickable in the builder. */
+function bb(key, label, kind, index) {
+  if (!editMode) return '';
+  return ` data-bb-key="${esc(key)}" data-bb-label="${esc(label)}" data-bb-kind="${esc(kind || 'text')}"${index != null ? ` data-bb-index="${index}"` : ''}`;
+}
+function roman(n) {
+  const map = [[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
+  let out = '';
+  for (const [v, s] of map) { while (n >= v) { out += s; n -= v; } }
+  return out;
+}
+function youtubeId(input) {
+  const s = String(input || '').trim();
+  if (!s) return '';
+  if (/^[\w-]{11}$/.test(s)) return s;
+  const m = s.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/);
+  return m ? m[1] : '';
+}
+function hasMusic() {
+  return !!(CFG.music.enabled && (String(CFG.music.url || '').trim() || youtubeId(CFG.music.youtubeId)));
+}
+
 function setTheme(themeKey) {
-  currentTheme = themeKey;
-  const theme = THEMES[themeKey];
+  currentTheme = THEMES[themeKey] ? themeKey : 'blush';
+  const theme = THEMES[currentTheme];
   Object.entries(theme.colors).forEach(([k, v]) => document.documentElement.style.setProperty(k, v));
 }
 
@@ -104,73 +132,73 @@ function backgroundHTML() {
   </div>`;
 }
 
+/* ---------- visitor controls (theme / dark mode / music) ---------- */
 function renderControls() {
   let container = document.getElementById('controls');
+  if (editMode) { if (container) container.remove(); return; }
   if (!container) {
     container = document.createElement('div');
     container.id = 'controls';
     container.className = 'fixed top-6 right-6 z-[60] flex flex-col items-end gap-3';
     document.body.appendChild(container);
   }
-  container.innerHTML = `<div class="relative">
-    <button id="theme-btn" class="p-2 md:p-2.5 rounded-full bg-love-accent/15 hover:bg-love-accent/25 dark:bg-love-dark-accent/15 dark:hover:bg-love-dark-accent/25 text-love-accent dark:text-love-dark-accent backdrop-blur-md shadow-sm border border-love-accent/20 dark:border-love-dark-accent/20 transition-transform active:scale-95" aria-label="Choose theme">${icon('palette','w-4 h-4 md:w-[18px] md:h-[18px]')}</button>
+  const btnCls = 'p-2 md:p-2.5 rounded-full bg-love-accent/15 hover:bg-love-accent/25 dark:bg-love-dark-accent/15 dark:hover:bg-love-dark-accent/25 text-love-accent dark:text-love-dark-accent backdrop-blur-md shadow-sm border border-love-accent/20 dark:border-love-dark-accent/20 transition-all duration-300 active:scale-95';
+  const themeBlock = CFG.showControls ? `<div class="relative">
+    <button id="theme-btn" class="${btnCls}" aria-label="Choose theme">${icon('palette','w-4 h-4 md:w-[18px] md:h-[18px]')}</button>
     <div id="theme-picker" class="theme-transition absolute top-full right-0 mt-2 p-4 bg-white/90 dark:bg-black/90 backdrop-blur-xl rounded-2xl border border-love-accent/10 shadow-2xl min-w-[220px] ${showThemePicker ? 'theme-visible' : 'theme-hidden'}">
       <div class="flex items-center justify-between mb-3 px-1"><span class="text-xs uppercase tracking-widest text-love-accent/80 dark:text-love-dark-accent/80 font-bold">Select Theme</span><button id="theme-close" class="text-xs text-love-text/50 hover:text-love-text">Close</button></div>
       <div class="grid grid-cols-1 gap-1 max-h-[300px] overflow-y-auto pr-1 no-scrollbar">
         ${Object.keys(THEMES).map(t => `<button data-theme="${t}" class="w-full px-3 py-2.5 text-sm text-left rounded-lg transition-all flex items-center gap-3 ${currentTheme === t ? 'bg-love-accent/10 dark:bg-love-dark-accent/20 text-love-text dark:text-love-dark-text font-medium' : 'text-love-text/70 dark:text-love-dark-text/70 hover:bg-love-bg dark:hover:bg-white/5'}"><span class="w-4 h-4 rounded-full border border-black/10 dark:border-white/10 shadow-sm shrink-0" style="background-color:${THEMES[t].color}"></span><span class="flex-1">${THEMES[t].name}</span>${currentTheme === t ? icon('check','w-3 h-3 text-love-accent dark:text-love-dark-accent') : ''}</button>`).join('')}
       </div>
     </div>
-  </div>
-  <button id="dark-btn" class="p-2 md:p-2.5 rounded-full bg-love-accent/15 hover:bg-love-accent/25 dark:bg-love-dark-accent/15 dark:hover:bg-love-dark-accent/25 text-love-accent dark:text-love-dark-accent transition-all duration-300 backdrop-blur-md shadow-sm active:scale-95 border border-love-accent/20 dark:border-love-dark-accent/20" aria-label="Toggle dark mode">${isDarkMode ? icon('sun','w-4 h-4 md:w-[18px] md:h-[18px] rotate-icon') : icon('moon','w-4 h-4 md:w-[18px] md:h-[18px] rotate-icon')}</button>
-  <button id="music-btn" class="p-2 md:p-2.5 rounded-full bg-love-accent/15 hover:bg-love-accent/25 dark:bg-love-dark-accent/15 dark:hover:bg-love-dark-accent/25 text-love-accent dark:text-love-dark-accent transition-all duration-300 backdrop-blur-md shadow-sm active:scale-95 border border-love-accent/20 dark:border-love-dark-accent/20" aria-label="Toggle background music">${musicEnabled ? '♫' : '×'}</button>`;
-  document.getElementById('theme-btn').onclick = () => { showThemePicker = !showThemePicker; renderControls(); };
-  document.getElementById('theme-close').onclick = () => { showThemePicker = false; renderControls(); };
-  container.querySelectorAll('[data-theme]').forEach(btn => btn.onclick = () => { setTheme(btn.dataset.theme); showThemePicker = false; renderControls(); });
+  </div>` : '';
+  const musicBlock = hasMusic() ? `<button id="music-btn" class="${btnCls}" aria-label="Toggle background music">${musicEnabled ? '♫' : '×'}</button>` : '';
+  container.innerHTML = `${themeBlock}
+  <button id="dark-btn" class="${btnCls}" aria-label="Toggle dark mode">${isDarkMode ? icon('sun','w-4 h-4 md:w-[18px] md:h-[18px] rotate-icon') : icon('moon','w-4 h-4 md:w-[18px] md:h-[18px] rotate-icon')}</button>
+  ${musicBlock}`;
+  const themeBtn = document.getElementById('theme-btn');
+  if (themeBtn) {
+    themeBtn.onclick = () => { showThemePicker = !showThemePicker; renderControls(); };
+    document.getElementById('theme-close').onclick = () => { showThemePicker = false; renderControls(); };
+    container.querySelectorAll('[data-theme]').forEach(btn => btn.onclick = () => { setTheme(btn.dataset.theme); showThemePicker = false; renderControls(); });
+  }
   document.getElementById('dark-btn').onclick = () => setDarkMode(!isDarkMode);
-  document.getElementById('music-btn').onclick = () => toggleBackgroundMusic();
+  const musicBtn = document.getElementById('music-btn');
+  if (musicBtn) musicBtn.onclick = () => toggleBackgroundMusic();
 }
 
+/* ---------- background music ---------- */
 function sendYouTubeCommand(func) {
   if (!musicFrame || !musicFrame.contentWindow) return;
   musicFrame.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args: [] }), '*');
 }
 
 function startBackgroundMusic() {
-  if (!musicEnabled || musicStarted) return;
+  if (editMode || !musicEnabled || musicStarted || !hasMusic()) return;
   musicStarted = true;
-  if (customMusicUrl) {
+  const url = String(CFG.music.url || '').trim();
+  const hide = el => {
+    el.setAttribute('aria-hidden', 'true');
+    el.style.position = 'fixed'; el.style.width = '1px'; el.style.height = '1px';
+    el.style.left = '-10px'; el.style.bottom = '-10px'; el.style.opacity = '0.01'; el.style.pointerEvents = 'none';
+  };
+  if (url) {
     const audio = document.createElement('audio');
     audio.id = 'background-music-audio';
-    audio.setAttribute('aria-hidden', 'true');
-    audio.loop = true;
-    audio.preload = 'auto';
-    audio.volume = 0.45;
-    audio.src = customMusicUrl;
-    audio.style.position = 'fixed';
-    audio.style.width = '1px';
-    audio.style.height = '1px';
-    audio.style.left = '-10px';
-    audio.style.bottom = '-10px';
-    audio.style.opacity = '0.01';
-    audio.style.pointerEvents = 'none';
+    audio.loop = true; audio.preload = 'auto'; audio.volume = 0.45; audio.src = url;
+    hide(audio);
     document.body.appendChild(audio);
     musicFrame = audio;
     audio.play().catch(() => {});
     return;
   }
+  const id = youtubeId(CFG.music.youtubeId);
   musicFrame = document.createElement('iframe');
   musicFrame.id = 'background-music-frame';
   musicFrame.title = 'Background music';
-  musicFrame.setAttribute('aria-hidden', 'true');
   musicFrame.allow = 'autoplay; encrypted-media';
-  musicFrame.style.position = 'fixed';
-  musicFrame.style.width = '1px';
-  musicFrame.style.height = '1px';
-  musicFrame.style.left = '-10px';
-  musicFrame.style.bottom = '-10px';
-  musicFrame.style.opacity = '0.01';
-  musicFrame.style.pointerEvents = 'none';
-  musicFrame.src = `https://www.youtube.com/embed/${BACKGROUND_YOUTUBE_ID}?autoplay=1&controls=0&disablekb=1&loop=1&playlist=${BACKGROUND_YOUTUBE_ID}&playsinline=1&rel=0&modestbranding=1&enablejsapi=1`;
+  hide(musicFrame);
+  musicFrame.src = `https://www.youtube.com/embed/${id}?autoplay=1&controls=0&disablekb=1&loop=1&playlist=${id}&playsinline=1&rel=0&modestbranding=1&enablejsapi=1`;
   document.body.appendChild(musicFrame);
   setTimeout(() => { sendYouTubeCommand('unMute'); sendYouTubeCommand('playVideo'); }, 1200);
 }
@@ -179,65 +207,99 @@ function toggleBackgroundMusic() {
   musicEnabled = !musicEnabled;
   if (musicEnabled) {
     if (!musicStarted) startBackgroundMusic();
-    else if (musicFrame?.tagName === 'AUDIO') musicFrame.play().catch(() => {});
+    else if (musicFrame && musicFrame.tagName === 'AUDIO') musicFrame.play().catch(() => {});
     else { sendYouTubeCommand('unMute'); sendYouTubeCommand('playVideo'); }
   } else if (musicStarted) {
-    if (musicFrame?.tagName === 'AUDIO') musicFrame.pause();
+    if (musicFrame && musicFrame.tagName === 'AUDIO') musicFrame.pause();
     else { sendYouTubeCommand('pauseVideo'); sendYouTubeCommand('mute'); }
   }
   renderControls();
 }
 
+/* ---------- sections ---------- */
+function section(html, className, stepLabel) {
+  return `<section data-step="${esc(stepLabel || '')}" class="w-full relative overflow-x-hidden ${className || ''}"><div class="h-full flex flex-col justify-center items-center section-reveal">${html}</div></section>`;
+}
 
-function section(html, className='') {
-  return `<section class="w-full relative overflow-x-hidden ${className}"><div class="h-full flex flex-col justify-center items-center section-reveal">${html}</div></section>`;
+function offNote(on) {
+  if (!editMode || on) return '';
+  return '<div data-bb-ignore="1" style="margin-bottom:18px;padding:6px 14px;border-radius:999px;background:rgba(0,0,0,.08);font:600 11px Montserrat,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--love-text);opacity:.7">Hidden from visitors</div>';
+}
+
+function chipHTML(key, label, kind, text) {
+  if (!editMode) return '';
+  return `<button type="button" class="bb-chip"${bb(key, label, kind)}>${esc(text)}</button>`;
 }
 
 function renderHeroAndStory() {
+  const h = CFG.hero;
+  const heroVisual = h.image
+    ? `<div class="p-1.5 rounded-full border border-love-accent/20 dark:border-love-dark-accent/20 inline-block bg-white/30 dark:bg-black/30 backdrop-blur-md shadow-lg"${bb('val.hero.image', 'Hero photo', 'image')}><img src="${esc(h.image)}" alt="" class="w-28 h-28 md:w-36 md:h-36 rounded-full object-cover block"></div>`
+    : `<div class="p-4 rounded-full border border-love-accent/20 dark:border-love-dark-accent/20 inline-block bg-white/30 dark:bg-black/30 backdrop-blur-md shadow-lg"${bb('val.hero.image', 'Hero photo (optional)', 'image')}>${icon('heart','w-8 h-8 text-love-accent dark:text-love-dark-accent')}</div>`;
   let html = '';
-  html += section(`<div class="hero-heart mb-8"><div class="p-4 rounded-full border border-love-accent/20 dark:border-love-dark-accent/20 inline-block bg-white/30 dark:bg-black/30 backdrop-blur-md shadow-lg">${icon('heart','w-8 h-8 text-love-accent dark:text-love-dark-accent')}</div></div><h1 class="hero-title font-serif text-5xl md:text-7xl lg:text-8xl font-light italic mb-6 text-love-text dark:text-love-dark-text tracking-tight drop-shadow-sm">To My Dearest</h1><p class="hero-subtitle text-sm md:text-base uppercase tracking-[0.3em] text-love-accent/80 dark:text-love-dark-accent/80 mt-4 font-medium">Scroll slowly</p><div class="absolute bottom-12 animate-bounce-soft"><div class="w-[1px] h-16 bg-love-accent/30 dark:bg-love-dark-accent/30 mx-auto"></div></div>`, 'min-h-screen flex flex-col justify-center items-center text-center px-6 relative z-10');
-  STORY_DATA.forEach(item => {
-    html += section(`<div class="max-w-3xl text-center flex flex-col items-center story-item"><span class="story-number block font-serif text-3xl md:text-4xl text-love-accent/50 dark:text-love-dark-accent/50 mb-6">${item.number}</span><h2 class="story-title font-serif text-3xl md:text-5xl lg:text-6xl leading-tight mb-8 text-love-text dark:text-love-dark-text">${item.title}</h2><p class="story-body text-lg md:text-xl leading-relaxed text-love-text/80 dark:text-love-dark-text/80 font-light max-w-xl mx-auto">${item.body}</p></div>`, 'min-h-screen flex flex-col justify-center items-center px-6 md:px-20 py-20 z-10');
+  html += section(`<div class="hero-heart mb-8">${heroVisual}</div><h1 class="hero-title font-serif text-5xl md:text-7xl lg:text-8xl font-light italic mb-6 text-love-text dark:text-love-dark-text tracking-tight drop-shadow-sm"${bb('val.hero.title', 'Hero title')}>${T(h.title)}</h1><p class="hero-subtitle text-sm md:text-base uppercase tracking-[0.3em] text-love-accent/80 dark:text-love-dark-accent/80 mt-4 font-medium"${bb('val.hero.subtitle', 'Hero subtitle')}>${T(h.subtitle)}</p>${editMode ? `<div style="margin-top:28px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center">${chipHTML('val.story', 'Story chapters', 'list', '📖 Manage story chapters (' + CFG.story.length + ')')}</div>` : ''}<div class="absolute bottom-12 animate-bounce-soft"><div class="w-[1px] h-16 bg-love-accent/30 dark:bg-love-dark-accent/30 mx-auto"></div></div>`, 'min-h-screen flex flex-col justify-center items-center text-center px-6 relative z-10', 'Hero');
+  CFG.story.forEach((item, i) => {
+    html += section(`<div class="max-w-3xl text-center flex flex-col items-center story-item"><span class="story-number block font-serif text-3xl md:text-4xl text-love-accent/50 dark:text-love-dark-accent/50 mb-6">${roman(i + 1)}</span><h2 class="story-title font-serif text-3xl md:text-5xl lg:text-6xl leading-tight mb-8 text-love-text dark:text-love-dark-text"${bb('val.story.' + i + '.title', 'Chapter ' + (i + 1) + ' title', 'text', i)}>${T(item.title)}</h2><p class="story-body text-lg md:text-xl leading-relaxed text-love-text/80 dark:text-love-dark-text/80 font-light max-w-xl mx-auto"${bb('val.story.' + i + '.body', 'Chapter ' + (i + 1) + ' text', 'textarea', i)}>${T(item.body)}</p></div>`, 'min-h-screen flex flex-col justify-center items-center px-6 md:px-20 py-20 z-10', 'Chapter ' + (i + 1));
   });
   return html;
 }
 
 function bloomGardenHTML() {
-  return section(`<div class="w-full max-w-4xl mx-auto px-6 relative"><div class="text-center mb-10"><h2 class="font-serif text-3xl md:text-5xl mb-4 text-love-text dark:text-love-dark-text">The Digital Garden</h2><p class="text-love-accent dark:text-love-dark-accent/80 text-sm md:text-base tracking-wide uppercase">I can't bring you flowers every hour, so I built you a garden that never dies.</p><p class="text-xs text-love-text/50 dark:text-love-dark-text/50 mt-2">(Tap anywhere in the box below to plant a flower)</p></div><div id="garden" class="relative w-full h-[400px] bg-white/40 dark:bg-black/20 rounded-xl border border-love-accent/20 dark:border-love-dark-accent/10 shadow-inner overflow-hidden cursor-crosshair touch-none"><div class="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-t from-green-100/30 to-transparent dark:from-green-900/10 pointer-events-none"></div><div id="garden-placeholder" class="absolute inset-0 flex items-center justify-center pointer-events-none"><span class="text-love-text/10 dark:text-love-dark-text/10 font-serif text-4xl italic">Plant me...</span></div><div id="garden-layer"></div><button id="garden-clear" class="hidden absolute bottom-4 right-4 z-10 text-[10px] uppercase tracking-widest text-love-text/40 hover:text-love-accent transition-colors bg-white/50 px-2 py-1 rounded">Clear Garden</button></div><div class="text-center mt-6"><span id="garden-count" class="font-serif italic text-love-accent dark:text-love-dark-accent text-lg">Waiting for your touch...</span></div></div>`, 'min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10');
+  const g = CFG.garden;
+  if (!g.enabled && !editMode) return '';
+  return section(`<div class="w-full max-w-4xl mx-auto px-6 relative">${offNote(g.enabled)}<div class="text-center mb-10"><h2 class="font-serif text-3xl md:text-5xl mb-4 text-love-text dark:text-love-dark-text"${bb('val.garden.title', 'Garden title')}>${T(g.title)}</h2><p class="text-love-accent dark:text-love-dark-accent/80 text-sm md:text-base tracking-wide uppercase"${bb('val.garden.subtitle', 'Garden subtitle', 'textarea')}>${T(g.subtitle)}</p><p class="text-xs text-love-text/50 dark:text-love-dark-text/50 mt-2"${bb('val.garden.hint', 'Garden hint')}>${T(g.hint)}</p></div><div id="garden" class="relative w-full h-[400px] bg-white/40 dark:bg-black/20 rounded-xl border border-love-accent/20 dark:border-love-dark-accent/10 shadow-inner overflow-hidden cursor-crosshair touch-none"><div class="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-t from-green-100/30 to-transparent dark:from-green-900/10 pointer-events-none"></div><div id="garden-placeholder" class="absolute inset-0 flex items-center justify-center pointer-events-none"><span class="text-love-text/10 dark:text-love-dark-text/10 font-serif text-4xl italic"${bb('val.garden.placeholder', 'Garden placeholder')}>${T(g.placeholder)}</span></div><div id="garden-layer"></div><button id="garden-clear" class="${editMode ? '' : 'hidden '}absolute bottom-4 right-4 z-10 text-[10px] uppercase tracking-widest text-love-text/40 hover:text-love-accent transition-colors bg-white/50 px-2 py-1 rounded"${bb('val.garden.clearButton', 'Clear garden button', 'text')}>${T(g.clearButton)}</button></div><div class="text-center mt-6"><span id="garden-count" class="font-serif italic text-love-accent dark:text-love-dark-accent text-lg"${bb('val.garden.emptyCount', 'Garden counter (empty)')}>${T(g.emptyCount)}</span>${editMode ? `<div style="margin-top:10px"><span class="font-serif italic text-love-accent dark:text-love-dark-accent text-base" style="opacity:.8"${bb('val.garden.count', 'Garden counter ({n} = flowers)')}>${T(g.count.replace(/\{n\}/g, '3'))}</span></div>` : ''}</div></div>`, 'min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10', 'Digital Garden');
 }
 
 function loveJarHTML() {
-  return section(`<div class="w-full max-w-2xl mx-auto px-6 text-center"><div class="mb-12"><h2 class="font-serif text-3xl md:text-5xl mb-4 text-love-text dark:text-love-dark-text">The Love Jar</h2><p class="text-love-accent dark:text-love-dark-accent/80 text-sm md:text-base tracking-wide uppercase">Pull a note whenever you need a reminder</p></div><div class="relative h-[400px] flex items-center justify-center"><div id="jar-wrap" class="relative cursor-pointer group"><div id="jar" class="relative w-48 h-64 border-4 border-love-accent/30 dark:border-love-dark-accent/30 rounded-[2rem] bg-white/20 dark:bg-white/5 backdrop-blur-sm flex items-center justify-center shadow-xl overflow-hidden"><div class="absolute -top-4 left-0 right-0 h-8 bg-love-accent/50 dark:bg-love-dark-accent/50 rounded-t-lg mx-4"></div><div id="jar-papers"><div class="absolute bottom-4 left-6 w-12 h-8 bg-love-pink/50 dark:bg-love-dark-accent/20 rotate-12 rounded shadow-sm"></div><div class="absolute bottom-8 right-8 w-12 h-8 bg-love-accent/40 dark:bg-love-dark-accent/30 -rotate-6 rounded shadow-sm"></div><div class="absolute bottom-12 left-12 w-12 h-8 bg-white/60 dark:bg-love-dark-text/20 rotate-45 rounded shadow-sm"></div><div class="absolute bottom-6 right-16 w-12 h-8 bg-love-pink/60 dark:bg-love-dark-accent/40 -rotate-12 rounded shadow-sm"></div></div><div class="bg-love-card dark:bg-love-dark-card px-4 py-2 rounded shadow border border-love-accent/20"><span class="font-serif italic text-love-text dark:text-love-dark-text">For You</span></div></div><div class="mt-8"><button id="pull-note" class="px-6 py-2 rounded-full bg-love-accent/10 dark:bg-love-dark-accent/10 text-love-accent dark:text-love-dark-accent text-sm font-medium uppercase tracking-widest hover:bg-love-accent hover:text-white dark:hover:bg-love-dark-accent dark:hover:text-love-dark-bg transition-colors duration-300">Pull a Note</button></div></div><div id="note-backdrop" class="hidden absolute inset-0 bg-white/60 dark:bg-black/40 backdrop-blur-sm z-10 rounded-xl"></div><div id="note-overlay" class="hidden absolute z-20 w-72 h-72 md:w-80 md:h-80 bg-love-card dark:bg-love-dark-card shadow-2xl rounded-sm p-8 flex flex-col items-center justify-center border border-love-accent/10 dark:border-love-dark-accent/10"><div class="absolute -top-3 left-1/2 transform -translate-x-1/2 w-24 h-6 bg-love-accent/20 dark:bg-love-dark-accent/20 opacity-50 rotate-1"></div>${icon('heart','w-8 h-8 text-love-accent dark:text-love-dark-accent mb-6 opacity-80')}<p id="note-text" class="font-serif text-xl md:text-2xl text-love-text dark:text-love-dark-text italic leading-relaxed"></p><div class="absolute bottom-4 right-4 flex gap-2"><button id="another-note" class="p-2 rounded-full hover:bg-love-accent/10 dark:hover:bg-love-dark-accent/10 text-love-text/50 dark:text-love-dark-text/50 transition-colors" aria-label="Another note">${icon('refresh')}</button><button id="close-note" class="p-2 rounded-full hover:bg-love-accent/10 dark:hover:bg-love-dark-accent/10 text-love-text/50 dark:text-love-dark-text/50 transition-colors" aria-label="Close note">${icon('x')}</button></div></div></div></div>`, 'min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10');
+  const j = CFG.jar;
+  if (!j.enabled && !editMode) return '';
+  return section(`<div class="w-full max-w-2xl mx-auto px-6 text-center">${offNote(j.enabled)}<div class="mb-12"><h2 class="font-serif text-3xl md:text-5xl mb-4 text-love-text dark:text-love-dark-text"${bb('val.jar.title', 'Love Jar title')}>${T(j.title)}</h2><p class="text-love-accent dark:text-love-dark-accent/80 text-sm md:text-base tracking-wide uppercase"${bb('val.jar.subtitle', 'Love Jar subtitle', 'textarea')}>${T(j.subtitle)}</p></div><div class="relative h-[400px] flex items-center justify-center"><div id="jar-wrap" class="relative cursor-pointer group"><div id="jar" class="relative w-48 h-64 border-4 border-love-accent/30 dark:border-love-dark-accent/30 rounded-[2rem] bg-white/20 dark:bg-white/5 backdrop-blur-sm flex items-center justify-center shadow-xl overflow-hidden"><div class="absolute -top-4 left-0 right-0 h-8 bg-love-accent/50 dark:bg-love-dark-accent/50 rounded-t-lg mx-4"></div><div id="jar-papers"><div class="absolute bottom-4 left-6 w-12 h-8 bg-love-pink/50 dark:bg-love-dark-accent/20 rotate-12 rounded shadow-sm"></div><div class="absolute bottom-8 right-8 w-12 h-8 bg-love-accent/40 dark:bg-love-dark-accent/30 -rotate-6 rounded shadow-sm"></div><div class="absolute bottom-12 left-12 w-12 h-8 bg-white/60 dark:bg-love-dark-text/20 rotate-45 rounded shadow-sm"></div><div class="absolute bottom-6 right-16 w-12 h-8 bg-love-pink/60 dark:bg-love-dark-accent/40 -rotate-12 rounded shadow-sm"></div></div><div class="bg-love-card dark:bg-love-dark-card px-4 py-2 rounded shadow border border-love-accent/20"><span class="font-serif italic text-love-text dark:text-love-dark-text"${bb('val.jar.label', 'Jar label')}>${T(j.label)}</span></div></div><div class="mt-8"><button id="pull-note" class="px-6 py-2 rounded-full bg-love-accent/10 dark:bg-love-dark-accent/10 text-love-accent dark:text-love-dark-accent text-sm font-medium uppercase tracking-widest hover:bg-love-accent hover:text-white dark:hover:bg-love-dark-accent dark:hover:text-love-dark-bg transition-colors duration-300"${bb('val.jar.button', 'Pull-a-note button', 'button')}>${T(j.button)}</button></div></div><div id="note-backdrop" class="hidden absolute inset-0 bg-white/60 dark:bg-black/40 backdrop-blur-sm z-10 rounded-xl"></div><div id="note-overlay" data-bb-ignore="1" class="hidden absolute z-20 w-72 h-72 md:w-80 md:h-80 bg-love-card dark:bg-love-dark-card shadow-2xl rounded-sm p-8 flex flex-col items-center justify-center border border-love-accent/10 dark:border-love-dark-accent/10"><div class="absolute -top-3 left-1/2 transform -translate-x-1/2 w-24 h-6 bg-love-accent/20 dark:bg-love-dark-accent/20 opacity-50 rotate-1"></div>${icon('heart','w-8 h-8 text-love-accent dark:text-love-dark-accent mb-6 opacity-80')}<p id="note-text" class="font-serif text-xl md:text-2xl text-love-text dark:text-love-dark-text italic leading-relaxed"></p><div class="absolute bottom-4 right-4 flex gap-2"><button id="another-note" class="p-2 rounded-full hover:bg-love-accent/10 dark:hover:bg-love-dark-accent/10 text-love-text/50 dark:text-love-dark-text/50 transition-colors" aria-label="Another note">${icon('refresh')}</button><button id="close-note" class="p-2 rounded-full hover:bg-love-accent/10 dark:hover:bg-love-dark-accent/10 text-love-text/50 dark:text-love-dark-text/50 transition-colors" aria-label="Close note">${icon('x')}</button></div></div></div>${editMode ? `<div style="margin-top:8px">${chipHTML('val.jar.notes', 'Love notes', 'list', '💌 Edit love notes (' + j.notes.length + ')')}</div>` : ''}</div>`, 'min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10', 'Love Jar');
 }
 
 function finalLetterHTML() {
-  return section(`<div class="relative max-w-2xl w-full bg-love-card dark:bg-love-dark-card p-8 md:p-16 final-letter border border-love-pink/30 dark:border-love-dark-accent/20 text-center transition-colors duration-700"><div class="absolute top-4 left-4 w-4 h-4 border-t border-l border-love-accent/30 dark:border-love-dark-accent/30"></div><div class="absolute top-4 right-4 w-4 h-4 border-t border-r border-love-accent/30 dark:border-love-dark-accent/30"></div><div class="absolute bottom-4 left-4 w-4 h-4 border-b border-l border-love-accent/30 dark:border-love-dark-accent/30"></div><div class="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-love-accent/30 dark:border-love-dark-accent/30"></div><div class="final-content opacity-0 scale-95"><div>${icon('heart','w-6 h-6 mx-auto text-love-accent dark:text-love-dark-accent mb-8')}</div><h3 class="font-serif text-3xl md:text-4xl italic text-love-text dark:text-love-dark-text mb-8">Happy Valentine's Day</h3><div class="space-y-6 font-light text-love-text/90 dark:text-love-dark-text/90 leading-loose"><p>Words often fail to capture the depth of what I feel, but I hope this small gesture reminds you of how incredibly special you are to me.</p><p>You are my best friend, my confidant, and my greatest love. Thank you for filling my days with light and my heart with peace.</p><p>I love you, more than yesterday, but less than tomorrow.</p></div><div class="mt-12 pt-8 border-t border-love-accent/10 dark:border-love-dark-accent/10"><p class="font-serif italic text-xl text-love-text dark:text-love-dark-text">Forever yours</p></div></div></div>`, 'min-h-screen flex justify-center items-center px-4 py-20 z-10');
+  const f = CFG.final;
+  const finalVisual = f.image
+    ? `<div${bb('val.final.image', 'Final photo', 'image')}><img src="${esc(f.image)}" alt="" class="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover mx-auto mb-8 block shadow-lg"></div>`
+    : `<div${bb('val.final.image', 'Final photo (optional)', 'image')}>${icon('heart','w-6 h-6 mx-auto text-love-accent dark:text-love-dark-accent mb-8')}</div>`;
+  const paragraphs = f.paragraphs.map((p, i) => `<p${bb('val.final.paragraphs.' + i, 'Letter paragraph ' + (i + 1), 'textarea', i)}>${T(p)}</p>`).join('');
+  return section(`<div class="relative max-w-2xl w-full bg-love-card dark:bg-love-dark-card p-8 md:p-16 final-letter border border-love-pink/30 dark:border-love-dark-accent/20 text-center transition-colors duration-700"><div class="absolute top-4 left-4 w-4 h-4 border-t border-l border-love-accent/30 dark:border-love-dark-accent/30"></div><div class="absolute top-4 right-4 w-4 h-4 border-t border-r border-love-accent/30 dark:border-love-dark-accent/30"></div><div class="absolute bottom-4 left-4 w-4 h-4 border-b border-l border-love-accent/30 dark:border-love-dark-accent/30"></div><div class="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-love-accent/30 dark:border-love-dark-accent/30"></div><div class="final-content opacity-0 scale-95">${finalVisual}<h3 class="font-serif text-3xl md:text-4xl italic text-love-text dark:text-love-dark-text mb-8"${bb('val.final.title', 'Letter title')}>${T(f.title)}</h3><div class="space-y-6 font-light text-love-text/90 dark:text-love-dark-text/90 leading-loose">${paragraphs}</div>${editMode ? `<div style="margin-top:18px">${chipHTML('val.final.paragraphs', 'Letter paragraphs', 'list', '✎ Manage letter paragraphs (' + f.paragraphs.length + ')')}</div>` : ''}<div class="mt-12 pt-8 border-t border-love-accent/10 dark:border-love-dark-accent/10"><p class="font-serif italic text-xl text-love-text dark:text-love-dark-text"${bb('val.final.signature', 'Signature')}>${T(f.signature)}</p></div></div></div>`, 'min-h-screen flex justify-center items-center px-4 py-20 z-10', 'Final letter');
 }
 
+/* ---------- intro gate ---------- */
 function introHTML() {
   return `<div id="intro-gate" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-love-bg dark:bg-love-dark-bg px-6 transition-colors duration-700"><div id="gate-stage" class="text-center max-w-3xl w-full"></div></div>`;
+}
+
+function clearGateTimers() {
+  if (window.__gateTimer) { clearTimeout(window.__gateTimer); window.__gateTimer = null; }
+  if (window.__gateTimer2) { clearTimeout(window.__gateTimer2); window.__gateTimer2 = null; }
 }
 
 function setIntroStage() {
   const stage = document.getElementById('gate-stage');
   if (!stage) return;
-  if (window.__gateTimer) clearTimeout(window.__gateTimer);
-  if (window.__gateTimer2) clearTimeout(window.__gateTimer2);
+  clearGateTimers();
+  const I = CFG.intro;
   if (window.__gateStep < 2) {
     if (window.__gateStep === 0) {
-      stage.innerHTML = `<div class="text-center gate-in"><div class="mb-8 inline-block p-4 rounded-full border border-love-accent/10 dark:border-love-dark-accent/10">${icon('heart','w-8 h-8 text-love-accent/60 dark:text-love-dark-accent/60')}</div><h2 class="font-serif text-3xl md:text-5xl text-love-text dark:text-love-dark-text font-light italic tracking-wide">I made this just for you.</h2></div>`;
-      window.__gateTimer = setTimeout(() => { window.__gateStep = 1; setIntroStage(); }, 2500);
+      stage.innerHTML = `<div class="text-center gate-in"><div class="mb-8 inline-block p-4 rounded-full border border-love-accent/10 dark:border-love-dark-accent/10">${icon('heart','w-8 h-8 text-love-accent/60 dark:text-love-dark-accent/60')}</div><h2 class="font-serif text-3xl md:text-5xl text-love-text dark:text-love-dark-text font-light italic tracking-wide"${bb('val.intro.line1', 'Opening line', 'textarea')}>${T(I.line1)}</h2></div>`;
+      if (!editMode) window.__gateTimer = setTimeout(() => { window.__gateStep = 1; setIntroStage(); }, 2500);
       return;
     }
-    stage.innerHTML = `<div class="text-center gate-in"><p class="font-sans text-xs md:text-sm tracking-[0.3em] uppercase text-love-accent/80 dark:text-love-dark-accent/80 mb-6">But first</p><h2 class="font-serif text-3xl md:text-5xl text-love-text dark:text-love-dark-text font-light italic tracking-wide">Before anything else...</h2></div>`;
-    window.__gateTimer2 = setTimeout(() => { window.__gateStep = 2; setIntroStage(); }, 3000);
+    stage.innerHTML = `<div class="text-center gate-in"><p class="font-sans text-xs md:text-sm tracking-[0.3em] uppercase text-love-accent/80 dark:text-love-dark-accent/80 mb-6"${bb('val.intro.kicker', 'Small title')}>${T(I.kicker)}</p><h2 class="font-serif text-3xl md:text-5xl text-love-text dark:text-love-dark-text font-light italic tracking-wide"${bb('val.intro.line2', 'Second line', 'textarea')}>${T(I.line2)}</h2></div>`;
+    if (!editMode) window.__gateTimer2 = setTimeout(() => { window.__gateStep = 2; setIntroStage(); }, 3000);
     return;
   }
-  const p = SILLY_PROMPTS[Math.min(rejectionCount, SILLY_PROMPTS.length-1)];
-  const yesScale = 1 + rejectionCount * .1;
-  stage.innerHTML = `<div class="text-center gate-in"><div class="mb-10 flex justify-center animate-pulse-soft">${icon('heart','w-20 h-20 text-love-accent dark:text-love-dark-accent')}</div><div class="min-h-[8rem] md:min-h-[10rem] flex flex-col justify-end items-center mb-12"><div key="${rejectionCount}"><h1 class="font-serif text-3xl md:text-5xl lg:text-6xl text-love-text dark:text-love-dark-text italic mb-4 leading-tight px-4">${p.title}</h1><p class="text-lg md:text-xl text-love-text/60 dark:text-love-dark-text/60 font-light">${p.subtitle}</p></div></div><div class="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4"><button id="yes-btn" style="transform:scale(${yesScale})" class="group relative px-12 py-5 overflow-hidden rounded-full bg-transparent border border-love-accent/30 hover:border-love-accent/60 dark:border-love-dark-accent/30 dark:hover:border-love-dark-accent/60 transition-colors duration-700 z-10"><span class="absolute inset-0 w-full h-full bg-love-accent/5 dark:bg-love-dark-accent/5 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-700"></span><span class="relative font-sans text-sm tracking-[0.25em] uppercase text-love-text group-hover:text-love-accent dark:text-love-dark-text dark:group-hover:text-love-dark-accent transition-colors duration-500 whitespace-nowrap">Yes, Forever</span></button><button id="no-btn" class="px-8 py-4 rounded-full text-love-text/40 hover:text-love-text/80 dark:text-love-dark-text/40 dark:hover:text-love-dark-text/80 hover:bg-love-accent/5 dark:hover:bg-love-dark-accent/5 transition-all duration-300 font-sans text-xs tracking-[0.2em] uppercase">${rejectionCount === 0 ? 'No' : 'Still No?'}</button></div></div>`;
-  document.getElementById('yes-btn').onclick = completeIntro;
-  document.getElementById('no-btn').onclick = () => { rejectionCount = Math.min(rejectionCount + 1, SILLY_PROMPTS.length - 1); setIntroStage(); };
+  const prompts = I.prompts.length ? I.prompts : [{ title: 'Will you be my Valentine?', subtitle: '' }];
+  const idx = Math.min(rejectionCount, prompts.length - 1);
+  const p = prompts[idx];
+  const yesScale = Math.min(1 + rejectionCount * 0.1, 2.2);
+  const promptKey = 'val.intro.prompts.' + idx;
+  stage.innerHTML = `<div class="text-center gate-in"><div class="mb-10 flex justify-center animate-pulse-soft">${icon('heart','w-20 h-20 text-love-accent dark:text-love-dark-accent')}</div><div class="min-h-[8rem] md:min-h-[10rem] flex flex-col justify-end items-center mb-12"><div><h1 class="font-serif text-3xl md:text-5xl lg:text-6xl text-love-text dark:text-love-dark-text italic mb-4 leading-tight px-4"${bb(promptKey + '.title', 'Question', 'textarea')}>${T(p.title)}</h1><p class="text-lg md:text-xl text-love-text/60 dark:text-love-dark-text/60 font-light"${bb(promptKey + '.subtitle', 'Question subtitle')}>${T(p.subtitle)}</p></div></div><div class="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4"><button id="yes-btn" style="transform:scale(${yesScale})" class="group relative px-12 py-5 overflow-hidden rounded-full bg-transparent border border-love-accent/30 hover:border-love-accent/60 dark:border-love-dark-accent/30 dark:hover:border-love-dark-accent/60 transition-colors duration-700 z-10"${bb('val.intro.yesButton', '"Yes" button', 'button')}><span class="absolute inset-0 w-full h-full bg-love-accent/5 dark:bg-love-dark-accent/5 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-700"></span><span class="relative font-sans text-sm tracking-[0.25em] uppercase text-love-text group-hover:text-love-accent dark:text-love-dark-text dark:group-hover:text-love-dark-accent transition-colors duration-500 whitespace-nowrap">${T(I.yesButton)}</span></button><button id="no-btn" class="px-8 py-4 rounded-full text-love-text/40 hover:text-love-text/80 dark:text-love-dark-text/40 dark:hover:text-love-dark-text/80 hover:bg-love-accent/5 dark:hover:bg-love-dark-accent/5 transition-all duration-300 font-sans text-xs tracking-[0.2em] uppercase"${bb('val.intro.noButton', '"No" button', 'button')}>${T(rejectionCount === 0 ? I.noButton : I.noRepeatButton)}</button></div>${editMode ? `<div style="margin-top:26px">${chipHTML('val.intro.prompts', '"No" reactions', 'list', '✎ Edit all ' + I.prompts.length + ' "No" reactions')}</div>` : ''}</div>`;
+  const yes = document.getElementById('yes-btn');
+  const no = document.getElementById('no-btn');
+  if (yes) yes.onclick = completeIntro;
+  if (no) no.onclick = () => { rejectionCount = Math.min(rejectionCount + 1, prompts.length - 1); setIntroStage(); };
 }
 
 function completeIntro() {
@@ -271,6 +333,7 @@ function updateProgress() {
   bar.style.transform = `scaleX(${ratio})`;
 }
 
+/* ---------- garden ---------- */
 function renderGarden() {
   const layer = document.getElementById('garden-layer');
   const placeholder = document.getElementById('garden-placeholder');
@@ -278,8 +341,8 @@ function renderGarden() {
   const count = document.getElementById('garden-count');
   if (!layer) return;
   placeholder.classList.toggle('hidden', gardenFlowers.length > 0);
-  clear.classList.toggle('hidden', gardenFlowers.length <= 5);
-  count.textContent = gardenFlowers.length > 0 ? `${gardenFlowers.length} flowers planted for you` : 'Waiting for your touch...';
+  if (!editMode) clear.classList.toggle('hidden', gardenFlowers.length <= 5);
+  if (!editMode) count.textContent = gardenFlowers.length > 0 ? subst(CFG.garden.count).replace(/\{n\}/g, gardenFlowers.length) : subst(CFG.garden.emptyCount);
   layer.innerHTML = gardenFlowers.map(f => {
     let content = '';
     if (f.type === 0) content = icon('flower','w-8 h-8 md:w-12 md:h-12 drop-shadow-sm');
@@ -303,22 +366,25 @@ function setupGarden() {
   renderGarden();
 }
 
+/* ---------- love jar ---------- */
 function showNote() {
   if (noteOpen || noteTimer) return;
+  const notes = CFG.jar.notes.filter(n => String(n).trim());
+  if (!notes.length) return;
   const jar = document.getElementById('jar');
   const btn = document.getElementById('pull-note');
   noteTimer = true;
   jar.classList.remove('shake-jar'); void jar.offsetWidth; jar.classList.add('shake-jar');
-  btn.textContent = 'Shaking...';
+  btn.textContent = subst(CFG.jar.shakingButton);
   setTimeout(() => {
     noteTimer = null;
-    noteOpen = NOTES[Math.floor(Math.random()*NOTES.length)];
-    document.getElementById('note-text').textContent = `"${noteOpen}"`;
+    noteOpen = notes[Math.floor(Math.random() * notes.length)];
+    document.getElementById('note-text').textContent = `"${subst(noteOpen)}"`;
     document.getElementById('note-overlay').classList.remove('hidden');
     document.getElementById('note-overlay').classList.remove('note-pop'); void document.getElementById('note-overlay').offsetWidth; document.getElementById('note-overlay').classList.add('note-pop');
     document.getElementById('note-backdrop').classList.remove('hidden');
     document.getElementById('jar-papers').style.opacity = '0';
-    btn.textContent = 'Pull a Note';
+    btn.textContent = subst(CFG.jar.button);
   }, 1000);
 }
 
@@ -344,9 +410,10 @@ function setupLoveJar() {
 }
 
 function setupInAppGuard() {
+  if (editMode) return;
   const ua = navigator.userAgent || navigator.vendor || window.opera || '';
   const detected = [/FBAN/,/FBAV/,/Instagram/,/Line/,/Twitter/,/LinkedIn/,/Messenger/].some(re => re.test(ua));
-  if (!detected) return;
+  if (!detected || !hasMusic()) return;
   const el = document.createElement('div');
   el.id = 'browser-guard';
   el.className = 'fixed inset-0 z-[100000] bg-love-bg dark:bg-love-dark-bg flex flex-col items-center justify-center p-6 text-center';
@@ -374,248 +441,180 @@ function setupScrollAnimations() {
   });
   const final = document.querySelector('.final-content');
   if (final) {
-    const o = new IntersectionObserver(entries => entries.forEach(entry => { if (entry.isIntersecting) { final.style.animation='fade-scale-in 1s both'; o.unobserve(final); } }), {threshold:.1});
+    const o = new IntersectionObserver(entries => entries.forEach(entry => { if (entry.isIntersecting) { final.style.animation = 'fade-scale-in 1s both'; o.unobserve(final); } }), { threshold: .1 });
     o.observe(final);
   }
 }
 
+/* ---------- render ---------- */
+function toolbarHTML() {
+  if (!editMode) return '';
+  return `<div data-bb-toolbar="1" style="position:fixed;top:12px;left:12px;z-index:200;display:flex;gap:8px;flex-wrap:wrap;max-width:calc(100vw - 24px)">
+    <button type="button" class="bb-chip"${bb('val.names', 'Names', 'names')}>👤 Names</button>
+    <button type="button" class="bb-chip"${bb('val.theme', 'Theme & colors', 'theme')}>🎨 Theme</button>
+    <button type="button" class="bb-chip"${bb('val.music', 'Background music', 'music')}>🎵 Music</button>
+  </div>`;
+}
+
 function mainRender() {
-  app.innerHTML = `${backgroundHTML()}<div class="min-h-screen font-sans selection:bg-love-accent selection:text-white transition-colors duration-700 relative">${renderHeroAndStory()}${bloomGardenHTML()}${loveJarHTML()}${finalLetterHTML()}<footer class="py-8 text-center text-love-text/30 dark:text-love-dark-text/30 text-xs tracking-widest uppercase relative z-10 font-medium">Made with love, for you.</footer></div>${introHTML()}<div id="progress" class="fixed top-0 left-0 right-0 h-1 bg-love-accent dark:bg-love-dark-accent origin-left z-50 opacity-50" style="transform:scaleX(0)"></div>`;
-  setTheme('blush');
+  clearGateTimers();
+  const footer = `<footer data-bb-footer="1" class="py-8 text-center text-love-text/30 dark:text-love-dark-text/30 text-xs tracking-widest uppercase relative z-10 font-medium"${bb('val.footer', 'Footer text')}>${T(CFG.footer)}</footer>`;
+  app.innerHTML = `${backgroundHTML()}<div class="min-h-screen font-sans selection:bg-love-accent selection:text-white transition-colors duration-700 relative">${renderHeroAndStory()}${bloomGardenHTML()}${loveJarHTML()}${finalLetterHTML()}${footer}</div>${introHTML()}<div id="progress" data-bb-ignore="1" class="fixed top-0 left-0 right-0 h-1 bg-love-accent dark:bg-love-dark-accent origin-left z-50 opacity-50" style="transform:scaleX(0)"></div>${toolbarHTML()}`;
+  setTheme(CFG.theme);
+  document.documentElement.classList.toggle('dark', isDarkMode);
+  musicEnabled = musicStarted ? musicEnabled : true;
   renderControls();
   document.body.style.overflow = 'hidden';
   document.documentElement.style.overflow = 'hidden';
   document.body.style.height = '100vh';
   document.documentElement.style.height = '100vh';
-  window.__gateStep = 0;
+  window.__gateStep = window.__gateStep || 0;
+  if (!editMode) window.__gateStep = 0;
+  rejectionCount = 0;
   setIntroStage();
   setupGarden();
   setupLoveJar();
   setupScrollAnimations();
-  window.addEventListener('scroll', updateProgress, {passive:true});
-  window.addEventListener('resize', updateProgress);
+  if (!hasRendered) {
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+  }
   updateProgress();
   setupInAppGuard();
+  hasRendered = true;
 }
 
-mainRender();
+function applyConfig(raw) {
+  const json = JSON.stringify(raw || {});
+  if (hasRendered && json === lastCfgJson) return;
+  if (hasRendered && !editMode) return; // visitors keep the first config they received
+  lastCfgJson = json;
+  CFG = deepMerge(DEFAULTS, raw || {});
+  currentTheme = CFG.theme;
+  isDarkMode = !!CFG.darkMode;
+  mainRender();
+  if (editMode && window.__bbAfterRender) window.__bbAfterRender();
+}
+
+/* ---------- boot ---------- */
+let pendingRaw = null;
+let gotRaw = false;
+window.addEventListener('message', function (e) {
+  const d = e.data || {};
+  if (d.type === 'BB_VALENTINE_CONFIG') {
+    pendingRaw = d.config || {};
+    gotRaw = true;
+    if (DEFAULTS) applyConfig(pendingRaw);
+  }
+});
+
+(async function boot() {
+  try {
+    const res = await fetch('default-config.json', { cache: 'no-cache' });
+    DEFAULTS = await res.json();
+  } catch (err) {
+    app.innerHTML = '<p style="padding:40px;text-align:center;font-family:sans-serif">Could not load this page. Please refresh.</p>';
+    return;
+  }
+  if (!embedded) { applyConfig({}); return; }
+  if (gotRaw) { applyConfig(pendingRaw); return; }
+  try { window.parent.postMessage({ type: 'BB_CONFIG_REQUEST' }, '*'); } catch (_) {}
+  setTimeout(function () { if (!hasRendered) applyConfig(gotRaw ? pendingRaw : {}); }, 1500);
+})();
 
 
 /* --------------------------------------------------------------------------
- * Builder integration for Valentine 2026.
- * This runs only in ?bbEdit=1 and leaves the standalone/demo experience intact.
+ * Builder canvas (?bbEdit=1 only): click any highlighted element to edit it,
+ * and step through every screen. Real template buttons never run here.
  * -------------------------------------------------------------------------- */
-(function initValentineBuilder(){
-  var editMode = new URLSearchParams(window.location.search).get('bbEdit') === '1';
-  if(!editMode) return;
-  if(window.__BB_VALENTINE_EDITOR__) return;
+(function initValentineBuilder() {
+  if (!editMode) return;
+  if (window.__BB_VALENTINE_EDITOR__) return;
   window.__BB_VALENTINE_EDITOR__ = true;
   window.__BB_CUSTOM_HISTORY__ = true;
 
-  var steps = [];
-  var index = 0;
-  var edits = {};
-  var introStage = 0;
-  var introTimerA = null;
-  var introTimerB = null;
+  let steps = [];
+  let index = 0;
 
-  function esc(value){
-    return String(value == null ? '' : value)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
-  }
+  function key(el) { return el && el.getAttribute ? el.getAttribute('data-bb-key') : ''; }
 
-  function clearIntroTimers(){
-    if(introTimerA){clearTimeout(introTimerA); introTimerA=null;}
-    if(introTimerB){clearTimeout(introTimerB); introTimerB=null;}
-    if(window.__gateTimer){clearTimeout(window.__gateTimer); window.__gateTimer=null;}
-    if(window.__gateTimer2){clearTimeout(window.__gateTimer2); window.__gateTimer2=null;}
-  }
-
-  function key(el){ return el && el.getAttribute ? el.getAttribute('data-bb-key') : ''; }
-  function label(el){ return (el && el.getAttribute && (el.getAttribute('data-bb-label') || el.getAttribute('aria-label'))) || key(el) || 'Editable text'; }
-  function currentValue(el){
-    if(!el) return '';
-    var kind=el.getAttribute('data-bb-kind')||'';
-    if(kind==='audio') return String(window.__bbMusicUrl||customMusicUrl||'');
-    return String(el.innerText||el.textContent||'').trim();
-  }
-  function kindOf(el){
-    var k=el && el.getAttribute && el.getAttribute('data-bb-kind');
-    if(k) return k;
-    if(!el) return 'text';
-    return el.tagName==='BUTTON'?'button':el.tagName==='IMG'?'image':el.tagName==='VIDEO'?'video':el.tagName==='AUDIO'?'audio':el.tagName==='A'?'link':'text';
-  }
-  function select(el){
-    var s={key:key(el),label:label(el),value:currentValue(el),kind:kindOf(el)};
-    var ix=el.getAttribute('data-bb-index');
-    if(ix!==null && ix!=='') s.index=Number(ix);
-    try{ parent.postMessage({type:'BB_ELEMENT_SELECTED',selection:s},'*'); }catch(e){}
-  }
-  function mark(el, k, textLabel, kind){
-    if(!el) return;
-    if(el.getAttribute('data-bb-key')!==k) el.setAttribute('data-bb-key',k);
-    if(el.getAttribute('data-bb-label')!==textLabel) el.setAttribute('data-bb-label',textLabel);
-    if(kind && el.getAttribute('data-bb-kind')!==kind) el.setAttribute('data-bb-kind',kind);
-  }
-  function addIndex(el,i){ if(el) el.setAttribute('data-bb-index',String(i)); }
-
-  function tagMainContent(){
-    var sections=Array.prototype.slice.call(document.querySelectorAll('section.section-reveal'))
-      .map(function(inner){return inner.parentElement;}).filter(Boolean);
-    if(sections[0]){
-      mark(sections[0].querySelector('.hero-title'),'gx.valentine.heroTitle','Hero title');
-      mark(sections[0].querySelector('.hero-subtitle'),'gx.valentine.heroSubtitle','Hero subtitle');
+  function select(el) {
+    const k = key(el);
+    let value = '';
+    if (k.indexOf('val.') === 0 && CFG) {
+      const v = getPath(CFG, k.slice(4));
+      value = typeof v === 'string' ? v : '';
     }
-    var stories=Array.prototype.slice.call(document.querySelectorAll('.story-item'));
-    stories.forEach(function(item,i){
-      mark(item.querySelector('.story-title'),'gx.valentine.storyTitle.'+i,'Story '+(i+1)+' title');
-      mark(item.querySelector('.story-body'),'gx.valentine.storyBody.'+i,'Story '+(i+1)+' text');
+    const s = { key: k, label: el.getAttribute('data-bb-label') || k, value: value, kind: el.getAttribute('data-bb-kind') || 'text' };
+    const ix = el.getAttribute('data-bb-index');
+    if (ix !== null && ix !== '') s.index = Number(ix);
+    try { parent.postMessage({ type: 'BB_ELEMENT_SELECTED', selection: s }, '*'); } catch (e) {}
+  }
+
+  function postHistory() {
+    const current = steps[index];
+    try { parent.postMessage({ type: 'BB_CANVAS_HISTORY_STATE', canBack: index > 0, canForward: index < steps.length - 1, screen: current ? current.label : String(index) }, '*'); } catch (e) {}
+  }
+
+  function hideAll() {
+    document.querySelectorAll('section[data-bb-editor-section]').forEach(function (s) {
+      s.style.display = 'none'; s.style.visibility = 'hidden'; s.style.opacity = '0'; s.style.pointerEvents = 'none';
     });
-    var garden=document.getElementById('garden');
-    var gardenSection=garden ? garden.closest('section') : null;
-    if(gardenSection){
-      var gH=gardenSection.querySelector('h2');
-      var gp=gardenSection.querySelectorAll('p');
-      mark(gH,'gx.valentine.gardenTitle','Digital Garden title');
-      if(gp[0]) mark(gp[0],'gx.valentine.gardenSubtitle','Digital Garden subtitle');
-      if(gp[1]) mark(gp[1],'gx.valentine.gardenHint','Digital Garden hint');
-    }
-    var jar=document.getElementById('jar-wrap');
-    var jarSection=jar ? jar.closest('section') : null;
-    if(jarSection){
-      var jH=jarSection.querySelector('h2');
-      var jp=jarSection.querySelector('p');
-      var forYou=jarSection.querySelector('#jar span');
-      var pull=jarSection.querySelector('#pull-note');
-      mark(jH,'gx.valentine.jarTitle','Love Jar title');
-      if(jp) mark(jp,'gx.valentine.jarSubtitle','Love Jar subtitle');
-      if(forYou) mark(forYou,'gx.valentine.jarLabel','Love Jar label');
-      mark(pull,'gx.valentine.jarButton','Love Jar button','button');
-    }
-    var final=document.querySelector('.final-letter');
-    if(final){
-      var fc=final.querySelector('.final-content');
-      if(fc){
-        mark(fc.querySelector('h3'),'gx.valentine.finalTitle','Final letter title');
-        var fp=fc.querySelectorAll('p');
-        if(fp[0]) mark(fp[0],'gx.valentine.finalBody1','Final letter paragraph 1');
-        if(fp[1]) mark(fp[1],'gx.valentine.finalBody2','Final letter paragraph 2');
-        if(fp[2]) mark(fp[2],'gx.valentine.finalBody3','Final letter paragraph 3');
-        if(fp[3]) mark(fp[3],'gx.valentine.finalSignature','Final signature');
-      }
-    }
+    const gate = document.getElementById('intro-gate');
+    if (gate) { gate.style.visibility = 'hidden'; gate.style.opacity = '0'; gate.style.pointerEvents = 'none'; }
   }
 
-  function tagIntroContent(){
-    var stage=document.getElementById('gate-stage');
-    if(!stage) return;
-    // Add the music control only to the very first editor step.
-    var old=stage.querySelector('[data-bb-music-editor]');
-    if(old) old.remove();
-    if(introStage===0){
-      var wrap=document.createElement('div');
-      wrap.setAttribute('data-bb-music-editor','1');
-      wrap.style.cssText='margin-top:28px;display:flex;flex-direction:column;align-items:center;gap:8px;';
-      wrap.innerHTML='<button type="button" data-bb-key="musicUrl" data-bb-label="Background music" data-bb-kind="audio" style="padding:12px 22px;border-radius:999px;border:1px solid rgba(184,107,120,.35);background:rgba(255,255,255,.58);color:var(--love-accent);font:600 13px Montserrat, sans-serif;letter-spacing:.05em;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.08);">'+(customMusicUrl||window.__bbMusicUrl?'🎵 Edit background music':'🎵 Add background music')+'</button><span style="font:500 10px Montserrat,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:rgba(46,32,38,.45);">Music can be added from the edit box</span></div>';
-      stage.appendChild(wrap);
-    }
-    if(introStage===0){
-      mark(stage.querySelector('h2'),'gx.valentine.introTitle','Intro title');
-    } else if(introStage===1){
-      mark(stage.querySelector('p'),'gx.valentine.introKicker','Intro kicker');
-      mark(stage.querySelector('h2'),'gx.valentine.introBefore','Intro message');
-    } else {
-      mark(stage.querySelector('h1'),'gx.valentine.introQuestion','Question title');
-      mark(stage.querySelector('p'),'gx.valentine.introQuestionSub','Question subtitle');
-      var btns=stage.querySelectorAll('button');
-      if(btns[0]) mark(btns[0],'gx.valentine.yesButton','Yes button','button');
-      if(btns[1]) mark(btns[1],'gx.valentine.noButton','No button','button');
-      // The question is editor-only static navigation content: never let the real
-      // Yes/No handlers execute while editing.
-    }
-  }
-
-  function applyEdits(){
-    Object.keys(edits||{}).forEach(function(k){
-      var edit=edits[k];
-      if(!edit || edit.value==null) return;
-      var value=String(edit.value);
-      Array.prototype.forEach.call(document.querySelectorAll('[data-bb-key]'),function(el){
-        if(el.getAttribute('data-bb-key')!==k) return;
-        if(el.getAttribute('data-bb-kind')==='audio') return;
-        if(String(el.textContent||'')!==value) el.textContent=value;
-      });
-    });
-  }
-
-  function postHistory(){
-    var current=steps[index];
-    try{ parent.postMessage({type:'BB_CANVAS_HISTORY_STATE',canBack:index>0,canForward:index<steps.length-1,screen:current?current.label:String(index)},'*'); }catch(e){}
-  }
-
-  function hideAll(){
-    var sections=document.querySelectorAll('section[data-bb-editor-section]');
-    sections.forEach(function(s){s.style.display='none';s.style.visibility='hidden';s.style.opacity='0';s.style.pointerEvents='none';});
-    var gate=document.getElementById('intro-gate');
-    if(gate){gate.style.visibility='hidden';gate.style.opacity='0';gate.style.pointerEvents='none';}
-  }
-
-  function showStep(i){
-    clearIntroTimers();
-    index=Math.max(0,Math.min(i,steps.length-1));
+  function showStep(i) {
+    clearGateTimers();
+    index = Math.max(0, Math.min(i, steps.length - 1));
     hideAll();
-    var step=steps[index];
-    document.body.style.overflow='hidden';
-    document.documentElement.style.overflow='hidden';
-    document.body.style.height='100vh';
-    document.documentElement.style.height='100vh';
-    if(step.type==='intro'){
-      var gate=document.getElementById('intro-gate');
-      if(gate){gate.style.visibility='visible';gate.style.opacity='1';gate.style.pointerEvents='auto';}
-      introStage=step.gate;
-      window.__gateStep=step.gate;
-      rejectionCount=0;
+    const step = steps[index];
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.height = '100vh';
+    document.documentElement.style.height = '100vh';
+    const footer = document.querySelector('[data-bb-footer]');
+    if (step.type === 'intro') {
+      const gate = document.getElementById('intro-gate');
+      if (gate) { gate.style.visibility = 'visible'; gate.style.opacity = '1'; gate.style.pointerEvents = 'auto'; }
+      window.__gateStep = step.gate;
+      rejectionCount = 0;
       setIntroStage();
-      clearIntroTimers();
-      tagIntroContent();
-      applyEdits();
-    }else{
-      var section=document.querySelector('section[data-bb-editor-section="'+step.section+'"]');
-      if(section){section.style.display='flex';section.style.visibility='visible';section.style.opacity='1';section.style.pointerEvents='auto';}
-      tagMainContent();
-      applyEdits();
+      clearGateTimers();
+      if (footer) footer.style.display = 'none';
+    } else {
+      const section = document.querySelector('section[data-bb-editor-section="' + step.section + '"]');
+      if (section) { section.style.display = 'flex'; section.style.visibility = 'visible'; section.style.opacity = '1'; section.style.pointerEvents = 'auto'; }
+      if (footer) footer.style.display = index === steps.length - 1 ? 'block' : 'none';
     }
     postHistory();
   }
 
-  function buildSteps(){
-    var realSections=Array.prototype.slice.call(document.querySelectorAll('section.section-reveal')).map(function(inner){return inner.parentElement;}).filter(Boolean);
-    steps=[
-      {type:'intro',gate:0,label:'Intro'},
-      {type:'intro',gate:1,label:'Before anything else'},
-      {type:'intro',gate:2,label:'The question'}
+  function buildSteps() {
+    steps = [
+      { type: 'intro', gate: 0, label: 'Intro' },
+      { type: 'intro', gate: 1, label: 'Before anything else' },
+      { type: 'intro', gate: 2, label: 'The question' }
     ];
-    realSections.forEach(function(section,i){
-      var label='Step '+(i+4);
-      if(i===0) label='Hero';
-      else if(i<=5) label='Story '+i;
-      else if(i===6) label='Digital Garden';
-      else if(i===7) label='Love Jar';
-      else if(i===8) label='Final letter';
-      var id='valentine-section-'+i;
-      section.setAttribute('data-bb-editor-section',id);
-      steps.push({type:'section',section:id,label:label});
+    document.querySelectorAll('section[data-step]').forEach(function (section, i) {
+      const id = 'valentine-section-' + i;
+      section.setAttribute('data-bb-editor-section', id);
+      steps.push({ type: 'section', section: id, label: section.getAttribute('data-step') || ('Step ' + (i + 4)) });
     });
   }
 
-  // Capture the editor navigation and editable text taps. Real template buttons
-  // never execute in edit mode.
-  function guard(e){
-    var t=e.target&&e.target.closest?e.target.closest('[data-bb-key]'):null;
-    if(t){
-      if(e.type==='click' || e.type==='touchend'){
-        if(e.cancelable) e.preventDefault();
+  // Called after every config-driven re-render: keep the user on the same screen.
+  window.__bbAfterRender = function () {
+    buildSteps();
+    showStep(index);
+  };
+
+  // Editing mode: clicks only select; nothing from the real experience may run.
+  function guard(e) {
+    const t = e.target && e.target.closest ? e.target.closest('[data-bb-key]') : null;
+    if (t) {
+      if (e.type === 'click' || e.type === 'touchend') {
+        if (e.cancelable) e.preventDefault();
         e.stopImmediatePropagation();
         select(t);
       } else {
@@ -623,56 +622,36 @@ mainRender();
       }
       return;
     }
-    if(e.target && e.target.closest && e.target.closest('[data-bb-editor-nav],#controls [data-theme]')) return;
-    if(e.cancelable) e.preventDefault();
+    if (e.target && e.target.closest && e.target.closest('[data-bb-editor-nav]')) return;
+    if (e.cancelable) e.preventDefault();
     e.stopImmediatePropagation();
   }
-  document.addEventListener('click',guard,true);
-  document.addEventListener('pointerdown',guard,true);
-  document.addEventListener('mousedown',guard,true);
-  document.addEventListener('touchstart',guard,{capture:true,passive:true});
-  document.addEventListener('touchend',guard,{capture:true,passive:false});
-  document.addEventListener('keydown',function(e){
-    if(e.key!=='Enter'&&e.key!==' ') return;
-    var t=e.target&&e.target.closest?e.target.closest('[data-bb-key]'):null;
-    if(t){e.preventDefault();e.stopImmediatePropagation();select(t);}
-  },true);
+  document.addEventListener('click', guard, true);
+  document.addEventListener('pointerdown', guard, true);
+  document.addEventListener('mousedown', guard, true);
+  document.addEventListener('touchstart', guard, { capture: true, passive: true });
+  document.addEventListener('touchend', guard, { capture: true, passive: false });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const t = e.target && e.target.closest ? e.target.closest('[data-bb-key]') : null;
+    if (t) { e.preventDefault(); e.stopImmediatePropagation(); select(t); }
+  }, true);
 
-  var style=document.createElement('style');
-  style.textContent='[data-bb-key]{cursor:pointer !important;outline:2px dashed rgba(184,107,120,.65);outline-offset:5px;border-radius:4px;-webkit-tap-highlight-color:rgba(184,107,120,.18)}[data-bb-key]:hover{outline-color:#8f4f5d;box-shadow:0 0 0 4px rgba(184,107,120,.13)}[data-bb-editor-section]{min-height:100vh !important}[data-bb-music-editor] button{outline:0 !important}';
+  const style = document.createElement('style');
+  style.textContent =
+    '[data-bb-key]{cursor:pointer !important;outline:2px dashed rgba(184,107,120,.65);outline-offset:5px;border-radius:4px;-webkit-tap-highlight-color:rgba(184,107,120,.18)}' +
+    '[data-bb-key]:hover{outline-color:#8f4f5d;box-shadow:0 0 0 4px rgba(184,107,120,.13)}' +
+    '[data-bb-editor-section]{min-height:100vh !important}' +
+    '.bb-chip{outline:0 !important;padding:9px 16px;border-radius:999px;border:1px solid rgba(184,107,120,.4);background:rgba(255,255,255,.82);color:#8f4f5d;font:600 12px Montserrat,sans-serif;letter-spacing:.04em;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.08);backdrop-filter:blur(8px)}' +
+    '.bb-chip:hover{background:#fff;box-shadow:0 10px 26px rgba(184,107,120,.25) !important}' +
+    '.gate-in,.hero-title,.hero-heart,.hero-subtitle,.story-number,.story-title,.story-body,.fade-scale-in{animation:none !important}' +
+    '#intro-gate{transition:none !important}' +
+    '.final-content{opacity:1 !important;transform:none !important;animation:none !important}';
   document.head.appendChild(style);
 
-  buildSteps();
-  tagMainContent();
-  showStep(0);
-
-  window.BB_EDITOR_NAVIGATE=function(delta){ showStep(index+(delta<0?-1:1)); };
-
-  window.addEventListener('message',function(e){
-    var d=e.data||{};
-    if(d.type==='BB_GENERIC_EDITS'){
-      edits=d.edits&&typeof d.edits==='object'?d.edits:{};
-      applyEdits();
-    }
-    if(d.type==='BB_VALENTINE_CONFIG'){
-      window.__bbMusicUrl=String(d.config&&d.config.musicUrl||'').trim();
-      customMusicUrl=window.__bbMusicUrl;
-      var btn=document.querySelector('[data-bb-key="musicUrl"]');
-      if(btn) btn.textContent=customMusicUrl?'🎵 Edit background music':'🎵 Add background music';
-    }
+  window.BB_EDITOR_NAVIGATE = function (delta) { showStep(index + (delta < 0 ? -1 : 1)); };
+  window.addEventListener('message', function (e) {
+    const d = e.data || {};
+    if (d.type === 'BB_CANVAS_HISTORY' && typeof window.BB_EDITOR_NAVIGATE === 'function') window.BB_EDITOR_NAVIGATE(d.direction === 'back' ? -1 : 1);
   });
-
-  // Re-tag dynamic intro content whenever MutationObserver sees its replacement.
-  var observer=new MutationObserver(function(){
-    if(!document.getElementById('gate-stage')) return;
-    if(steps[index] && steps[index].type==='intro'){
-      tagIntroContent();
-      applyEdits();
-    }else{
-      tagMainContent();
-      applyEdits();
-    }
-  });
-  observer.observe(document.documentElement,{subtree:true,childList:true});
-  setTimeout(function(){tagIntroContent();applyEdits();postHistory();},50);
 })();

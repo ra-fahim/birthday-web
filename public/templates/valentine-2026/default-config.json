@@ -1,0 +1,92 @@
+{
+  "recipientName": "",
+  "senderName": "",
+  "theme": "blush",
+  "darkMode": false,
+  "showControls": true,
+  "music": {
+    "enabled": true,
+    "url": "",
+    "youtubeId": "AfybMbBSwaA"
+  },
+  "intro": {
+    "line1": "I made this just for you.",
+    "kicker": "But first",
+    "line2": "Before anything else...",
+    "yesButton": "Yes, Forever",
+    "noButton": "No",
+    "noRepeatButton": "Still No?",
+    "prompts": [
+      { "title": "Will you be my Valentine?", "subtitle": "...and for a lifetime?" },
+      { "title": "Wait, did you click the wrong button?", "subtitle": "I think your finger slipped!" },
+      { "title": "Are you sure? I have snacks!", "subtitle": "All your favorites, unlimited supply." },
+      { "title": "What if I promise to do the dishes?", "subtitle": "For like... a whole week." },
+      { "title": "I'll give you a foot massage...", "subtitle": "Anytime you want. Seriously." },
+      { "title": "Don't break my heart! 🥺", "subtitle": "Look at this sad face." },
+      { "title": "I'm going to cry...", "subtitle": "Tears are actually forming right now." },
+      { "title": "Okay, seriously, just click Yes.", "subtitle": "The 'No' button is getting tired." },
+      { "title": "You're being stubborn!", "subtitle": "But I still love you." },
+      { "title": "Please? Please? Please?", "subtitle": "I'll be the best Valentine ever." },
+      { "title": "I'm not taking no for an answer!", "subtitle": "Resistance is futile, darling." }
+    ]
+  },
+  "hero": {
+    "title": "To My Dearest",
+    "subtitle": "Scroll slowly",
+    "image": ""
+  },
+  "story": [
+    { "title": "The Beginning", "body": "It started with a simple moment, a glance that felt different from all the others. In that instant, the noise of the world faded, and I knew my life was about to change forever." },
+    { "title": "The Little Things", "body": "It's the way you laugh at my terrible jokes, the warmth of your hand in mine, and the quiet comfort of just being near you. These small moments build a universe I never want to leave." },
+    { "title": "The Strength", "body": "On days when the world feels heavy, you are my sanctuary. Your kindness is a beacon, guiding me back to who I want to be. You make me better, simply by being you." },
+    { "title": "The Promise", "body": "To listen when you speak, to support you when you dream, and to hold you when you need rest. My heart is a steady rhythm, beating in time with yours, today and always." },
+    { "title": "The Horizon", "body": "As we look forward, I see a future painted with our shared dreams. Hand in hand, we will write the rest of this story, creating a masterpiece of moments that lasts a lifetime." }
+  ],
+  "garden": {
+    "enabled": true,
+    "title": "The Digital Garden",
+    "subtitle": "I can't bring you flowers every hour, so I built you a garden that never dies.",
+    "hint": "(Tap anywhere in the box below to plant a flower)",
+    "placeholder": "Plant me...",
+    "emptyCount": "Waiting for your touch...",
+    "count": "{n} flowers planted for you",
+    "clearButton": "Clear Garden"
+  },
+  "jar": {
+    "enabled": true,
+    "title": "The Love Jar",
+    "subtitle": "Pull a note whenever you need a reminder",
+    "label": "For You",
+    "button": "Pull a Note",
+    "shakingButton": "Shaking...",
+    "notes": [
+      "I love how hard you work for your dreams.",
+      "Your smile is literally the best part of my day.",
+      "You make even boring things fun just by being there.",
+      "I'm so proud of everything you've accomplished.",
+      "You give the best hugs in the world.",
+      "I love listening to you talk about things you're passionate about.",
+      "You are beautiful, inside and out.",
+      "Thank you for being my peace in a chaotic world.",
+      "I admire your strength and resilience.",
+      "Just thinking about you makes me smile.",
+      "I love that I can be myself around you.",
+      "You are my favorite person to do nothing with.",
+      "I love the way your eyes light up when you're happy.",
+      "You're stuck with me now (and I love it).",
+      "I appreciate how caring you are.",
+      "Every moment with you is a memory I cherish."
+    ]
+  },
+  "final": {
+    "title": "Happy Valentine's Day",
+    "paragraphs": [
+      "Words often fail to capture the depth of what I feel, but I hope this small gesture reminds you of how incredibly special you are to me.",
+      "You are my best friend, my confidant, and my greatest love. Thank you for filling my days with light and my heart with peace.",
+      "I love you, more than yesterday, but less than tomorrow."
+    ],
+    "signature": "Forever yours",
+    "image": ""
+  },
+  "footer": "Made with love, for you."
+}

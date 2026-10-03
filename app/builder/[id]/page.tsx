@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { defaultContent, BirthdayContent, weddingProposalDefaults } from '@/lib/types';
+import { valentineDefaults } from '@/lib/valentine';
 import MasterBirthdayTemplate from '@/components/template/MasterBirthdayTemplate';
 import MasterBirthdayEditor from './MasterBirthdayEditor';
 import { masterBirthdayDefaults, mergeMasterBirthdayConfig } from '@/lib/master-birthday';
@@ -356,6 +357,7 @@ export default function Builder() {
       };
     }
     if (targetTemplate === 'wedding-proposal') return { ...base, ...weddingProposalDefaults() } as BirthdayContent;
+    if (targetTemplate === 'valentine-2026') return { ...base, templateConfig: { valentine: valentineDefaults() } };
     if (targetTemplate === 'miss-you-1') return { ...base, templateConfig: { ...getMissYouDefaults() } };
     return base;
   }, []);

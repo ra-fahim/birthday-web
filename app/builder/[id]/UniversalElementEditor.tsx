@@ -5,6 +5,7 @@ import { Edit3, ImagePlus, Music2, RotateCcw, Trash2, Upload, Video } from 'luci
 import { InlineMediaField, SingleMediaUpload } from './MediaUploader';
 import type { BirthdayContent, GalleryItem } from '@/lib/types';
 import { mergeMasterBirthdayConfig } from '@/lib/master-birthday';
+import ValentineEditor from './ValentineEditor';
 
 type Selection = { key: string; label: string; index?: number; value?: string; kind?: string };
 type Props = {
@@ -83,6 +84,9 @@ export default function UniversalElementEditor({ selected, content, templateId, 
         <TextField value={text} multiline={text.length > 40 || text.includes('\n')} onChange={value => onChange({ [key]: value } as Partial<BirthdayContent>)} />
         <p className="builder-note">Use <b>{'{name}'}</b> for the receiver's name and <b>{'{sender}'}</b> for your name. Leave empty to use the default text.</p>
       </>;
+    }
+    if (templateId === 'valentine-2026' && key.startsWith('val.')) {
+      return <ValentineEditor selected={selected} content={content} websiteId={websiteId} onChange={onChange} onTemplateConfigChange={onTemplateConfigChange} />;
     }
     if (key.startsWith('gx.')) {
       const genericEdits = (templateConfig.genericEdits || {}) as Record<string, any>;
