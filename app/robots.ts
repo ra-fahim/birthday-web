@@ -4,7 +4,7 @@ import { SITE_URL } from '@/lib/seo';
 export const dynamic = 'force-dynamic';
 
 export default function robots(): MetadataRoute.Robots {
-  const disallow = ['/admin', '/api/', '/builder', '/dashboard', '/settings', '/messages', '/profile', '/auth/', '/login', '/forgot-password', '/reset-password', '/*?recipient=', '/*?to='];
+  const disallow = ['/admin', '/api/', '/builder', '/dashboard', '/settings', '/profile', '/auth/', '/login', '/forgot-password', '/reset-password', '/*?recipient=', '/*?to='];
   return {
     rules: [
       { userAgent: '*', allow: ['/', '/api/og'], disallow },

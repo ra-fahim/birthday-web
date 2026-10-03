@@ -70,7 +70,12 @@
         .bb-editor-audio-control { display:none; margin-top:16px; padding:9px 14px; border:1px solid rgba(255,255,255,.6); border-radius:999px; background:rgba(40,20,60,.18); color:inherit; font:700 12px 'Quicksand',sans-serif; cursor:pointer; box-shadow:0 10px 24px rgba(0,0,0,.08); backdrop-filter:blur(10px); }
         html[data-bb-editor="1"] .bb-editable-target { cursor:pointer!important; position:relative; outline:2px dashed rgba(236,72,153,.45); outline-offset:6px; box-shadow:0 0 0 3px rgba(236,72,153,.07); transition:outline-color .15s ease, box-shadow .15s ease, transform .15s ease; }
         html[data-bb-editor="1"] .bb-editable-target:hover { outline-color:rgba(236,72,153,.9); box-shadow:0 0 0 3px rgba(236,72,153,.08); }
-        html[data-bb-editor="1"] #cakeSvg text[data-bb-key^="mb.cake."] { filter:drop-shadow(0 0 4px rgba(236,72,153,.32)); cursor:pointer!important; }
+        html[data-bb-editor="1"] #cakeSvg text[data-bb-key^="mb.cake."] { paint-order:stroke; stroke:rgba(236,72,153,.65); stroke-width:1.4px; stroke-linejoin:round; filter:drop-shadow(0 0 6px rgba(236,72,153,.7)); cursor:pointer!important; }
+        html[data-bb-editor="1"] #cakeEditOverlay #cakeEditHit { fill:rgba(236,72,153,.07); stroke:rgba(236,72,153,.95); stroke-width:2; stroke-dasharray:7 5; cursor:pointer; pointer-events:all; transition:fill .15s ease; }
+        html[data-bb-editor="1"] #cakeEditOverlay #cakeEditHit:hover { fill:rgba(236,72,153,.16); }
+        #cakeEditOverlay .cake-edit-tag { pointer-events:none; }
+        #cakeEditOverlay .cake-edit-tag rect { fill:#ec4899; }
+        #cakeEditOverlay .cake-edit-tag text { fill:#fff; font:800 10px 'Quicksand',sans-serif; letter-spacing:.02em; stroke:none; filter:none; }
         html[data-bb-editor="1"] .bb-editable-target::after { content:'Click to edit'; position:absolute; top:-27px; left:8px; z-index:12000; display:none; padding:4px 8px; border-radius:999px; background:rgba(24,24,27,.92); color:#fff; font:700 10px 'Quicksand',sans-serif; letter-spacing:.02em; white-space:nowrap; box-shadow:0 8px 20px rgba(0,0,0,.18); pointer-events:none; }
         html[data-bb-editor="1"] .bb-editable-target:hover::after { display:block; }
         html[data-bb-editor="1"] .bb-editable-target.is-media::after { content:'Click to edit media'; }
@@ -166,6 +171,7 @@
         #sliceLine, #sliceShadow { transition:stroke-dashoffset 0.05s linear; }
         .knife-cursor { position:absolute; top:0; left:0; font-size:2rem; pointer-events:none; opacity:0; transition:opacity 0.15s, transform 0.08s linear; transform:translate(-50%,-50%) rotate(var(--knife-rot,-25deg)); filter:drop-shadow(0 4px 6px rgba(0,0,0,0.35)); z-index:5; }
         .knife-cursor.active { opacity:1; }
+        .cake-wedge-gap, #sliceLine, #sliceShadow { pointer-events:none; }
         .cake-wedge-gap { opacity:0; transition:opacity 0.2s; }
         .cake-emoji.cake-cut .cake-wedge-gap { opacity:1; }
         .cake-emoji.knife-active { animation-play-state:paused; }
@@ -2482,10 +2488,11 @@
   }
 
   function applyCake() {
-    const texts = qa('#cakeSvg text');
-    if (texts[0]) texts[0].textContent = state.cake.cakeText;
-    if (texts[1]) texts[1].textContent = state.cake.birthdayText;
-    if (texts[2]) texts[2].textContent = state.cake.recipientName;
+    const cakeTexts = [q('#cakeHappyText'), q('#cakeBirthdayText'), q('#cakeNameText')];
+    if (cakeTexts[0]) cakeTexts[0].textContent = state.cake.cakeText;
+    if (cakeTexts[1]) cakeTexts[1].textContent = state.cake.birthdayText;
+    if (cakeTexts[2]) cakeTexts[2].textContent = state.cake.recipientName;
+    try { layoutCakeEditOverlay(); } catch(_) {}
     setText('#wishPrompt .wish-prompt-text', state.cake.wishTitle);
     setText('#wishPrompt .wish-prompt-sub', state.cake.wishSubtitle);
     setText('#micHint', state.cake.micHint);
@@ -3454,6 +3461,7 @@
       }
       else { musicEnabled=true; }
       markEditableTargets();
+      try{ layoutCakeEditOverlay(); }catch(_){}
       applyCountdown?.();
       updateCountdown?.();
       postEditorHistoryState?.();
@@ -3463,6 +3471,48 @@
   });
 
   const EDITOR_TARGET_SELECTOR='[data-bb-key],.pz-slot,.pz-tile,#pzWinMsg,#pzWinBadge,h1,h2,h3,h4,p,text,button,img,video,.photo-card,.photo-date,.photo-caption,.video-card,.bb-video-caption,.bb-editor-audio-control,.bb-editor-link-edit,.bb-inline-edit-control,.reason-card,.reason-card .reason-text,.countdown-box,.count-item,.count-number';
+  // Cake text (happy / birthday / name): one dashed, clearly visible click area around all three
+  // lines. Clicking ANY of them (the name included) opens the same "Cake text" edit box.
+  function layoutCakeEditOverlay(){
+    const svg=q('#cakeSvg'); if(!svg) return;
+    let g=svg.querySelector('#cakeEditOverlay');
+    if(document.documentElement.dataset.bbEditor!=='1'){ if(g) g.remove(); return; }
+    const NS='http://www.w3.org/2000/svg';
+    if(!g){
+      g=document.createElementNS(NS,'g'); g.setAttribute('id','cakeEditOverlay');
+      const hit=document.createElementNS(NS,'rect');
+      hit.setAttribute('id','cakeEditHit'); hit.setAttribute('rx','12');
+      hit.setAttribute('data-bb-key','mb.cake.group'); hit.setAttribute('data-bb-label','Cake text'); hit.setAttribute('data-bb-type','text');
+      const tag=document.createElementNS(NS,'g'); tag.setAttribute('class','cake-edit-tag');
+      const tr=document.createElementNS(NS,'rect'); tr.setAttribute('rx','9'); tr.setAttribute('height','18');
+      const tt=document.createElementNS(NS,'text'); tt.textContent='\u270E Click to edit';
+      tag.appendChild(tr); tag.appendChild(tt);
+      g.appendChild(hit); g.appendChild(tag);
+      svg.appendChild(g); // last child = above the cut wedge and every other cake shape
+    }
+    // bounding box of the three lines (fallback = fixed area when the screen is hidden / not measurable)
+    let x1=185,y1=92,x2=355,y2=214;
+    try{
+      const boxes=['#cakeHappyText','#cakeBirthdayText','#cakeNameText'].map(sel=>q(sel)).filter(Boolean).map(el=>el.getBBox()).filter(b=>b&&b.width>0&&b.height>0);
+      if(boxes.length){ x1=Math.min(...boxes.map(b=>b.x)); y1=Math.min(...boxes.map(b=>b.y)); x2=Math.max(...boxes.map(b=>b.x+b.width)); y2=Math.max(...boxes.map(b=>b.y+b.height)); }
+    }catch(_){}
+    const padX=14, padY=8;
+    const hit=g.querySelector('#cakeEditHit');
+    hit.setAttribute('x',String(x1-padX)); hit.setAttribute('y',String(y1-padY));
+    hit.setAttribute('width',String((x2-x1)+padX*2)); hit.setAttribute('height',String((y2-y1)+padY*2));
+    const tr=g.querySelector('.cake-edit-tag rect'), tt=g.querySelector('.cake-edit-tag text');
+    const tx=x1-padX, ty=Math.max(2,y1-padY-21);
+    tr.setAttribute('x',String(tx)); tr.setAttribute('y',String(ty)); tr.setAttribute('width','92');
+    tt.setAttribute('x',String(tx+9)); tt.setAttribute('y',String(ty+13));
+  }
+  window.__bbLayoutCakeEditOverlay=layoutCakeEditOverlay;
+  (function watchCakeScreen(){
+    const cs=q('#cakeScreen'); if(!cs||typeof MutationObserver==='undefined') return;
+    let raf=0;
+    new MutationObserver(()=>{ cancelAnimationFrame(raf); raf=requestAnimationFrame(()=>{ try{layoutCakeEditOverlay();}catch(_){} }); })
+      .observe(cs,{attributes:true,attributeFilter:['class','style']});
+    try{ document.fonts&&document.fonts.ready&&document.fonts.ready.then(()=>{ try{layoutCakeEditOverlay();}catch(_){} }); }catch(_){}
+  })();
   function markEditableTargets(){
     qa(EDITOR_TARGET_SELECTOR).forEach(el=>{
       if(el.closest('#bbAudioToggle') || el.closest('.lightbox') || el.id==='tableKnife') return;
@@ -3482,7 +3532,7 @@
     if(t.matches('#bbWishingAudioEditor')) return {key:'mb.wishingAudioUrl',label:'Wishing audio',value:'',kind:'audio'};
     if(t.matches('#greetingText')) return {key:'mb.greeting.text',label:'Greeting message',value:t.innerText,kind:'text'};
     if(t.matches('.enter-btn')) return {key:'mb.greeting.enterButton',label:'Enter button text',value:t.innerText,kind:'button'};
-    if(t.matches('#cakeSvg #cakeHappyText, #cakeSvg #cakeBirthdayText, #cakeSvg #cakeNameText')) return {key:'mb.cake.group',label:'Cake text',value:'',kind:'cake-text-group'};
+    if(t.matches('#cakeSvg #cakeHappyText, #cakeSvg #cakeBirthdayText, #cakeSvg #cakeNameText, #cakeSvg #cakeEditHit')) return {key:'mb.cake.group',label:'Cake text',value:'',kind:'cake-text-group'};
     if(t.matches('#wishPrompt .wish-prompt-text')) return {key:'mb.cake.wishTitle',label:'Wish title',value:t.innerText,kind:'text'};
     if(t.matches('#wishPrompt .wish-prompt-sub')) return {key:'mb.cake.wishSubtitle',label:'Wish subtitle',value:t.innerText,kind:'text'};
     if(t.matches('#micHint')) return {key:'mb.cake.micHint',label:'Microphone hint',value:t.innerText,kind:'text'};

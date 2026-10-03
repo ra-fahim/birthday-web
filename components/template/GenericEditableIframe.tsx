@@ -266,7 +266,9 @@ export default function GenericEditableIframe({ title, src, srcDoc, content, edi
     return () => window.removeEventListener('message', handler);
   }, [onElementSelect, onHistoryState]);
 
-  const showEditorNav = editorMode;
+  // The builder canvas already shows the round Previous / Next arrows (onHistoryState is passed),
+  // so this inner bar is only used when the iframe is embedded without them.
+  const showEditorNav = editorMode && !onHistoryState;
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', minHeight, background }}>

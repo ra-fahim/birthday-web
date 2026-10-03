@@ -164,7 +164,7 @@ function notify(){try{parent.postMessage({type:'BB_CANVAS_HISTORY_STATE',canBack
 function go(i){
   idx=Math.max(0,Math.min(i,STEPS.length-1));
   var id=STEPS[idx].id;
-  document.querySelectorAll('.screen').forEach(function(s){s.classList.toggle('is-active',s.id===id);});
+  document.querySelectorAll('.screen').forEach(function(s){var on=s.id===id;s.classList.toggle('is-active',on);s.style.transition='none';s.style.opacity=on?'1':'0';s.style.visibility=on?'visible':'hidden';var cd=s.querySelector('.card');if(cd){cd.style.transition='none';cd.style.transform='none';}});
   var hud=document.getElementById('hud');if(hud)hud.classList.toggle('is-active',id==='game');
   if(id==='letter'){
     var t=document.getElementById('letterText');

@@ -32,4 +32,4 @@ Run `npm run preflight` for a fast project/template sanity check, `npm run typec
 
 
 ## Product direction
-The platform is now structured around a flagship Master Template plus unique alternative experiences, multiple celebration occasions, theme customization, publishing, analytics, guestbook/reactions, and member-to-member chat. Run `supabase/migrations/005_social_chat.sql` after the existing migrations to enable chat.
+The platform is now structured around a flagship Master Template plus unique alternative experiences, multiple celebration occasions, theme customization, publishing, analytics, guestbook/reactions.

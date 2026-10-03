@@ -434,6 +434,11 @@ export default function Builder() {
     if (loaded && templateId && !readGuideSeen()) setGuideOpen(true);
   }, [loaded, templateId]);
 
+  // Always open the editor scrolled to the top so the sticky top bar never covers the preview header.
+  useEffect(() => {
+    if (loaded) window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  }, [loaded]);
+
   useEffect(() => {
     if (!selectedElement || !editorMode) return;
     const id = window.setTimeout(() => {
