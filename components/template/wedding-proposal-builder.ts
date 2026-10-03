@@ -1,5 +1,5 @@
-import { editBadgeSnippet } from '@/lib/edit-badge-script';
 import type { BirthdayContent } from '@/lib/types';
+import { editScrollSnippet } from '@/lib/edit-scroll-script';
 
 /**
  * Wedding Proposal template – pure helpers (no React).
@@ -234,5 +234,5 @@ document.body.classList.add('bb-w-edit');
 applyAll();go(0);
 window.addEventListener('load',function(){applyAll();go(idx);setTimeout(notify,300);});
 })();
-${editBadgeSnippet('[data-bb-key]', "document.body && document.body.classList.contains('bb-w-edit')", 'linear-gradient(135deg,#f5c542,#d4a017)')}</script>`;
+${editScrollSnippet("document.body && document.body.classList.contains('bb-w-edit')")}</script>`;
 }

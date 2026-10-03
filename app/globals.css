@@ -850,7 +850,6 @@ main.builder-shell .bb-edit-hint small{opacity:1;font-size:11.5px;color:#64748b}
 main.builder-shell .bb-edit-hint b{color:#be185d;font-weight:800}
 main.builder-shell .bb-edit-hint u{text-decoration:none;border-bottom:2px dashed #ec4899;padding-bottom:1px}
 main.builder-shell .bb-edit-hint-icon{flex:0 0 auto;width:26px;height:26px;display:grid;place-items:center;border-radius:50%;background:linear-gradient(135deg,#ec4899,#8b5cf6);color:#fff;font-size:15px;box-shadow:0 4px 12px rgba(139,92,246,.3)}
-main.builder-shell .bb-edit-hint-pen{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,#ec4899,#8b5cf6);color:#fff;font-style:normal;font-size:11px;vertical-align:-4px}
 
 /* options container under the template box */
 main.builder-shell .builder-context-editor{scroll-margin-top:calc(var(--bb-top,64px) + 8px)}
@@ -872,7 +871,7 @@ main.builder-shell .builder-context-empty-icon{width:34px;height:34px;display:gr
     height:clamp(420px,calc(100dvh - var(--bb-top,64px) - 120px),760px)!important;min-height:420px!important;
   }
   main.builder-shell[data-viewport="tablet"] .builder-preview-frame>.builder-preview-canvas,
-  main.builder-shell[data-viewport="mobile"] .builder-preview-frame>.builder-preview-canvas{overflow:hidden!important;border-radius:inherit;overscroll-behavior:contain;touch-action:pan-y}
+  main.builder-shell[data-viewport="mobile"] .builder-preview-frame>.builder-preview-canvas{overflow:hidden!important;border-radius:inherit}
   /* options box: in the normal page flow right below the template box */
   main.builder-shell[data-viewport="tablet"] .builder-context-editor,
   main.builder-shell[data-viewport="mobile"] .builder-context-editor,
@@ -900,8 +899,6 @@ main.builder-shell .builder-context-empty-icon{width:34px;height:34px;display:gr
   main.builder-shell .bb-edit-hint-icon{width:26px;height:26px;font-size:13px}
 }
 
-/* Standard (React) templates: dashed highlight + pencil badge on every editable block */
+/* Standard (React) templates: dashed highlight on every editable block */
 .experience-editable.is-editor{outline:2px dashed rgba(236,72,153,.7)!important;outline-offset:7px;cursor:pointer;-webkit-tap-highlight-color:rgba(236,72,153,.25)}
 .experience-editable.is-editor:hover{outline-color:#ec4899!important}
-.experience-editable.is-editor::after{content:"";position:absolute;top:-10px;right:-4px;width:20px;height:20px;box-sizing:border-box;border:1.5px solid rgba(255,255,255,.95);border-radius:50%;box-shadow:0 2px 6px rgba(15,23,42,.28);z-index:6;cursor:pointer;background:linear-gradient(135deg,#ec4899,#8b5cf6) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E") center/11px no-repeat}
-@media(pointer:coarse){.experience-editable.is-editor::after{width:22px;height:22px;top:-11px;background-size:12px}}

@@ -715,7 +715,7 @@ export default function Builder() {
             </div>
             <div className="builder-preview-badge">{previewMode ? 'Visitor mode' : 'Edit mode'}</div>
           </div>
-          {editorMode && <div className="bb-edit-hint" role="note"><span className="bb-edit-hint-icon" aria-hidden>✎</span><p><b>Click</b> <small>(on phone: <b>tap</b>)</small> any <u>highlighted</u> text, photo or button — or its <i className="bb-edit-hint-pen" aria-hidden>✎</i> icon — on the preview to edit it.</p></div>}
+          {editorMode && <div className="bb-edit-hint" role="note"><span className="bb-edit-hint-icon" aria-hidden>✎</span><p><b>Click</b> <small>(on phone: <b>tap</b>)</small> any <u>highlighted</u> text, photo or button on the preview to edit it.</p></div>}
           {status === 'published' && publicUrl && <div className="builder-live-link"><div><span>YOUR LIVE LINK</span><strong>{publicUrl}</strong></div><div className="builder-live-link-actions"><button onClick={() => navigator.clipboard?.writeText(publicUrl)}>Copy link</button><a href={publicUrl} target="_blank" rel="noreferrer">Open ↗</a></div></div>}
           <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}><div className="builder-canvas-nav-overlay" aria-label="Canvas screen navigation">{editorMode && <><button type="button" className="builder-canvas-nav builder-canvas-nav-prev" onClick={() => handleCanvasHistory('back')} disabled={!canvasHistory.canBack} title="Previous screen" aria-label="Previous screen">←</button><button type="button" className="builder-canvas-nav builder-canvas-nav-next" onClick={() => handleCanvasHistory('forward')} disabled={!canvasHistory.canForward} title="Next screen" aria-label="Next screen">→</button></>}</div><div className="builder-canvas-stage">{!loaded || !previewContent ? <div className="builder-template-empty"><div>…</div><h3>Loading website</h3><p>Preparing the selected template…</p></div> : (templateId === 'master' || templateId === 'master-birthday') ? <MasterBirthdayTemplate key={`${templateId}-${previewMode ? 'preview' : 'edit'}`} content={previewContent} demo={false} preview={previewMode} editorMode={editorMode} websiteSlug={slug} siteKey={id} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div></div>
           {editorMode && (
@@ -742,7 +742,7 @@ export default function Builder() {
                 <div className="builder-context-empty">
                   <span className="builder-context-empty-icon" aria-hidden>✎</span>
                   <strong>Edit options appear here</strong>
-                  <p>Tap any highlighted text, photo or button (or its ✎ icon) on the template above — its options will show up in this box.</p>
+                  <p>Tap any highlighted text, photo or button on the template above — its options will show up in this box.</p>
                 </div>
               )}
             </section>
