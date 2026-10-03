@@ -1,3 +1,4 @@
+import { editBadgeSnippet } from '@/lib/edit-badge-script';
 import type { BirthdayContent } from '@/lib/types';
 
 /**
@@ -232,5 +233,6 @@ document.head.appendChild(st);
 document.body.classList.add('bb-w-edit');
 applyAll();go(0);
 window.addEventListener('load',function(){applyAll();go(idx);setTimeout(notify,300);});
-})();</script>`;
+})();
+${editBadgeSnippet('[data-bb-key]', "document.body && document.body.classList.contains('bb-w-edit')", 'linear-gradient(135deg,#f5c542,#d4a017)')}</script>`;
 }

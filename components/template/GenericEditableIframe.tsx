@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { BirthdayContent } from '@/lib/types';
+import { editBadgeSnippet } from '@/lib/edit-badge-script';
 
 export type GenericEdit = {
   type: 'text' | 'image' | 'video' | 'audio' | 'link';
@@ -223,7 +224,8 @@ function injectBridge(frame: HTMLIFrameElement) {
   observer=new MutationObserver(function(){ if(enabled){ discoverScreens(); decorate(); } });
   observer.observe(document.documentElement,{subtree:true,childList:true});
   decorate();
-})();`;
+})();
+${editBadgeSnippet('[data-bb-generic-hl]', "document.body && document.body.classList.contains('bb-generic-edit-on')")}`;
   doc.body.appendChild(script);
 }
 

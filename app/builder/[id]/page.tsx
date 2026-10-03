@@ -440,11 +440,30 @@ export default function Builder() {
       const panel = document.querySelector<HTMLElement>('.builder-context-editor');
       if (!panel) return;
       const rect = panel.getBoundingClientRect();
-      const fullyVisible = rect.top >= (viewport === 'desktop' ? 84 : 0) && rect.bottom <= window.innerHeight - 16;
-      if (!fullyVisible) panel.scrollIntoView({ behavior: 'smooth', block: viewport === 'desktop' ? 'nearest' : 'start', inline: 'nearest' });
+      const top = (shellRef.current?.querySelector<HTMLElement>('.builder-topbar')?.offsetHeight || 64) + 8;
+      const headVisible = rect.top >= top - 4 && rect.top <= window.innerHeight * 0.6;
+      if (viewport === 'desktop') {
+        const fullyVisible = rect.top >= 84 && rect.bottom <= window.innerHeight - 16;
+        if (!fullyVisible) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      } else if (!headVisible) {
+        // Phone / tablet: bring the options box into view (below the template box).
+        window.scrollTo({ top: Math.max(0, window.scrollY + rect.top - top), behavior: 'smooth' });
+      }
     }, 30);
     return () => window.clearTimeout(id);
   }, [selectedElement, editorMode, viewport]);
+
+  // "Done": close the options box and, on phone/tablet, go back up to the template box.
+  const closeSelectedElement = useCallback(() => {
+    setSelectedElement(null);
+    if (viewport === 'desktop') return;
+    window.setTimeout(() => {
+      const frame = document.querySelector<HTMLElement>('.builder-preview-frame');
+      if (!frame) return;
+      const top = (shellRef.current?.querySelector<HTMLElement>('.builder-topbar')?.offsetHeight || 64) + 8;
+      window.scrollTo({ top: Math.max(0, window.scrollY + frame.getBoundingClientRect().top - top), behavior: 'smooth' });
+    }, 40);
+  }, [viewport]);
 
   useEffect(() => {
     const handler = (event: MessageEvent) => {
@@ -696,26 +715,36 @@ export default function Builder() {
             </div>
             <div className="builder-preview-badge">{previewMode ? 'Visitor mode' : 'Edit mode'}</div>
           </div>
-          {editorMode && <div className="bb-edit-hint" role="note"><span aria-hidden>✨</span><p><b>Click</b> <small>(on phone: <b>tap</b>)</small> any <u>highlighted</u> text, photo or button on the preview to edit it.</p></div>}
+          {editorMode && <div className="bb-edit-hint" role="note"><span className="bb-edit-hint-icon" aria-hidden>✎</span><p><b>Click</b> <small>(on phone: <b>tap</b>)</small> any <u>highlighted</u> text, photo or button — or its <i className="bb-edit-hint-pen" aria-hidden>✎</i> icon — on the preview to edit it.</p></div>}
           {status === 'published' && publicUrl && <div className="builder-live-link"><div><span>YOUR LIVE LINK</span><strong>{publicUrl}</strong></div><div className="builder-live-link-actions"><button onClick={() => navigator.clipboard?.writeText(publicUrl)}>Copy link</button><a href={publicUrl} target="_blank" rel="noreferrer">Open ↗</a></div></div>}
           <div className="builder-preview-frame"><div className="builder-browser"><i /><i /><i /><span>/site/{slug || 'your-slug'}</span></div><div className={`builder-preview-canvas device-${device}`}><div className="builder-canvas-nav-overlay" aria-label="Canvas screen navigation">{editorMode && <><button type="button" className="builder-canvas-nav builder-canvas-nav-prev" onClick={() => handleCanvasHistory('back')} disabled={!canvasHistory.canBack} title="Previous screen" aria-label="Previous screen">←</button><button type="button" className="builder-canvas-nav builder-canvas-nav-next" onClick={() => handleCanvasHistory('forward')} disabled={!canvasHistory.canForward} title="Next screen" aria-label="Next screen">→</button></>}</div><div className="builder-canvas-stage">{!loaded || !previewContent ? <div className="builder-template-empty"><div>…</div><h3>Loading website</h3><p>Preparing the selected template…</p></div> : (templateId === 'master' || templateId === 'master-birthday') ? <MasterBirthdayTemplate key={`${templateId}-${previewMode ? 'preview' : 'edit'}`} content={previewContent} demo={false} preview={previewMode} editorMode={editorMode} websiteSlug={slug} siteKey={id} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : templateId ? <ExperienceTemplate variant={templateId} content={previewContent} editorMode={editorMode} onElementSelect={handleCanvasSelect} onHistoryState={handleCanvasHistoryState} /> : <div className="builder-template-empty"><div>✦</div><h3>No {currentOccasion[2]} template yet</h3><p>This occasion is ready for a template. Once you add one to the catalog, it will appear here automatically.</p></div>}</div></div></div>
-          {selectedElement && editorMode && (
-            <section className="builder-context-editor" aria-label="Selected element editor">
-              <div className="builder-context-editor-head">
-                <div><span>SELECTED ELEMENT</span><strong>{selectedElement.label}</strong></div>
-                <button type="button" onClick={() => setSelectedElement(null)} aria-label="Close selected element editor">Done</button>
-              </div>
-              <div className="builder-context-editor-body">
-                <UniversalElementEditor
-                  selected={selectedElement}
-                  content={c}
-                  templateId={templateId}
-                  websiteId={id}
-                  onChange={update}
-                  onTemplateConfigChange={(patch) => update({ templateConfig: { ...(c.templateConfig || {}), ...patch } })}
-                  onClose={() => setSelectedElement(null)}
-                />
-              </div>
+          {editorMode && (
+            <section className={`builder-context-editor ${selectedElement ? 'has-selection' : 'is-empty'}`} aria-label="Selected element editor" aria-live="polite">
+              {selectedElement ? (
+                <>
+                  <div className="builder-context-editor-head">
+                    <div><span>SELECTED ELEMENT</span><strong>{selectedElement.label}</strong></div>
+                    <button type="button" onClick={closeSelectedElement} aria-label="Close selected element editor">Done</button>
+                  </div>
+                  <div className="builder-context-editor-body">
+                    <UniversalElementEditor
+                      selected={selectedElement}
+                      content={c}
+                      templateId={templateId}
+                      websiteId={id}
+                      onChange={update}
+                      onTemplateConfigChange={(patch) => update({ templateConfig: { ...(c.templateConfig || {}), ...patch } })}
+                      onClose={closeSelectedElement}
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="builder-context-empty">
+                  <span className="builder-context-empty-icon" aria-hidden>✎</span>
+                  <strong>Edit options appear here</strong>
+                  <p>Tap any highlighted text, photo or button (or its ✎ icon) on the template above — its options will show up in this box.</p>
+                </div>
+              )}
             </section>
           )}
       </section>
