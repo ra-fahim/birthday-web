@@ -70,6 +70,7 @@ let currentTheme = 'blush';
 let musicEnabled = true;
 let musicStarted = false;
 let musicFrame = null;
+let customMusicUrl = '';
 const BACKGROUND_YOUTUBE_ID = 'AfybMbBSwaA';
 let showThemePicker = false;
 let introComplete = false;
@@ -138,6 +139,26 @@ function sendYouTubeCommand(func) {
 function startBackgroundMusic() {
   if (!musicEnabled || musicStarted) return;
   musicStarted = true;
+  if (customMusicUrl) {
+    const audio = document.createElement('audio');
+    audio.id = 'background-music-audio';
+    audio.setAttribute('aria-hidden', 'true');
+    audio.loop = true;
+    audio.preload = 'auto';
+    audio.volume = 0.45;
+    audio.src = customMusicUrl;
+    audio.style.position = 'fixed';
+    audio.style.width = '1px';
+    audio.style.height = '1px';
+    audio.style.left = '-10px';
+    audio.style.bottom = '-10px';
+    audio.style.opacity = '0.01';
+    audio.style.pointerEvents = 'none';
+    document.body.appendChild(audio);
+    musicFrame = audio;
+    audio.play().catch(() => {});
+    return;
+  }
   musicFrame = document.createElement('iframe');
   musicFrame.id = 'background-music-frame';
   musicFrame.title = 'Background music';
@@ -159,19 +180,48 @@ function toggleBackgroundMusic() {
   musicEnabled = !musicEnabled;
   if (musicEnabled) {
     if (!musicStarted) startBackgroundMusic();
+    else if (musicFrame?.tagName === 'AUDIO') musicFrame.play().catch(() => {});
     else { sendYouTubeCommand('unMute'); sendYouTubeCommand('playVideo'); }
   } else if (musicStarted) {
-    sendYouTubeCommand('pauseVideo');
-    sendYouTubeCommand('mute');
+    if (musicFrame?.tagName === 'AUDIO') musicFrame.pause();
+    else { sendYouTubeCommand('pauseVideo'); sendYouTubeCommand('mute'); }
   }
   renderControls();
 }
+
+function updateEditorMusicControl() {
+  const btn = document.querySelector('[data-bb-key=\"musicUrl\"]');
+  if (!btn) return;
+  btn.textContent = customMusicUrl ? '🎵 Edit background music' : '🎵 Add background music';
+}
+
+window.addEventListener('message', (event) => {
+  if (!event.data || event.data.type !== 'BB_VALENTINE_CONFIG') return;
+  const nextUrl = String(event.data.config?.musicUrl || '').trim();
+  customMusicUrl = nextUrl;
+  updateEditorMusicControl();
+});
 
 
 let SECTION_INDEX = 0;
 function section(html, className='') {
   SECTION_INDEX += 1;
-  return `<section data-bb-screen="section-${SECTION_INDEX}" class="w-full relative overflow-x-hidden ${className}"><div class="h-full flex flex-col justify-center items-center section-reveal">${html}</div></section>`;
+  const stepAttr = BB_EDITOR_MODE ? ' data-bb-step-screen="1"' : '';
+  const screenLabel = BB_EDITOR_MODE ? ` data-bb-screen-label="Step ${SECTION_INDEX}"` : '';
+  const displayStyle = BB_EDITOR_MODE ? ` style="display:${SECTION_INDEX === 1 ? 'flex' : 'none'}"` : '';
+  return `<section data-bb-screen="section-${SECTION_INDEX}"${stepAttr}${screenLabel} class="w-full relative overflow-x-hidden ${className}"${displayStyle}><div class="h-full flex flex-col justify-center items-center section-reveal">${html}</div></section>`;
+}
+
+function editorIntroHTML() {
+  return section(`<div class="w-full max-w-3xl mx-auto px-6 text-center">
+    <div class="mb-8 inline-flex p-4 rounded-full border border-love-accent/15 dark:border-love-dark-accent/15 bg-white/30 dark:bg-black/20 backdrop-blur-sm">${icon('heart','w-8 h-8 text-love-accent dark:text-love-dark-accent')}</div>
+    <h1 class="font-serif text-4xl md:text-6xl lg:text-7xl font-light italic mb-6 text-love-text dark:text-love-dark-text tracking-tight">I made this just for you.</h1>
+    <p class="text-base md:text-lg text-love-text/65 dark:text-love-dark-text/65 leading-relaxed max-w-xl mx-auto">Start here. Click any editable text to change it. Use the music button below to add your own soundtrack.</p>
+    <div class="mt-10 flex flex-col items-center gap-4">
+      <button type="button" data-bb-key="musicUrl" data-bb-kind="audio" class="px-6 py-3 rounded-full border border-love-accent/25 dark:border-love-dark-accent/25 bg-white/55 dark:bg-black/20 text-love-accent dark:text-love-dark-accent text-sm font-semibold tracking-wide shadow-sm hover:bg-love-accent/10 transition-colors">🎵 Add background music</button>
+      <span class="text-xs uppercase tracking-[0.22em] text-love-text/35 dark:text-love-dark-text/35">Next / Previous controls the editing steps</span>
+    </div>
+  </div>`, 'min-h-screen flex flex-col justify-center items-center text-center px-6 py-16 relative z-10');
 }
 
 function renderHeroAndStory() {
@@ -361,6 +411,21 @@ function setupScrollAnimations() {
 }
 
 function mainRender() {
+  SECTION_INDEX = 0;
+  if (BB_EDITOR_MODE) {
+    app.innerHTML = `${backgroundHTML()}<div class="min-h-screen font-sans selection:bg-love-accent selection:text-white transition-colors duration-700 relative">${editorIntroHTML()}${renderHeroAndStory()}${bloomGardenHTML()}${loveJarHTML()}${finalLetterHTML()}<footer class="py-8 text-center text-love-text/30 dark:text-love-dark-text/30 text-xs tracking-widest uppercase relative z-10 font-medium">Made with love, for you.</footer></div>`;
+    setTheme('blush');
+    renderControls();
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.height = '100vh';
+    document.documentElement.style.height = '100vh';
+    setupGarden();
+    setupLoveJar();
+    updateEditorMusicControl();
+    return;
+  }
+
   app.innerHTML = `${backgroundHTML()}<div class="min-h-screen font-sans selection:bg-love-accent selection:text-white transition-colors duration-700 relative">${renderHeroAndStory()}${bloomGardenHTML()}${loveJarHTML()}${finalLetterHTML()}<footer class="py-8 text-center text-love-text/30 dark:text-love-dark-text/30 text-xs tracking-widest uppercase relative z-10 font-medium">Made with love, for you.</footer></div>${introHTML()}<div id="progress" class="fixed top-0 left-0 right-0 h-1 bg-love-accent dark:bg-love-dark-accent origin-left z-50 opacity-50" style="transform:scaleX(0)"></div>`;
   setTheme('blush');
   renderControls();
@@ -377,15 +442,7 @@ function mainRender() {
   window.addEventListener('resize', updateProgress);
   updateProgress();
   setupInAppGuard();
-  if (BB_EDITOR_MODE) {
-    introComplete = true;
-    const gate = document.getElementById('intro-gate');
-    if (gate) gate.remove();
-    document.body.style.overflow = '';
-    document.documentElement.style.overflow = '';
-    document.body.style.height = '';
-    document.documentElement.style.height = '';
-  }
 }
+
 
 mainRender();

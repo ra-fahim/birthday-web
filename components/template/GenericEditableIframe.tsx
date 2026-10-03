@@ -47,6 +47,7 @@ function injectBridge(frame: HTMLIFrameElement) {
   var audioSnapshot=[];
   var previewAudioUnlocked=false;
   var screens=[];
+  var stepScreens=false;
   var screenIndex=0;
   function visible(el){
     if(!el || el.closest('script,style,noscript,template,[data-bb-ignore]') || el.classList.contains('bb-edit-btn') || el.classList.contains('bb-inline-edit') || el.getAttribute('aria-label')==='Edit') return false;
@@ -56,7 +57,7 @@ function injectBridge(frame: HTMLIFrameElement) {
   function nth(el){ var n=1,p=el; while(p= p.previousElementSibling){ if(p.tagName===el.tagName && !p.classList.contains('bb-edit-btn') && !p.classList.contains('bb-inline-edit') && !p.matches('[data-bb-ignore]')) n++; } return n; }
   function path(el){ var parts=[]; var p=el; while(p && p.tagName && p.tagName!=='HTML' && parts.length<8){ parts.unshift(p.tagName.toLowerCase()+':nth-of-type('+nth(p)+')'); p=p.parentElement; } return parts.join('/'); }
   function kind(el){ var t=el.tagName; if(t==='IMG') return 'image'; if(t==='VIDEO') return 'video'; if(t==='AUDIO') return 'audio'; if(t==='A') return 'link'; if(t==='BUTTON') return 'button'; return 'text'; }
-  function keyFor(el){ return 'gx.'+kind(el)+'.'+path(el); }
+  function keyFor(el){ var custom=el.getAttribute('data-bb-key'); return custom || ('gx.'+kind(el)+'.'+path(el)); }
   function labelFor(el){
     var explicit=el.getAttribute('aria-label')||el.getAttribute('data-bb-label');
     if(explicit) return explicit;
@@ -129,6 +130,7 @@ function injectBridge(frame: HTMLIFrameElement) {
   function discoverScreens(){
     var list=Array.prototype.slice.call(document.querySelectorAll('[data-bb-screen],.screen'));
     screens=list.filter(function(el){ return el && !el.closest('[data-bb-ignore]'); });
+    stepScreens=screens.some(function(el){ return el.getAttribute('data-bb-step-screen')==='1'; });
     if(!screens.length) return;
     var active=screens.findIndex(function(el){ return el.classList.contains('is-active') || el.classList.contains('show') || getComputedStyle(el).display!=='none'; });
     screenIndex=active>=0?active:Math.min(screenIndex,screens.length-1);
@@ -144,7 +146,8 @@ function injectBridge(frame: HTMLIFrameElement) {
       var active=n===screenIndex;
       el.classList.toggle('is-active',active);
       el.classList.toggle('show',active);
-      if(el.classList.contains('screen')) el.style.display=active?'flex':'';
+      if(stepScreens) el.style.display=active?'flex':'none';
+      else if(el.classList.contains('screen')) el.style.display=active?'flex':'';
     });
     postHistory();
     return true;
@@ -169,7 +172,7 @@ function injectBridge(frame: HTMLIFrameElement) {
     // Templates that tag their own content (data-bb-key) get a dedicated editor field, not a DOM-path edit.
     var kel=el.closest?el.closest('[data-bb-key]:not([data-bb-ignore])'):null;
     if(kel){
-      var sel={key:kel.getAttribute('data-bb-key'),label:kel.getAttribute('data-bb-label')||kel.getAttribute('data-bb-key'),value:(kel.innerText||kel.textContent||'').trim(),kind:'text'};
+      var kk=kel.getAttribute('data-bb-key'); var mediaKind=kel.getAttribute('data-bb-kind')||kind(kel); var mediaValue=(mediaKind==='image'||mediaKind==='video'||mediaKind==='audio') ? (kel.getAttribute('src')||'') : (kel.innerText||kel.textContent||'').trim(); var sel={key:kk,label:kel.getAttribute('data-bb-label')||kk,value:mediaValue,kind:mediaKind};
       var ix=kel.getAttribute('data-bb-index');
       if(ix!==null&&ix!=='') sel.index=Number(ix);
       parent.postMessage({type:'BB_ELEMENT_SELECTED',selection:sel},'*');

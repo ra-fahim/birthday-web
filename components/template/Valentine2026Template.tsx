@@ -17,6 +17,7 @@ export default function Valentine2026Template({ content, editorMode = false, onE
     [editorMode],
   );
   const genericEdits = ((content.templateConfig || {}) as any).genericEdits || {};
+  const musicUrl = String((content as any).musicUrl || '');
 
   return (
     <GenericEditableIframe
@@ -25,6 +26,7 @@ export default function Valentine2026Template({ content, editorMode = false, onE
       content={content}
       editorMode={editorMode}
       genericEdits={genericEdits}
+      extraMessages={[{ type: 'BB_VALENTINE_CONFIG', config: { musicUrl } }, { type: 'BB_EDITOR_MODE', enabled: editorMode }]}
       minHeight={760}
       background="#171418"
       onElementSelect={onElementSelect}
