@@ -2110,6 +2110,10 @@
   // on the editor canvas, the preview and the published website.
   try { Object.defineProperty(window, 'state', { configurable: true, get: function(){ return state; } }); } catch (_) {}
   try { window.zonedDateTimeToDate = zonedDateTimeToDate; } catch (_) {}
+  // Same bridge for the other closure-scoped values that the first script reads.
+  try { window.postEditorHistoryState = postEditorHistoryState; } catch (_) {}
+  try { Object.defineProperty(window, 'bbSiteKey', { configurable: true, get: function(){ return bbSiteKey; } }); } catch (_) {}
+  try { Object.defineProperty(window, 'musicEnabled', { configurable: true, get: function(){ return musicEnabled; } }); } catch (_) {}
   let demoStarted = BB_FORCE_DEMO;
   let receivedContent = false;
   let demoTimer = null;
@@ -2925,6 +2929,11 @@
       return;
     }
     if(data.type==='BB_PREVIEW_MODE'){
+      if(data.enabled && window.__BB_PREVIEW_HOST_MODE){
+        // Already previewing: the host re-sends this on every content change; don't restart.
+        if(receivedContent){ updateCountdown(); }
+        return;
+      }
       if(data.enabled){
         window.__BB_PREVIEW_HOST_MODE = true;
         demoStarted = false;
@@ -2972,6 +2981,11 @@
     if(data.type==='BB_DEMO_AUDIO_ENABLED'){ setMusicEnabled(data.enabled !== false); return; }
     if(data.type==='BB_SET_AUDIO_ENABLED'){ setMusicEnabled(data.enabled !== false); }
     if(data.type==='BB_EDITOR_MODE'){
+      // The editor host re-sends this message after EVERY content change. Only the first
+      // switch into editor mode may reset to Countdown; repeats must keep the screen the
+      // person is currently editing.
+      const editorAlreadyOn = !!window.__BB_EDITOR_MODE_APPLIED && !!data.enabled;
+      window.__BB_EDITOR_MODE_APPLIED = !!data.enabled;
       window.__BB_EDITOR_MODE=!!data.enabled;
       document.documentElement.dataset.bbEditor=data.enabled?'1':'0'; document.body.classList.toggle('bb-editor-active', !!data.enabled);
       if(data.enabled){
@@ -2983,8 +2997,10 @@
         window.__BB_EDITOR_COUNTDOWN_COMPLETED = false;
         musicEnabled=false;
         try{window.pauseBirthdayAudio?.();}catch(_){} try{q('#countdownAudio')?.pause?.();}catch(_){}
-        try { showScreen('countdown'); } catch(_) {}
-        try { editorScreen='countdown'; editorHistoryIndex=0; } catch(_) {}
+        if(!editorAlreadyOn){
+          try { showScreen('countdown'); } catch(_) {}
+          try { editorScreen='countdown'; editorHistoryIndex=0; } catch(_) {}
+        }
       }
       else { musicEnabled=true; }
       markEditableTargets();
