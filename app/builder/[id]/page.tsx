@@ -15,6 +15,7 @@ import BuilderGuide, { readGuideSeen } from './BuilderGuide';
 import { TimelineEditor, MemoriesEditor, WishlistEditor, GuestbookToggle } from './ContentListEditors';
 import { templateCatalog } from '@/lib/templates';
 import { getTemplateInspection } from '@/lib/template-inspector';
+import { enableCanvasScroll } from '@/lib/editor-canvas-scroll';
 
 const OCCASIONS = [
   ['birthday', '🎂', 'Birthday'],
@@ -641,6 +642,10 @@ export default function Builder() {
     const group = EDIT_GROUPS.find(([, , , tabs]) => tabs.includes(tab as TabId));
     if (group) setEditGroup(group[0]);
   }, [tab]);
+  useEffect(() => {
+    if (!loaded || !templateId || !editorMode) return;
+    return enableCanvasScroll(shellRef.current || document);
+  }, [loaded, templateId, editorMode]);
   useEffect(() => {
     if (!editorMode) {
       setSelectedElement(null);
