@@ -618,3 +618,132 @@ body.bb-editor-mode .wishly-edit-badge{display:grid!important}
 
 
 .builder-preview-note{display:block;margin-top:4px;font-size:11px;line-height:1.45;color:#8b92a7;max-width:720px;}
+
+
+/* =====================================================================
+   FINAL BUILDER LAYOUT (authoritative — keep this block last)
+   One predictable layout for the website editor:
+   - The editor reads the REAL screen (data-viewport = mobile | tablet | desktop).
+   - On a phone/tablet the template fills the whole screen width (true mobile /
+     tablet view). On a computer it fills the workspace; the Desktop/Tablet/Mobile
+     switch only appears there so you can preview other sizes (data-device).
+   - Selecting an element on a phone/tablet opens a bottom sheet so the template
+     stays visible and updates live while you type.
+   ===================================================================== */
+main.builder-shell{--bb-top:64px;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;max-width:100vw;overflow-x:hidden;background:#f5f7fb}
+main.builder-shell .builder-topbar{position:sticky;top:0;z-index:150;height:auto;min-height:56px;padding:8px 14px;gap:8px;flex-wrap:wrap;box-sizing:border-box}
+main.builder-shell .builder-top-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px;margin-left:auto;min-width:0;max-width:100%}
+main.builder-shell .builder-top-actions .builder-save,
+main.builder-shell .builder-top-actions .builder-ghost,
+main.builder-shell .builder-top-actions .builder-publish{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;max-width:none;overflow:visible;text-overflow:clip}
+main.builder-shell .builder-device-badge{display:inline-flex;align-items:center;padding:7px 10px;font-size:11px;font-weight:800;color:#1d4ed8;white-space:nowrap}
+main.builder-shell .builder-top-view-switch{flex:0 0 auto;max-width:100%}
+main.builder-shell .builder-layout,
+main.builder-shell .builder-layout.builder-canvas-only{display:block;flex:1 1 auto;min-height:0;width:100%;max-width:100%}
+main.builder-shell .builder-preview-panel{display:flex;flex-direction:column;width:100%;max-width:100%;min-width:0;min-height:0;height:auto;overflow:visible;padding-bottom:0;background:#eef1f6;box-sizing:border-box}
+main.builder-shell .builder-preview-head{height:auto;min-height:52px;padding:8px 16px;box-sizing:border-box;position:static}
+main.builder-shell .builder-live-link{margin:8px 16px 0}
+
+/* The framed template area */
+main.builder-shell .builder-preview-frame{box-sizing:border-box;display:flex!important;flex-direction:column;width:min(1400px,calc(100% - 32px))!important;max-width:100%!important;height:max(560px,calc(100vh - var(--bb-top) - 150px))!important;height:max(560px,calc(100dvh - var(--bb-top) - 150px))!important;min-height:0!important;margin:12px auto 16px!important;padding:0!important;overflow:hidden!important;flex:0 0 auto!important;align-self:center!important;border-radius:14px}
+main.builder-shell .builder-preview-frame>.builder-browser{flex:0 0 28px}
+main.builder-shell .builder-preview-frame>.builder-preview-canvas{position:relative!important;flex:1 1 auto!important;display:flex!important;justify-content:center!important;align-items:stretch!important;width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;padding:0!important;overflow:hidden!important;background:#dfe4ec!important}
+main.builder-shell .builder-preview-frame>.builder-preview-canvas>.builder-canvas-stage{position:relative!important;display:flex!important;flex-direction:column!important;flex:0 1 auto!important;align-self:stretch!important;width:100%!important;min-width:0!important;max-width:100%!important;height:100%!important;min-height:0!important;margin:0 auto!important;overflow:hidden!important;background:#fff}
+main.builder-shell .builder-preview-frame>.builder-preview-canvas>.builder-canvas-stage>div,
+main.builder-shell .builder-preview-frame>.builder-preview-canvas>.builder-canvas-stage>div>div{flex:1 1 auto;width:100%!important;height:100%!important;min-height:0!important}
+main.builder-shell .builder-preview-frame>.builder-preview-canvas>.builder-canvas-stage iframe{display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;border:0!important;flex:1 1 auto!important}
+
+/* Computer only: manual device preview sizes (centered, never wider than the area) */
+main.builder-shell[data-viewport="desktop"] .builder-preview-frame>.builder-preview-canvas.device-tablet>.builder-canvas-stage{width:820px!important;box-shadow:0 10px 35px rgba(15,23,42,.18)}
+main.builder-shell[data-viewport="desktop"] .builder-preview-frame>.builder-preview-canvas.device-mobile>.builder-canvas-stage{width:390px!important;box-shadow:0 10px 35px rgba(15,23,42,.18)}
+
+/* Left/right screen navigation stays on the canvas edges */
+main.builder-shell .builder-canvas-nav-overlay{position:absolute;inset:0;z-index:40;pointer-events:none}
+
+/* Selected-element editor */
+main.builder-shell .builder-context-editor{width:min(1100px,calc(100% - 32px))!important;max-width:100%;margin:0 auto 24px!important;box-sizing:border-box}
+main.builder-shell .builder-context-editor-body{min-width:0;overflow-x:hidden}
+main.builder-shell .builder-context-editor-body input,
+main.builder-shell .builder-context-editor-body textarea,
+main.builder-shell .builder-context-editor-body select{max-width:100%;box-sizing:border-box;font-size:16px}
+
+/* ---------- Tablet (real tablet screens) ---------- */
+@media(max-width:1024px){
+  main.builder-shell[data-viewport="tablet"] .builder-preview-frame,
+  main.builder-shell[data-viewport="mobile"] .builder-preview-frame{width:100%!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;height:max(520px,calc(100vh - var(--bb-top) - 118px))!important;height:max(520px,calc(100dvh - var(--bb-top) - 118px))!important}
+  main.builder-shell[data-viewport="tablet"] .builder-browser,
+  main.builder-shell[data-viewport="mobile"] .builder-browser{display:none}
+  main.builder-shell[data-viewport="tablet"] .builder-preview-head,
+  main.builder-shell[data-viewport="mobile"] .builder-preview-head{padding:6px 12px;min-height:46px}
+  main.builder-shell[data-viewport="tablet"] .builder-preview-title em,
+  main.builder-shell[data-viewport="mobile"] .builder-preview-title em{display:none}
+  main.builder-shell[data-viewport="tablet"] .builder-live-link,
+  main.builder-shell[data-viewport="mobile"] .builder-live-link{margin:6px 12px 0}
+  /* bottom sheet so the template stays visible and updates while you edit */
+  main.builder-shell[data-viewport="tablet"] .builder-context-editor,
+  main.builder-shell[data-viewport="mobile"] .builder-context-editor{position:fixed!important;left:0;right:0;bottom:0;z-index:200;width:100%!important;max-height:46vh!important;max-height:46dvh!important;margin:0!important;border-radius:18px 18px 0 0!important;border-bottom:0;box-shadow:0 -14px 40px rgba(15,23,42,.28)!important;overflow:hidden;padding-bottom:env(safe-area-inset-bottom,0)}
+  main.builder-shell[data-viewport="tablet"] .builder-context-editor-body,
+  main.builder-shell[data-viewport="mobile"] .builder-context-editor-body{max-height:calc(46dvh - 56px)!important;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  main.builder-shell[data-viewport="tablet"][data-selected="1"] .builder-preview-frame,
+  main.builder-shell[data-viewport="mobile"][data-selected="1"] .builder-preview-frame{height:max(260px,calc(54vh - var(--bb-top) - 12px))!important;height:max(260px,calc(54dvh - var(--bb-top) - 12px))!important}
+  main.builder-shell[data-viewport="tablet"][data-selected="1"] .builder-preview-head,
+  main.builder-shell[data-viewport="mobile"][data-selected="1"] .builder-preview-head,
+  main.builder-shell[data-viewport="tablet"][data-selected="1"] .builder-live-link,
+  main.builder-shell[data-viewport="mobile"][data-selected="1"] .builder-live-link{display:none}
+}
+
+/* ---------- Phone ---------- */
+@media(max-width:640px){
+  main.builder-shell .builder-topbar{padding:6px 8px;gap:6px}
+  main.builder-shell .builder-brand strong,
+  main.builder-shell .builder-brand span{display:none}
+  main.builder-shell .builder-logo{width:32px;height:32px;border-radius:10px}
+  main.builder-shell .builder-top-actions{gap:4px;flex:1 1 0;justify-content:flex-end}
+  main.builder-shell .builder-status,
+  main.builder-shell .builder-live-sync{display:none}
+  main.builder-shell .builder-top-actions .builder-save,
+  main.builder-shell .builder-top-actions .builder-ghost,
+  main.builder-shell .builder-top-actions .builder-publish{padding:8px 10px;font-size:11px;min-height:34px}
+  main.builder-shell .bb-btn-label{display:none}
+  main.builder-shell .builder-top-view-switch{order:10;flex:1 1 100%;justify-content:space-between;overflow:visible}
+  main.builder-shell .builder-device-badge{padding:6px 8px;font-size:10px}
+  main.builder-shell .builder-preview-badge{display:none}
+  main.builder-shell .builder-preview-title strong{font-size:13px}
+  main.builder-shell .builder-canvas-nav-overlay{padding:0 2px}
+  main.builder-shell .builder-canvas-nav{width:34px;height:54px;font-size:22px}
+}
+@media(max-width:640px) and (max-height:560px){
+  main.builder-shell[data-viewport="mobile"] .builder-preview-frame{height:max(300px,calc(100dvh - var(--bb-top)))!important}
+}
+
+/* Compact phone/tablet chrome: the template gets the room, not the headings */
+@media(max-width:1024px){
+  main.builder-shell[data-viewport="tablet"] .builder-preview-head,
+  main.builder-shell[data-viewport="mobile"] .builder-preview-head{display:none}
+  main.builder-shell[data-viewport="tablet"] .builder-live-link,
+  main.builder-shell[data-viewport="mobile"] .builder-live-link{padding:6px 10px;margin:4px 8px 0;gap:8px}
+  main.builder-shell[data-viewport="tablet"] .builder-live-link span,
+  main.builder-shell[data-viewport="mobile"] .builder-live-link span{display:none}
+  main.builder-shell[data-viewport="tablet"] .builder-live-link strong,
+  main.builder-shell[data-viewport="mobile"] .builder-live-link strong{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:50vw;display:block}
+  main.builder-shell[data-viewport="tablet"] .builder-preview-frame,
+  main.builder-shell[data-viewport="mobile"] .builder-preview-frame{height:max(520px,calc(100dvh - var(--bb-top) - 56px))!important}
+}
+
+/* Bottom-sheet sizing: preview fills everything above a fixed-height sheet */
+@media(max-width:1024px){
+  main.builder-shell[data-viewport="tablet"] .builder-context-editor,
+  main.builder-shell[data-viewport="mobile"] .builder-context-editor{height:40dvh!important;max-height:40dvh!important;display:flex;flex-direction:column}
+  main.builder-shell[data-viewport="tablet"] .builder-context-editor-body,
+  main.builder-shell[data-viewport="mobile"] .builder-context-editor-body{flex:1 1 auto;max-height:none!important;min-height:0!important}
+  main.builder-shell[data-viewport="tablet"][data-selected="1"] .builder-preview-frame,
+  main.builder-shell[data-viewport="mobile"][data-selected="1"] .builder-preview-frame{height:calc(100dvh - var(--bb-top) - 40dvh)!important;min-height:200px!important}
+}
+@media(max-width:640px){
+  main.builder-shell .builder-topbar{flex-wrap:wrap}
+  main.builder-shell .builder-brand{flex:0 0 auto}
+  main.builder-shell .builder-top-actions{flex-wrap:wrap;justify-content:flex-end}
+  main.builder-shell .builder-top-actions::-webkit-scrollbar{display:none}
+  main.builder-shell .builder-top-actions>*{flex:0 0 auto}
+  main.builder-shell .builder-top-view-switch{order:10;flex:1 1 100%;padding:2px}
+}

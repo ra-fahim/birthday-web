@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { defaultContent, BirthdayContent } from '@/lib/types';
 import MasterBirthdayTemplate from '@/components/template/MasterBirthdayTemplate';
@@ -204,6 +204,10 @@ export default function Builder() {
   const editorMode = !previewMode;
   const [editGroup, setEditGroup] = useState<EditGroupId>('content');
   const [device, setDevice] = useState<'desktop'|'tablet'|'mobile'>('desktop');
+  // The real screen the editor is open on. Phones get the mobile layout, tablets the
+  // tablet layout and computers the desktop layout automatically; the manual
+  // Desktop/Tablet/Mobile switch only exists on a computer, to preview other sizes.
+  const [viewport, setViewport] = useState<'desktop'|'tablet'|'mobile'>('desktop');
   const [selectedElement, setSelectedElement] = useState<CanvasSelection | null>(null);
   const [publicUrl, setPublicUrl] = useState('');
   const [canvasHistory, setCanvasHistory] = useState({ canBack: false, canForward: false });
@@ -214,10 +218,52 @@ export default function Builder() {
   const latestContentRef = useRef<BirthdayContent>(defaultContent);
   const historyReadyRef = useRef(false);
   const saveDraftRef = useRef<((publish?: boolean, silent?: boolean) => Promise<void>) | null>(null);
-  const autoSaveAbortRef = useRef<AbortController | null>(null);
+  const shellRef = useRef<HTMLElement | null>(null);
+  const savingRef = useRef(false);
+  const queuedSaveRef = useRef<{ publish: boolean } | null>(null);
+  const editVersionRef = useRef(0);
+  const dirtyRef = useRef(false);
+  const statusRef = useRef('draft');
+  const templateIdRef = useRef('');
+  const occasionRef = useRef('birthday');
+  statusRef.current = status;
+  templateIdRef.current = templateId;
+  occasionRef.current = occasion;
+  dirtyRef.current = dirty;
+
+  // Keep a CSS variable with the real top bar height so the preview always fills exactly
+  // the remaining screen on phones, tablets and computers (the bar wraps on small screens).
+  useLayoutEffect(() => {
+    const shell = shellRef.current;
+    const bar = shell?.querySelector<HTMLElement>('.builder-topbar');
+    if (!shell || !bar) return;
+    const apply = () => shell.style.setProperty('--bb-top', `${bar.offsetHeight}px`);
+    apply();
+    if (typeof ResizeObserver === 'undefined') { window.addEventListener('resize', apply); return () => window.removeEventListener('resize', apply); }
+    const ro = new ResizeObserver(apply);
+    ro.observe(bar);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
-    fetch('/api/websites/' + id).then(r => r.json()).then(j => {
+    let raf = 0;
+    const detect = () => {
+      const w = window.innerWidth;
+      const next: 'desktop'|'tablet'|'mobile' = w <= 640 ? 'mobile' : w <= 1024 ? 'tablet' : 'desktop';
+      setViewport(prev => {
+        if (prev !== next) setDevice(next);
+        return next;
+      });
+    };
+    const onResize = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(detect); };
+    detect();
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', onResize); window.removeEventListener('orientationchange', onResize); };
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/websites/' + id, { cache: 'no-store' }).then(r => r.json()).then(j => {
       if (j.content) {
         const nextContent = { ...defaultContent, ...j.content };
         if (typeof j.templateId === 'string' && (j.templateId === 'master' || j.templateId === 'master-birthday')) {
@@ -274,6 +320,7 @@ export default function Builder() {
     const current = latestContentRef.current;
     const next = { ...current, ...patch };
     latestContentRef.current = next;
+    editVersionRef.current += 1;
     if (historyReadyRef.current) {
       const snapshot = JSON.parse(JSON.stringify(current)) as BirthdayContent;
       const past = historyRef.current.past.concat(snapshot).slice(-50);
@@ -292,6 +339,7 @@ export default function Builder() {
     const previous = past[past.length - 1];
     historyRef.current = { past: past.slice(0, -1), future: [current, ...future].slice(0, 50) };
     latestContentRef.current = JSON.parse(JSON.stringify(previous));
+    editVersionRef.current += 1;
     setC(JSON.parse(JSON.stringify(previous)));
     setSelectedElement(null);
     setDirty(true);
@@ -306,6 +354,7 @@ export default function Builder() {
     const next = future[0];
     historyRef.current = { past: [...past, current].slice(-50), future: future.slice(1) };
     latestContentRef.current = JSON.parse(JSON.stringify(next));
+    editVersionRef.current += 1;
     setC(JSON.parse(JSON.stringify(next)));
     setSelectedElement(null);
     setDirty(true);
@@ -338,6 +387,7 @@ export default function Builder() {
     const next = buildTemplateDefaults(templateId || 'master', occasion);
     historyRef.current = { past: [JSON.parse(JSON.stringify(latestContentRef.current))], future: [] };
     latestContentRef.current = JSON.parse(JSON.stringify(next));
+    editVersionRef.current += 1;
     setC(next);
     setSelectedElement(null);
     setDirty(true);
@@ -379,7 +429,7 @@ export default function Builder() {
   }, []);
 
   useEffect(() => {
-    if (!selectedElement || !editorMode) return;
+    if (!selectedElement || !editorMode || viewport !== 'desktop') return;
     const id = window.setTimeout(() => {
       const panel = document.querySelector<HTMLElement>('.builder-context-editor');
       if (!panel) return;
@@ -388,7 +438,7 @@ export default function Builder() {
       if (!fullyVisible) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }, 30);
     return () => window.clearTimeout(id);
-  }, [selectedElement, editorMode]);
+  }, [selectedElement, editorMode, viewport]);
 
   useEffect(() => {
     const handler = (event: MessageEvent) => {
@@ -443,17 +493,13 @@ export default function Builder() {
     return () => window.removeEventListener('message', handler);
   }, [c, handleCanvasHistoryState]);
 
-  async function save(publish = false, silent = false) {
-    if (!templateId) { if (!silent) setMsg(`Add a ${currentOccasion[2]} template before publishing.`); return; }
-    if (!silent) setMsg(publish ? 'Publishing…' : 'Saving…');
-    if (silent) {
-      autoSaveAbortRef.current?.abort();
-      autoSaveAbortRef.current = new AbortController();
-      setSyncState('saving');
-    }
-    let next: BirthdayContent & { templateConfig?: Record<string, unknown> } = { ...c, occasion, templateId };
-    if (templateId === 'master' || templateId === 'master-birthday') {
-      const mb = mergeMasterBirthdayConfig((c.templateConfig as any)?.masterBirthday);
+  function buildPayload(source: BirthdayContent & { templateConfig?: Record<string, unknown> }, publish: boolean) {
+    const templateId = templateIdRef.current;
+    const occasion = occasionRef.current;
+    let next: BirthdayContent & { templateConfig?: Record<string, unknown> } = { ...source, occasion, templateId };
+    const isMaster = templateId === 'master' || templateId === 'master-birthday';
+    if (isMaster) {
+      const mb = mergeMasterBirthdayConfig((source.templateConfig as any)?.masterBirthday);
       next = {
         ...next,
         name: mb.recipientName || next.name,
@@ -461,30 +507,62 @@ export default function Builder() {
         seoTitle: mb.ogTitle || next.seoTitle,
         seoDescription: mb.ogDescription || next.seoDescription,
         shareImage: mb.ogImage || next.shareImage,
-        templateConfig: { ...(c.templateConfig || {}), masterBirthday: mb },
+        templateConfig: { ...(source.templateConfig || {}), masterBirthday: mb },
       };
     }
-    const targetStatus = publish || status === 'published' ? 'published' : 'draft';
-    let r: Response;
-    try {
-      r = await fetch('/api/websites/' + id, { method: 'PUT', headers: { 'content-type': 'application/json' }, signal: silent ? autoSaveAbortRef.current?.signal : undefined, body: JSON.stringify({ content: next, templateId, status: targetStatus, title: next.name || c.name, seo: { title: next.seoTitle, description: next.seoDescription, shareImage: next.shareImage }, ...((templateId === 'master' || templateId === 'master-birthday') && String((next.templateConfig as any)?.masterBirthday?.customSlug || '').trim() ? { slug: String((next.templateConfig as any).masterBirthday.customSlug).trim() } : {}) }) });
-    } catch (error) {
-      if ((error as any)?.name === 'AbortError') return;
-      if (silent) setSyncState('updating');
-      else setMsg('Something went wrong');
+    const targetStatus = publish || statusRef.current === 'published' ? 'published' : 'draft';
+    const customSlug = isMaster ? String((next.templateConfig as any)?.masterBirthday?.customSlug || '').trim() : '';
+    return {
+      targetStatus,
+      body: JSON.stringify({
+        content: next, templateId, status: targetStatus, title: next.name || source.name,
+        seo: { title: next.seoTitle, description: next.seoDescription, shareImage: next.shareImage },
+        ...(customSlug ? { slug: customSlug } : {}),
+      }),
+    };
+  }
+
+  // Saves run one at a time, always from the newest content. If another edit lands
+  // while a save is in flight it is queued and sent right after, so the last change
+  // can never be lost or overwritten by an older, slower request.
+  async function save(publish = false, silent = false) {
+    if (!templateId) { if (!silent) setMsg(`Add a ${currentOccasion[2]} template before publishing.`); return; }
+    if (savingRef.current) {
+      queuedSaveRef.current = { publish: publish || !!queuedSaveRef.current?.publish };
+      if (!silent) setMsg(publish ? 'Publishing…' : 'Saving…');
       return;
     }
-    const j = await r.json();
-    if (!silent) setMsg(r.ok ? (targetStatus === 'published' ? (publish ? 'Published successfully ✨' : 'Changes saved ✓') : 'Draft saved ✓') : (j.error || 'Something went wrong'));
-    if (r.ok) {
-      setStatus(targetStatus);
-      setDirty(false);
-      setSyncState(silent ? 'saved' : 'synced');
-      if (j.slug) setPublicUrl(`${window.location.origin}/site/${j.slug}`);
-    } else if (silent) {
-      setSyncState('updating');
+    savingRef.current = true;
+    const startedVersion = editVersionRef.current;
+    if (!silent) setMsg(publish ? 'Publishing…' : 'Saving…');
+    else setSyncState('saving');
+    const { targetStatus, body } = buildPayload(latestContentRef.current, publish);
+    let ok = false;
+    try {
+      const r = await fetch('/api/websites/' + id, { method: 'PUT', headers: { 'content-type': 'application/json' }, body });
+      const j = await r.json().catch(() => ({}));
+      ok = r.ok;
+      if (!silent) setMsg(r.ok ? (targetStatus === 'published' ? (publish ? 'Published successfully ✨' : 'Changes saved ✓') : 'Draft saved ✓') : (j.error || 'Something went wrong'));
+      if (r.ok) {
+        statusRef.current = targetStatus;
+        setStatus(targetStatus);
+        // Only clear "unsaved" when nothing was edited while this request was in flight.
+        const stillClean = editVersionRef.current === startedVersion;
+        if (stillClean) setDirty(false);
+        setSyncState(stillClean ? (silent ? 'saved' : 'synced') : 'updating');
+        if (j.slug) setPublicUrl(`${window.location.origin}/site/${j.slug}`);
+        if (publish) { setMsg('Live link ready ✨'); router.refresh(); }
+      } else if (silent) {
+        setSyncState('updating');
+      }
+    } catch {
+      if (silent) setSyncState('updating'); else setMsg('Something went wrong. Check your internet and try again.');
+    } finally {
+      savingRef.current = false;
+      const queued = queuedSaveRef.current;
+      queuedSaveRef.current = null;
+      if (queued || (ok && editVersionRef.current !== startedVersion)) void saveDraftRef.current?.(!!queued?.publish, true);
     }
-    if (publish) { setMsg('Live link ready ✨'); router.refresh(); }
   }
 
   saveDraftRef.current = save;
@@ -494,6 +572,25 @@ export default function Builder() {
     const timer = window.setTimeout(() => { void saveDraftRef.current?.(false, true); }, 850);
     return () => window.clearTimeout(timer);
   }, [loaded, dirty, c, occasion, templateId, previewMode]);
+
+  // If the tab is hidden/closed (common on phones) while edits are still waiting for the
+  // auto-save timer, send them right away so nothing is lost.
+  useEffect(() => {
+    const flush = () => {
+      if (!dirtyRef.current || !templateIdRef.current || !historyReadyRef.current) return;
+      const { body } = buildPayload(latestContentRef.current, false);
+      try { void fetch('/api/websites/' + id, { method: 'PUT', headers: { 'content-type': 'application/json' }, body, keepalive: body.length < 60000 }); } catch {}
+    };
+    const onVisibility = () => { if (document.visibilityState === 'hidden') flush(); };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', flush);
+    return () => { document.removeEventListener('visibilitychange', onVisibility); window.removeEventListener('pagehide', flush); };
+  }, [id]);
+
+  const exitBuilder = async () => {
+    if (dirtyRef.current && templateIdRef.current) await saveDraftRef.current?.(false, true);
+    router.push('/dashboard');
+  };
 
   const currentOccasion = OCCASIONS.find(x => x[0] === occasion) || OCCASIONS[0];
   const occasionTemplates = useMemo(() => templatesForOccasion(occasion), [occasion]);
@@ -551,7 +648,7 @@ export default function Builder() {
     setTemplateId('master'); setOccasion('birthday'); setDirty(true); setMsg('Master template defaults restored.');
   };
 
-  return <main className="builder-shell">
+  return <main ref={shellRef} className="builder-shell" data-viewport={viewport} data-device={device} data-selected={selectedElement && editorMode ? '1' : '0'} data-preview={previewMode ? '1' : '0'}>
     <header className="builder-topbar">
       <div className="builder-brand">
         <div className="builder-logo">W</div>
@@ -561,13 +658,15 @@ export default function Builder() {
         <div className={`builder-status ${dirty ? 'is-dirty' : ''}`}><i />{dirty ? 'Unsaved changes' : status === 'published' ? 'Published' : 'All changes saved'}</div>
         <div className={`builder-live-sync builder-live-sync-${syncState}`} aria-live="polite">{syncState === 'updating' ? '● Preview updating' : syncState === 'saving' ? '● Auto-saving' : syncState === 'saved' ? '✓ Saved automatically' : '✓ Preview synced'}</div>
         <div className="builder-top-view-switch" aria-label="Preview device controls">
-          {(['desktop','tablet','mobile'] as const).map(d => <button key={d} type="button" className={`builder-device ${device===d?'active':''}`} onClick={()=>setDevice(d)}>{d[0].toUpperCase()+d.slice(1)}</button>)}
+          {viewport === 'desktop'
+            ? (['desktop','tablet','mobile'] as const).map(d => <button key={d} type="button" className={`builder-device ${device===d?'active':''}`} onClick={()=>setDevice(d)}>{d[0].toUpperCase()+d.slice(1)}</button>)
+            : <span className="builder-device-badge" title="The preview automatically matches the screen you are using">{viewport === 'mobile' ? '📱 Mobile view' : '📲 Tablet view'}</span>}
           <button type="button" className={`builder-device builder-preview-toggle ${previewMode ? 'active' : ''}`} aria-pressed={previewMode} onClick={() => setPreviewMode(v => !v)} title={previewMode ? 'Return to template editing' : 'Preview the website as a visitor'}>{previewMode ? '✎ Preview off' : '▶ Preview'}</button>
         </div>
-        <button className="builder-ghost" type="button" onClick={undoEdit} disabled={!historyRef.current.past.length} title="Undo last change">↶ Undo</button>
-        <button className="builder-ghost" type="button" onClick={redoEdit} disabled={!historyRef.current.future.length} title="Redo last undone change">↷ Redo</button>
+        <button className="builder-ghost" type="button" onClick={undoEdit} disabled={!historyRef.current.past.length} title="Undo last change" aria-label="Undo"><span aria-hidden>↶</span><span className="bb-btn-label"> Undo</span></button>
+        <button className="builder-ghost" type="button" onClick={redoEdit} disabled={!historyRef.current.future.length} title="Redo last undone change" aria-label="Redo"><span aria-hidden>↷</span><span className="bb-btn-label"> Redo</span></button>
         <button className="builder-ghost" type="button" onClick={resetEdits} title="Restore this template default content">Reset</button>
-        <button className="builder-ghost" onClick={() => router.push('/dashboard')}>Exit</button>
+        <button className="builder-ghost" onClick={() => { void exitBuilder(); }}>Exit</button>
         <button className="builder-save" onClick={() => save(false)}>{status === 'published' ? 'Save changes' : 'Save draft'}</button>
         <button className="builder-publish" onClick={() => save(true)}>Create Live Link ↗</button>
       </div>

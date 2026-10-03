@@ -656,7 +656,7 @@
     <script>
         // EmailJS initialization
         (function() {
-            emailjs.init("MV90CKf_ZoIgGoU9w");
+            try { if (typeof emailjs !== "undefined") emailjs.init("MV90CKf_ZoIgGoU9w"); } catch (_) {}
         })();
 
         const CONFIG = {

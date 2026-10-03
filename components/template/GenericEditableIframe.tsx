@@ -31,8 +31,9 @@ type Props = {
 };
 
 function injectBridge(frame: HTMLIFrameElement) {
-  const doc = frame.contentDocument;
-  if (!doc || doc.getElementById('bb-generic-editor-bridge')) return;
+  let doc: Document | null = null;
+  try { doc = frame.contentDocument; } catch { return; }
+  if (!doc || !doc.body || doc.getElementById('bb-generic-editor-bridge')) return;
   const script = doc.createElement('script');
   script.id = 'bb-generic-editor-bridge';
   script.textContent = `
@@ -147,6 +148,7 @@ function injectBridge(frame: HTMLIFrameElement) {
     return true;
   }
   function decorate(){
+    if(!document.body||!document.head) return;
     var style=document.getElementById('bb-generic-editor-style');
     if(!style){ style=document.createElement('style'); style.id='bb-generic-editor-style'; style.textContent='.bb-generic-edit-on [data-bb-generic-key]{outline:2px dashed transparent;outline-offset:4px;cursor:pointer}.bb-generic-edit-on [data-bb-generic-key]:hover{outline-color:rgba(255,255,255,.72)}';document.head.appendChild(style); }
     document.body.classList.toggle('bb-generic-edit-on',enabled);
