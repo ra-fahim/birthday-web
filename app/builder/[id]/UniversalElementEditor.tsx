@@ -67,6 +67,14 @@ export default function UniversalElementEditor({ selected, content, templateId, 
       const preset = (templateConfig.preset || {}) as Record<string, unknown>;
       return <TextField value={String(preset[field] ?? selected.value ?? '')} multiline={field === 'sectionTitle'} onChange={value => onTemplateConfigChange({ preset: { ...preset, [field]: value } })} />;
     }
+    if (templateId === 'wedding-proposal' && key.startsWith('proposal')) {
+      const stored = (content as any)[key];
+      const text = typeof stored === 'string' ? stored : String(selected.value ?? '');
+      return <>
+        <TextField value={text} multiline={text.length > 40 || text.includes('\n')} onChange={value => onChange({ [key]: value } as Partial<BirthdayContent>)} />
+        <p className="builder-note">Use <b>{'{name}'}</b> for the receiver's name and <b>{'{sender}'}</b> for your name. Leave empty to use the default text.</p>
+      </>;
+    }
     if (key.startsWith('gx.')) {
       const genericEdits = (templateConfig.genericEdits || {}) as Record<string, any>;
       const current = genericEdits[key] || { type: selected.kind === 'image' ? 'image' : selected.kind === 'video' ? 'video' : selected.kind === 'audio' ? 'audio' : selected.kind === 'link' ? 'link' : 'text', value: selected.value || '', label: selected.label };

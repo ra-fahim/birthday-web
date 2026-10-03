@@ -133,6 +133,7 @@ function injectBridge(frame: HTMLIFrameElement) {
     screenIndex=active>=0?active:Math.min(screenIndex,screens.length-1);
   }
   function postHistory(){
+    if(window.__BB_CUSTOM_HISTORY__) return;
     try{ parent.postMessage({type:'BB_CANVAS_HISTORY_STATE',canBack:screenIndex>0,canForward:screenIndex<screens.length-1,screen:(screens[screenIndex]&&screens[screenIndex].id)||String(screenIndex)},'*'); }catch(_){}
   }
   function showScreenAt(i){
