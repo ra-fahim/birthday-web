@@ -191,13 +191,27 @@ const BackgroundPattern = () => (
       }}
     />
 
-    {/* Grain Texture - Replaced SVG filter with simple CSS pattern for performance */}
+    {/* Fine grain + soft moving light for a more premium editorial feel. */}
     <div className="absolute inset-0 opacity-[0.4] dark:opacity-[0.3]"
       style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E")`,
-        backgroundSize: '150px 150px' // Tiling reduces GPU load compared to full-screen generation
+        backgroundSize: '150px 150px'
       }}
     />
+
+    <motion.div
+      aria-hidden="true"
+      className="absolute -left-20 top-[18%] h-40 w-40 rounded-full border border-love-accent/10 dark:border-love-dark-accent/10"
+      animate={{ scale: [1, 1.16, 1], opacity: [0.35, 0.12, 0.35], rotate: [0, 18, 0] }}
+      transition={{ duration: 9, ease: 'easeInOut', repeat: Infinity }}
+    />
+    <motion.div
+      aria-hidden="true"
+      className="absolute -right-24 top-[58%] h-56 w-56 rounded-full border border-love-accent/10 dark:border-love-dark-accent/10"
+      animate={{ scale: [1, 1.08, 1], opacity: [0.25, 0.08, 0.25], rotate: [0, -22, 0] }}
+      transition={{ duration: 12, ease: 'easeInOut', repeat: Infinity }}
+    />
+    <div aria-hidden="true" className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/20 to-transparent dark:from-white/[0.03]" />
   </div>
 );
 
@@ -408,8 +422,8 @@ const App: React.FC = () => {
           transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }}
           className="mb-8"
         >
-          <div className="p-4 rounded-full border border-love-accent/20 dark:border-love-dark-accent/20 inline-block bg-white/30 dark:bg-black/30 backdrop-blur-md shadow-lg">
-            <Heart className="w-8 h-8 text-love-accent dark:text-love-dark-accent fill-love-accent/10 dark:fill-love-dark-accent/10" strokeWidth={1.5} />
+          <div className="relative p-4 rounded-full border border-white/60 dark:border-white/10 inline-block bg-white/35 dark:bg-black/30 backdrop-blur-xl shadow-[0_16px_50px_rgba(192,128,129,0.18)]">
+            <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}><Heart className="w-8 h-8 text-love-accent dark:text-love-dark-accent fill-love-accent/10 dark:fill-love-dark-accent/10" strokeWidth={1.5} /></motion.div>
           </div>
         </motion.div>
 

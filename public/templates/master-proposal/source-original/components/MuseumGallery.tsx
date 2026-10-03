@@ -32,52 +32,26 @@ const DEFAULT_MUSEUM_ITEMS: MuseumItem[] = [
     type: 'image',
     url: '/museum-gallery/1.jpg',
     title: 'The First Glance',
-    date: 'January 2025',
-    description: 'The moment our paths crossed personally.',
+    date: 'Chapter I',
+    description: 'A quiet beginning, preserved like a favorite page in our story.',
   },
   {
     id: '2',
-    type: 'video',
-    url: '/museum-gallery/2.mp4',
-    thumbnail: '/museum-gallery/2-thumb.png',
-    title: 'Samgyeopsal and Moral Support',
-    date: 'March 2025',
-    description: 'We shared a meal and a laugh together. I love your laughs.',
+    type: 'image',
+    url: '/museum-gallery/4.jpg',
+    title: 'Golden Little Moments',
+    date: 'Chapter II',
+    description: 'The ordinary moments that somehow became the ones I wanted to keep forever.',
   },
   {
     id: '3',
     type: 'video',
-    url: '/museum-gallery/3.mp4',
-    thumbnail: '/museum-gallery/3-thumb.png',
-    title: 'Anniversary Dinner',
-    date: 'January 2026',
-    description: 'We dressed up, ate too much, and had a great time together.',
+    url: '/museum-gallery/2.mp4',
+    thumbnail: '/museum-gallery/2-thumb.png',
+    title: 'A Memory in Motion',
+    date: 'Chapter III',
+    description: 'Press play and let one of our favorite memories move again.',
   },
-  {
-    id: '4',
-    type: 'image',
-    url: '/museum-gallery/4.jpg',
-    title: 'My First Birthday with You!',
-    date: 'November 2025',
-    description: 'We Celebrated my first birthday with you!',
-  },
-  {
-    id: '5',
-    type: 'video',
-    url: '/museum-gallery/5.mp4',
-    thumbnail: '/museum-gallery/5-thumb.jpg',
-    title: 'Home is where you are!',
-    date: 'June 2025',
-    description: 'Every time I see you, I feel like I\'m home.',
-  },
-  {
-    id: '6',
-    type: 'image',
-    url: '/museum-gallery/6.jpg',
-    title: 'Your First Birthday with Me!',
-    date: 'October 2025',
-    description: 'We Celebrated your first birthday with me! I love you so much!',
-  }
 ];
 
 export const MuseumGallery: React.FC = () => {
@@ -246,66 +220,25 @@ const MuseumFrame: React.FC<{
   onOpenFullView: () => void;
 }> = ({ item, index, onOpenFullView }) => {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true });
+  const isInView = useInView(ref, { once: true, margin: '0px 0px -80px 0px' });
 
   return (
-    <motion.div
+    <motion.figure
       ref={ref}
-      initial={{ opacity: 0 }}
-      animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-      transition={{
-        duration: 0.8,
-        ease: "easeOut",
-        delay: (index % 3) * 0.15
-      }}
-      style={{ 
-        transform: 'translate3d(0,0,0)', // Force GPU acceleration
-        willChange: 'opacity',
-        contentVisibility: 'auto' // Browser hint for off-screen rendering optimization
-      }}
-      className="flex flex-col items-center"
+      initial={{ opacity: 0, y: 24, scale: 0.985 }}
+      animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 24, scale: 0.985 }}
+      transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1], delay: (index % 3) * 0.12 }}
+      className="group relative flex flex-col"
+      style={{ willChange: 'transform, opacity' }}
     >
-      {/* 
-        THE GOLDEN CURVY FRAME 
-        Created using CSS gradients for the gold effect and shadows for the molding depth.
-      */}
-      <div
-        className="relative w-full shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-transform duration-500 hover:scale-[1.01]"
-        style={{
-          // Realistic Metallic Gold Gradient
-          background: 'linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c)',
-          padding: '16px',
-          borderRadius: '4px',
-          boxShadow: `
-            0px 10px 20px rgba(0,0,0,0.4), 
-            inset 0px 0px 0px 2px rgba(139, 69, 19, 0.5), /* Inner dark line */
-            inset 4px 4px 10px rgba(255, 255, 255, 0.5), /* Highlight */
-            inset -4px -4px 10px rgba(0, 0, 0, 0.3) /* Shadow */
-          `
-        }}
-      >
-        {/* Decorative Baroque Pattern Overlay (CSS Pattern) */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-30 mix-blend-multiply"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20c10-10 20 0 20 0s-10 10-20 0zm0 0c-10 10-20 0-20 0s10-10 20 0z' fill='%236b4c1e' fill-opacity='0.4'/%3E%3C/svg%3E")`,
-            backgroundSize: '30px 30px'
-          }}
-        />
-
-        {/* Inner Molding (The dip before the picture) */}
-        <div className="bg-[#2a2a2a] p-[2px] shadow-[inset_0_0_10px_rgba(0,0,0,0.8)] h-full w-full">
-          {/* The Artwork/Video Container — click to open full view */}
-          {/* 
-            Using padding-bottom trick as universal fallback for aspect-ratio.
-            aspect-ratio CSS is not supported on older mobile browsers (iOS <15, Android WebView <93).
-            padding-bottom: 133.33% = 4/3 ratio (height = 133.33% of width)
-          */}
-          <div className="relative w-full" style={{ paddingBottom: '133.33%' }} {...bb('museum', `Memory ${index + 1} — photo / video`, index)}>
+      {/* Premium editorial memory card — replaces the old literal gold photo frame. */}
+      <div className="relative overflow-hidden rounded-[28px] border border-white/55 bg-white/65 p-2 shadow-[0_24px_70px_rgba(55,30,42,0.14)] backdrop-blur-xl transition-all duration-700 group-hover:-translate-y-1 group-hover:shadow-[0_30px_90px_rgba(55,30,42,0.20)] dark:border-white/10 dark:bg-white/[0.07]">
+        <div className="relative overflow-hidden rounded-[22px] border border-black/5 bg-[#161214] dark:border-white/10">
+          <div className="relative w-full aspect-[4/5]" {...bb('museum', `Memory ${index + 1} — photo / video`, index)}>
             <button
               type="button"
               onClick={onOpenFullView}
-              className="absolute inset-0 w-full h-full bg-black shadow-inner overflow-hidden cursor-pointer block text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-love-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a2a2a]"
+              className="absolute inset-0 h-full w-full overflow-hidden bg-black text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-love-accent"
               aria-label={`View full size: ${item.title}`}
             >
               {item.type === 'video' ? (
@@ -314,40 +247,63 @@ const MuseumFrame: React.FC<{
                 <OptimizedImage
                   src={item.url}
                   alt={item.title}
-                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                  priority={index === 0} // First image has priority
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.035]"
+                  priority={index === 0}
                   style={{ transform: 'translate3d(0,0,0)' }}
                 />
               )}
 
-              {/* Glass Reflection Effect */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-20 pointer-events-none z-10" />
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),transparent_32%,rgba(0,0,0,0.42))]" />
+              <div className="absolute inset-x-0 top-0 h-16 bg-[linear-gradient(180deg,rgba(255,255,255,0.18),transparent)] opacity-70" />
+              <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full border border-white/30 bg-black/20 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.22em] text-white backdrop-blur-md">
+                <span className="h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.9)]" />
+                0{index + 1}
+              </div>
+
+              {item.type === 'video' && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/50 bg-white/15 text-white shadow-[0_18px_45px_rgba(0,0,0,0.30)] backdrop-blur-xl transition-transform duration-500 group-hover:scale-110 sm:h-[72px] sm:w-[72px]">
+                    <Play className="ml-1 h-6 w-6 fill-white" />
+                  </div>
+                </div>
+              )}
+
+              <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-3 text-white">
+                <div className="min-w-0">
+                  <p className="truncate text-[10px] font-semibold uppercase tracking-[0.22em] text-white/70">{item.date || 'Memory'}</p>
+                  <p className="mt-1 truncate font-serif text-xl italic drop-shadow-lg sm:text-2xl">{item.title}</p>
+                </div>
+                <span className="shrink-0 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] text-white/85 backdrop-blur-md">Open</span>
+              </div>
             </button>
           </div>
         </div>
+
+        {/* Fine highlight edge */}
+        <div className="pointer-events-none absolute inset-[2px] rounded-[26px] border border-white/25 dark:border-white/10" />
       </div>
 
-      {/* The Museum Label / Plaque */}
-      <div className="mt-8 max-w-[85%] text-center">
-        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 px-6 py-4 shadow-md relative">
-          {/* Gold Screw heads */}
-          <div className="absolute top-2 left-2 w-1.5 h-1.5 rounded-full bg-[#bf953f] shadow-sm" />
-          <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-[#bf953f] shadow-sm" />
-          <div className="absolute bottom-2 left-2 w-1.5 h-1.5 rounded-full bg-[#bf953f] shadow-sm" />
-          <div className="absolute bottom-2 right-2 w-1.5 h-1.5 rounded-full bg-[#bf953f] shadow-sm" />
-
-          <h3 className="font-serif text-xl text-gray-900 dark:text-gray-100 italic font-medium mb-1" {...bb('museum', `Memory ${index + 1} — title`, index)}>
+      <figcaption className="px-2 pt-5">
+        <div className="flex items-center gap-3">
+          <span className="h-px flex-1 bg-love-accent/15 dark:bg-love-dark-accent/15" />
+          <span className="font-sans text-[9px] font-semibold uppercase tracking-[0.28em] text-love-accent/70 dark:text-love-dark-accent/70">Museum Love</span>
+          <span className="h-px flex-1 bg-love-accent/15 dark:bg-love-dark-accent/15" />
+        </div>
+        <div className="mt-3 text-center">
+          <h3 className="font-serif text-xl font-medium italic text-love-text dark:text-love-dark-text" {...bb('museum', `Memory ${index + 1} — title`, index)}>
             {item.title}
           </h3>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400 mb-2" {...bb('museum', `Memory ${index + 1} — date`, index)}>
-            {item.date}
-          </p>
-          <p className="font-serif text-sm text-gray-600 dark:text-gray-300 leading-relaxed italic" {...bb('museum', `Memory ${index + 1} — description`, index)}>
+          {item.date && (
+            <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-love-accent/70 dark:text-love-dark-accent/70" {...bb('museum', `Memory ${index + 1} — date`, index)}>
+              {item.date}
+            </p>
+          )}
+          <p className="mx-auto mt-3 max-w-sm font-serif text-sm leading-6 text-love-text/65 dark:text-love-dark-text/65" {...bb('museum', `Memory ${index + 1} — description`, index)}>
             {item.description}
           </p>
         </div>
-      </div>
-    </motion.div>
+      </figcaption>
+    </motion.figure>
   );
 };
 

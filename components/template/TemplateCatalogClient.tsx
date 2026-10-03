@@ -12,7 +12,7 @@ const labels: Record<string, string> = {
 const demoSrc: Record<string, string> = {
   master: '/templates/master-birthday/runtime.html?demo=1&bbDemo=1&demoVersion=20261002-socialfix1',
   'wedding-proposal': '/templates/wedding-proposal-original.html?bbDemo=1',
-  'master-proposal': '/templates/master-proposal/index.html?bbDemo=1',
+  'master-proposal': '/templates/master-proposal/index.html?bbDemo=1&demoVersion=20261003-premium1',
   'miss-you-1': '/templates/miss-you-1/index.html?bbDemo=1',
 };
 

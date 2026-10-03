@@ -33,7 +33,7 @@ function findEditable(target: EventTarget | null): HTMLElement | null {
   return null;
 }
 
-function handleDoubleClick(e: MouseEvent) {
+function handleClick(e: MouseEvent) {
   if (!editorModeOn) return;
   const el = findEditable(e.target);
   if (!el) return;
@@ -57,7 +57,7 @@ export function initEditorBridge() {
     ensureStyle();
     document.body.classList.toggle('bb-editor-mode', editorModeOn);
   });
-  document.addEventListener('dblclick', handleDoubleClick, true);
+  document.addEventListener('click', handleClick, true);
   // Let the parent know we're ready to receive BB_EDITOR_MODE even if it
   // sent it before our listener was attached.
   window.parent?.postMessage({ type: 'BB_EDITOR_READY' }, '*');

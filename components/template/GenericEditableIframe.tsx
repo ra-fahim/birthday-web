@@ -185,7 +185,13 @@ function injectBridge(frame: HTMLIFrameElement) {
     if(!enabled) return;
     var t=interactionTarget(e.target);
     if(t && t.matches('[data-bb-editor-nav],.bb-inline-edit,.bb-edit-btn,.bb-editor-audio-control,.bb-editor-link-edit,#bb-global-edit-actions')) return;
-    if(t && t.matches('[data-bb-generic-key],[data-bb-key]')) { e.preventDefault(); if(e.type==='click') select(t); e.stopImmediatePropagation(); return; }
+    if(t && t.matches('[data-bb-generic-key],[data-bb-key]')) {
+      // Do not cancel pointerdown on an editable target: some desktop/mobile
+      // browsers suppress the subsequent click when pointerdown is prevented.
+      if(e.type==='click') { e.preventDefault(); select(t); }
+      e.stopImmediatePropagation();
+      return;
+    }
     if(t && t.matches('[data-bb-ignore]')) { e.preventDefault(); e.stopImmediatePropagation(); return; }
     e.preventDefault(); e.stopImmediatePropagation();
   }
