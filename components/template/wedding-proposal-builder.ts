@@ -1,27 +1,14 @@
 import type { BirthdayContent } from '@/lib/types';
 import { editScrollSnippet } from '@/lib/edit-scroll-script';
 
-/**
- * Wedding Proposal template – pure helpers (no React).
- *
- * Every visible text of the template is a "field" with a dedicated content key
- * (proposalEyebrow, proposalLetterText, ...). The same field list is used to
- *   1) render the published / preview HTML (buildWeddingHtml)
- *   2) drive the editor bridge that runs inside the iframe (buildWeddingBridge)
- * so edit mode, preview and the live website always show the same text.
- */
-
 export type WeddingField = {
   key: string;
   label: string;
   def: string;
-  /** original element in wedding-proposal-original.html */
   re: RegExp;
   open: string;
   close: string;
-  /** keep \n as <br> (otherwise a line break becomes a space) */
   br?: boolean;
-  /** inner content is filled at runtime by the template itself (typewriter letter) */
   keepInner?: boolean;
 };
 
@@ -56,7 +43,6 @@ export function escapeHtml(value: string) {
     .replaceAll("'", '&#039;');
 }
 
-/** JSON that is safe to put inside an inline <script>. */
 function safeJson(value: unknown) {
   return JSON.stringify(value).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
 }
@@ -90,18 +76,11 @@ function renderTemplate(field: WeddingField, template: string, receiver: string,
   return field.br ? html.replaceAll('\n', '<br>') : html.replaceAll('\n', ' ');
 }
 
-/** Custom background audio chosen in the editor (empty = the built-in synthesized music). */
 export function weddingAudioUrl(content: BirthdayContent) {
   const v = asLoose(content).proposalAudioUrl;
   return typeof v === 'string' && /^https?:\/\//i.test(v.trim()) ? v.trim() : '';
 }
 
-/**
- * Replaces the template's synthesized background music with the chosen audio file.
- * The template keeps calling Sound.startMusic() / Sound.stopMusic() (Begin button and the
- * sound toggle), so those two methods are swapped for an <audio> element with fades.
- * Sound effects (clicks, sparkles) stay untouched.
- */
 function buildWeddingAudioOverride(url: string) {
   return `<script id="BB_WEDDING_AUDIO">(function(){
 try{
@@ -132,7 +111,6 @@ export function buildWeddingHtml(source: string, content: BirthdayContent, edito
     });
   }
 
-  // Controls that are not text content: never offered for editing.
   html = html.replace('<button class="sound-btn muted" id="soundBtn"', () => '<button data-bb-ignore="1" class="sound-btn muted" id="soundBtn"');
   html = html.replace('<p class="tap-count">', () => '<p class="tap-count" data-bb-ignore="1">');
 
@@ -142,7 +120,6 @@ export function buildWeddingHtml(source: string, content: BirthdayContent, edito
   return html;
 }
 
-/** Content the editor bridge needs (kept small). */
 function bridgeConfig(content: BirthdayContent) {
   const loose = asLoose(content);
   const cfg: Loose = {
@@ -156,14 +133,6 @@ function bridgeConfig(content: BirthdayContent) {
   return cfg;
 }
 
-/**
- * Editor-only script that runs INSIDE the template iframe.
- *  - lets the visitor-facing flow be walked with Previous / Next only
- *    (intro → game → letter → heart tap → proposal → finale)
- *  - blocks every template interaction (buttons, heart tap, "No" button running away …)
- *  - click on any text selects it for the Quick Edit panel (dedicated content key)
- *  - applies live content changes (BB_CONTENT) without reloading the iframe
- */
 export function buildWeddingBridge(content: BirthdayContent) {
   const fields = WEDDING_FIELDS.map(({ key, label, def, br }) => ({ key, label, def, br: !!br }));
   return `<script id="BB_WEDDING_EDITOR_BRIDGE">(function(){

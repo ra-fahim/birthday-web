@@ -28,8 +28,6 @@ function getCatalogPreviewSrc(template: TemplateDefinition) {
     : (template.originalHtml || '');
   if (!src) return '';
   const separator = src.includes('?') ? '&' : '?';
-  // Template-card live previews are always deterministic 10-second previews.
-  // They are separate from published/live links and remain silent.
   return `${src}${separator}bbCatalog=1&catalog=1&bbDemo=1&demo=1`;
 }
 

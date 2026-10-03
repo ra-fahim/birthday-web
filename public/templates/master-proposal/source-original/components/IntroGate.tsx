@@ -37,11 +37,7 @@ export const IntroGate: React.FC<IntroGateProps> = ({ onComplete }) => {
   const [rejectionCount, setRejectionCount] = useState(0);
 
   useEffect(() => {
-    if (editor) return; // editing: everything stays visible, nothing auto-advances
-    // Sequence timing: 
-    // Step 0 (Start): "I made this..."
-    // Step 1 (2.5s): "Before anything else..."
-    // Step 2 (5.5s): Question
+    if (editor) return;
     
     const timer1 = setTimeout(() => setStep(1), 2500);
     const timer2 = setTimeout(() => setStep(2), 5500);
@@ -60,11 +56,9 @@ export const IntroGate: React.FC<IntroGateProps> = ({ onComplete }) => {
     setRejectionCount((prev) => Math.min(prev + 1, SILLY_PROMPTS.length - 1));
   };
 
-  // Editing: the "question" slot after the last one is an empty slot used to add a new question.
   const editIndex = Math.min(rejectionCount, SILLY_PROMPTS.length);
   const currentPrompt = SILLY_PROMPTS[editor ? editIndex : rejectionCount] || { title: 'Write a new question…', subtitle: 'Add a subtitle' };
   
-  // Calculate Yes button scale based on rejections (grow slightly each time)
   const yesButtonScale = 1 + (rejectionCount * 0.1);
 
   const textVariants: Variants = {
@@ -173,7 +167,6 @@ export const IntroGate: React.FC<IntroGateProps> = ({ onComplete }) => {
                <Heart className="w-20 h-20 text-love-accent dark:text-love-dark-accent fill-love-accent/5 dark:fill-love-dark-accent/5 animate-pulse" strokeWidth={0.5} />
              </motion.div>
             
-            {/* Dynamic Question Text */}
             <div className="h-32 md:h-40 flex flex-col justify-end items-center mb-12">
               <AnimatePresence mode="wait">
                 <motion.div

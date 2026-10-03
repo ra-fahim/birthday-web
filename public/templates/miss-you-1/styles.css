@@ -1,6 +1,3 @@
-/* ===========================
-   CSS Variables (Theme)
-   =========================== */
 :root {
   --bg-color: #ffe;
   --text-color: #228567;
@@ -10,10 +7,6 @@
   --stage-h: 680px;
   --tree-shift-x: 260px;
 }
-
-/* ===========================
-   Global Styles
-   =========================== */
 * {
   margin: 0;
   padding: 0;
@@ -30,10 +23,6 @@ body {
   align-items: center;
   justify-content: center;
 }
-
-/* ===========================
-   Main Canvas Container
-   =========================== */
 #viewport {
   position: relative;
   width: var(--stage-w);
@@ -78,15 +67,9 @@ body {
 #canvas {
   z-index: 2;
 }
-
-/* ===========================
-   Love Letter Content
-   =========================== */
 #letter {
   position: absolute;
   width: 420px;
-  /* Lifted up and given more room so long letters can never reach the
-     names / countdown block below (which starts at 550px). */
   height: 470px;
   max-height: 470px;
   left: 60px;
@@ -119,10 +102,6 @@ body {
 @keyframes blink {
   50% { opacity: 0; }
 }
-
-/* ===========================
-   Time Counter Display
-   =========================== */
 #clock-box {
   position: absolute;
   left: 60px;
@@ -152,17 +131,6 @@ body {
 #clock .digit {
   font-size: 64px;
 }
-
-/* ===========================
-   Mobile Layout (phones)
-   =========================== */
-/* On desktop/tablet the letter + countdown live inside the scaled 1100x680
-   stage next to the tree, which is how the original design intends them.
-   On narrow phones that same stage would need to shrink to ~35% of its
-   size to fit the width, making that text unreadable — so on phones
-   js/ui.js physically moves #letter and #clock-box out of the scaled
-   stage into #mobile-content below it, and these rules give them normal,
-   always-legible sizing instead of fixed stage-pixel positioning. */
 
 #mobile-content {
   display: none;

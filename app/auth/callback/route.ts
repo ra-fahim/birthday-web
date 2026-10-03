@@ -4,10 +4,6 @@ import {googleVerifierCookie,setSessionCookie} from '@/lib/auth';
 export const runtime='nodejs';export const dynamic='force-dynamic';
 export async function GET(req:Request){
  const u=new URL(req.url),code=u.searchParams.get('code'),verifier=cookies().get(googleVerifierCookie)?.value;
- // Where to land after a successful exchange. Email confirmation and Google
- // login both want /dashboard (the default); the password-recovery link sets
- // next=/reset-password so the person lands on the "choose a new password"
- // form instead of straight into their account.
  const nextParam=u.searchParams.get('next');
  const dest=nextParam&&nextParam.startsWith('/')?nextParam:'/dashboard';
  if(!code)return NextResponse.redirect(new URL('/login?error=auth_callback_failed',u.origin));

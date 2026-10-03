@@ -14,9 +14,6 @@ export async function POST(req:Request){
   const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if(!url||!key)return NextResponse.json({error:'Supabase Auth is not configured'},{status:500});
 
-  // Brute-force lockout: look up the profile row by email (best-effort — if
-  // this fails for any reason we still fall through to the normal password
-  // check rather than blocking a legitimate login on a lockout-tracking bug).
   let profile:any=null;
   try{
    const rows=await supabaseRest<any[]>(`profiles?select=id,failed_login_attempts,login_locked_until&email=eq.${encodeURIComponent(email)}&limit=1`);

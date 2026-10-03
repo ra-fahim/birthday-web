@@ -7,9 +7,6 @@ export const runtime='nodejs';export const dynamic='force-dynamic';
 export async function GET(req:Request){
  try{
   const u=new URL(req.url),code=u.searchParams.get('code'),state=u.searchParams.get('state');const c=cookies(),saved=c.get(googleStateCookie)?.value,verifier=c.get(googleVerifierCookie)?.value,invite=c.get(googleInviteCookie)?.value;
-  // Supabase redirects back with only `?code=` (our custom `state` is not echoed), so the
-  // PKCE verifier cookie is what proves this browser started the login. If a state *is*
-  // present it must still match.
   const providerError=u.searchParams.get('error_description')||u.searchParams.get('error');
   if(!code&&providerError){console.error('google login provider error:',providerError);return NextResponse.redirect(new URL('/login?error=google_login_failed',req.url));}
   if(!code||!verifier||(state&&saved&&state!==saved))return NextResponse.redirect(new URL('/login?error=google_invalid_state',req.url));
@@ -18,9 +15,6 @@ export async function GET(req:Request){
   const d=await r.json().catch(()=>({}));if(!r.ok||!d.access_token){console.error('google token exchange failed:',r.status,JSON.stringify(d).slice(0,300));return NextResponse.redirect(new URL('/login?error=google_token_failed',req.url));}
   const authUser=d.user; if(!authUser?.id||!authUser.email)return NextResponse.redirect(new URL('/login?error=google_profile_failed',req.url));
 
-  // Member approval: same rule as email/password signup. Existing profiles
-  // (people who already have an account) keep whatever approval state they
-  // already had — we only decide `approved` here for a brand-new profile.
   const existing=await supabaseRest<any[]>(`profiles?select=approved&id=eq.${encodeURIComponent(authUser.id)}&limit=1`).catch(()=>[]);
   let approved:boolean|undefined=existing?.[0]?.approved;
   if(approved===undefined){

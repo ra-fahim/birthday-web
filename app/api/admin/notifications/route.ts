@@ -7,7 +7,6 @@ import { db } from '@/lib/db';
 export async function GET() {
   try { await requireAdmin(); } catch { return NextResponse.json({ error: 'Forbidden' }, { status: 403 }); }
   const rows = await db.notification.findMany({ orderBy: { createdAt: 'desc' }, take: 500 });
-  // Group by title+message+minute so a single broadcast (one row per user) shows as one entry.
   const seen = new Map<string, { title: string; message: string; createdAt: any; count: number }>();
   for (const n of rows) {
     const bucket = new Date(n.createdAt).toISOString().slice(0, 16);

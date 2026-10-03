@@ -3,7 +3,6 @@ export type MasterBirthdayVideo = { id: string; source: string; title: string; c
 export type MasterBirthdayReason = { id: string; emoji: string; text: string };
 export type MasterBirthdayTrack = { id: string; title: string; artist?: string; sourceType: 'upload'|'url'|'youtube'|'spotify'; url: string; cover?: string };
 
-
 export type MasterBirthdayConfig = {
   recipientName: string; senderName: string; age: number; birthdayDate: string; birthdayTime: string; timezone: string;
   pageTitle: string; browserTitle: string; ogTitle: string; ogDescription: string; ogImage: string; customSlug: string;
@@ -22,8 +21,6 @@ export type MasterBirthdayConfig = {
   effects: { butterflies: boolean; flowers: boolean; hearts: boolean; sparkles: boolean; customCursor: boolean; confetti: boolean; smoke: boolean; soundEffects: boolean; vibration: boolean; microphone: boolean };
 };
 
-// Stable Master Birthday default. Keep the editor reset deterministic so the
-// canvas never falls back to a moving/current-year target.
 const suppliedBirthdayDate = '2030-01-08';
 const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Dhaka';
 
@@ -73,7 +70,6 @@ export const masterBirthdayDefaults: MasterBirthdayConfig = {
   theme: { main:'#ff69b4', secondary:'#9b6dff', accent:'#d4145a', button:'#ff69b4', text:'#4a4a4a', glow:'#ffb6d9', overlay:'linear-gradient(135deg, rgba(255,192,203,0.3), rgba(147,112,219,0.3))', backgroundImage:'', backgroundVideo:'https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp4', mode:'light', fontPreset:'original', animationIntensity:'full' },
   effects: { butterflies:true, flowers:true, hearts:true, sparkles:true, customCursor:true, confetti:true, smoke:true, soundEffects:true, vibration:true, microphone:true },
 };
-
 
 export function mergeMasterBirthdayConfig(value?: Partial<MasterBirthdayConfig> | null): MasterBirthdayConfig {
   const v = value || {};

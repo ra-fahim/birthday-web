@@ -9,7 +9,7 @@ interface Mood {
   icon: React.ReactNode;
   response: string;
   color: string;
-  audioSrc: string; // Path to the heartfelt voice message
+  audioSrc: string;
 }
 
 const DEFAULT_MOODS: Mood[] = [
@@ -73,9 +73,7 @@ export const ComfortCorner: React.FC = () => {
   });
   const [activeMood, setActiveMood] = useState<Mood | null>(null);
 
-  // Stop audio when mood changes
   useEffect(() => {
-    // Reset any playing audio if needed (handled by key prop in VoiceMessagePlayer)
   }, [activeMood]);
 
   return (
@@ -90,7 +88,6 @@ export const ComfortCorner: React.FC = () => {
         <div className="w-16 h-[1px] bg-love-accent/30 dark:bg-love-dark-accent/30 mx-auto mt-6"></div>
       </div>
 
-      {/* Mood Selector Buttons */}
       <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-12">
         {MOODS.map((mood) => {
           const isActive = activeMood?.id === mood.id;
@@ -127,7 +124,6 @@ export const ComfortCorner: React.FC = () => {
         </div>
       )}
 
-      {/* Content Area */}
       <div className={`min-h-[350px] flex items-center justify-center relative ${editor ? 'hidden' : ''}`}>
         <AnimatePresence mode="wait">
           {activeMood ? (
@@ -142,7 +138,6 @@ export const ComfortCorner: React.FC = () => {
                 ring-1 ring-black/5 dark:ring-white/5
               `}
             >
-              {/* Subtle ambient background glow based on mood color */}
               <div
                 className={`absolute top-0 right-0 w-64 h-64 rounded-full blur-[80px] opacity-10 pointer-events-none transform translate-x-1/2 -translate-y-1/2 transition-colors duration-500`}
                 style={{ backgroundColor: activeMood.color.includes('blue') ? '#3b82f6' : activeMood.color.includes('purple') ? '#a855f7' : '#f43f5e' }}
@@ -157,7 +152,6 @@ export const ComfortCorner: React.FC = () => {
                   "{activeMood.response}"
                 </p>
 
-                {/* Voice Message Player */}
                 <VoiceMessagePlayer src={activeMood.audioSrc} label={`Audio: ${activeMood.label}`} />
               </div>
             </motion.div>
@@ -179,10 +173,6 @@ export const ComfortCorner: React.FC = () => {
   );
 };
 
-// -----------------------------------------------------------------------------
-// Voice Message Player Component with Soundwave Visualizer
-// -----------------------------------------------------------------------------
-
 const VoiceMessagePlayer: React.FC<{ src: string; label: string }> = ({ src, label }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -192,17 +182,14 @@ const VoiceMessagePlayer: React.FC<{ src: string; label: string }> = ({ src, lab
   const togglePlay = () => {
     if (!audioRef.current) return;
 
-    // Initialize AudioContext and Gain Node for Amplification
     if (!audioContextRef.current) {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       const ctx = new AudioContextClass();
       audioContextRef.current = ctx;
 
-      // Create generic gain node
       const gainNode = ctx.createGain();
-      gainNode.gain.value = 2.5; // Amplify volume to 250%
+      gainNode.gain.value = 2.5;
 
-      // Connect: Source -> Gain -> Destination
       if (!sourceRef.current) {
         try {
           const source = ctx.createMediaElementSource(audioRef.current);
@@ -215,7 +202,6 @@ const VoiceMessagePlayer: React.FC<{ src: string; label: string }> = ({ src, lab
       }
     }
 
-    // Resume context if browser suspended it (common on Chrome autplay policies)
     if (audioContextRef.current?.state === 'suspended') {
       audioContextRef.current.resume();
     }
@@ -229,12 +215,10 @@ const VoiceMessagePlayer: React.FC<{ src: string; label: string }> = ({ src, lab
     }
   };
 
-
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    // Reset when src changes
     setIsPlaying(false);
     audio.pause();
     audio.currentTime = 0;
@@ -263,7 +247,7 @@ const VoiceMessagePlayer: React.FC<{ src: string; label: string }> = ({ src, lab
         ref={audioRef}
         src={src}
         preload="auto"
-        crossOrigin="anonymous" // Important for AudioContext
+        crossOrigin="anonymous"
       />
 
       <div className="bg-gray-50 dark:bg-black/20 rounded-2xl p-2 pr-5 flex items-center gap-4 border border-gray-100 dark:border-white/5 transition-all hover:border-love-accent/20 cursor-default group">
@@ -291,7 +275,6 @@ const VoiceMessagePlayer: React.FC<{ src: string; label: string }> = ({ src, lab
             )}
           </div>
 
-          {/* Audio Visualizer Bars */}
           <div className="h-6 flex items-center gap-[2px] opacity-80">
             {Array.from({ length: 40 }).map((_, i) => (
               <VisualizerBar key={i} index={i} isPlaying={isPlaying} />
@@ -303,9 +286,7 @@ const VoiceMessagePlayer: React.FC<{ src: string; label: string }> = ({ src, lab
   );
 };
 
-// Separate component for performance
 const VisualizerBar: React.FC<{ index: number; isPlaying: boolean }> = ({ index, isPlaying }) => {
-  // Generate random heights for a natural waveform look
   const minHeight = 4;
   const randomHeight = Math.max(minHeight, Math.random() * 24);
 
@@ -319,7 +300,7 @@ const VisualizerBar: React.FC<{ index: number; isPlaying: boolean }> = ({ index,
       }}
       transition={{
         repeat: Infinity,
-        duration: 0.5 + Math.random() * 0.5, // Randomize duration for organic feel
+        duration: 0.5 + Math.random() * 0.5,
         delay: index * 0.02,
         repeatType: "mirror",
         ease: "easeInOut"

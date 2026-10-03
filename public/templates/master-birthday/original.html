@@ -16,10 +16,9 @@
     <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
-    <!-- YouTube IFrame Player API (for birthday song) -->
+    
     <script src="https://www.youtube.com/iframe_api"></script>
-    <style>
-        :root {
+    <style>        :root {
             --premium-ease: cubic-bezier(.16, 1, .3, 1);
             --premium-ease-out: cubic-bezier(.2, .8, .2, 1);
             --glass-rim: rgba(255, 255, 255, 0.55);
@@ -28,8 +27,6 @@
 
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:'Quicksand',sans-serif; overflow-x:hidden; color:#4a4a4a; min-height:100vh; }
-
-        /* ── Cinematic film grain over everything (subtle, colour-safe) ── */
         body::before {
             content:'';
             position:fixed; inset:0;
@@ -61,8 +58,6 @@
         .magic-sparkles::after { animation-delay:-4s; transform:rotate(45deg); }
         @keyframes sparkleLayer { 0%{ transform:translateY(0); } 100%{ transform:translateY(-50px); } }
         @keyframes softPulse { 0%,100%{ transform:scale(1); opacity:1; } 50%{ transform:scale(1.08); opacity:0.92; } }
-
-        /* Hidden YouTube player (audio only) */
         #ytPlayerWrap { position:fixed; top:-9999px; left:-9999px; width:1px; height:1px; pointer-events:none; opacity:0; }
 
         .countdown-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; background:linear-gradient(135deg, rgba(255,209,220,0.4), rgba(230,230,250,0.4)); backdrop-filter:blur(8px); z-index:1000; transition:1s; text-align:center; padding:20px; }
@@ -82,8 +77,6 @@
         .enter-btn { padding:1rem 2rem; font-size:1.2rem; background:linear-gradient(45deg,#ff69b4,#ff99cc); border:none; border-radius:50px; color:white; cursor:pointer; box-shadow:0 10px 24px -8px rgba(255,105,180,0.6), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -2px 4px rgba(0,0,0,0.12); transition:transform 0.4s var(--premium-ease), box-shadow 0.4s var(--premium-ease); font-family:'Comic Neue',cursive; font-weight:700; text-shadow:1px 1px 2px rgba(0,0,0,0.3); }
         .enter-btn:hover { transform:translateY(-2px) scale(1.06); box-shadow:0 18px 32px -10px rgba(255,105,180,0.75), inset 0 1px 0 rgba(255,255,255,0.6); }
         .enter-btn:active { transform:translateY(0) scale(0.96); }
-
-        /* ── CAKE SCREEN ── */
         .cake-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); backdrop-filter:blur(10px); z-index:800; padding:20px; text-align:center; }
         .cake-screen.show { display:flex; }
 
@@ -193,8 +186,6 @@
         .cake-next-btn { margin-top:20px; padding:12px 30px; background:linear-gradient(45deg,#9b6dff,#ff6dc7); border:none; border-radius:50px; color:white; font-size:1.2rem; cursor:pointer; font-weight:bold; box-shadow:0 12px 26px -10px rgba(155,109,255,0.7), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -2px 4px rgba(0,0,0,0.12); transition:transform 0.4s var(--premium-ease), box-shadow 0.4s var(--premium-ease); display:inline-block; border:2px solid rgba(255,255,255,0.6); }
         .cake-next-btn:hover { transform:translateY(-2px) scale(1.06); box-shadow:0 20px 34px -12px rgba(155,109,255,0.85), inset 0 1px 0 rgba(255,255,255,0.6); }
         .cake-next-btn:active { transform:scale(0.96); }
-
-        /* ── REASONS ── */
         .reasons-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(-45deg,#ffe6e6,#e6e6ff,#ffebf5); background-size:400% 400%; animation:gradientBG 15s ease infinite; z-index:750; padding:20px; }
         .reasons-screen.show { display:flex; }
         .reasons-header h1 { font-family:'Bubblegum Sans',cursive; font-size:clamp(2.5rem,8vw,3.5rem); color:#ff69b4; text-shadow:2px 2px 4px rgba(255,105,180,0.3); margin-bottom:2rem; animation:bounce 1s ease infinite; text-align:center; }
@@ -213,8 +204,6 @@
         .reasons-btn.story-mode { background:linear-gradient(45deg,#9b6dff,#ff6dc7); transform:scale(1.06); animation:pulse 2s infinite; }
         .reasons-btn.story-mode:hover { transform:scale(1.14); }
         @keyframes pulse { 0%,100%{ transform:scale(1.06); } 50%{ transform:scale(1.16); } }
-
-        /* ── PHOTO ── */
         .photo-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; overflow-y:auto; background:linear-gradient(135deg,#ffd1dc 0%,#e6e6fa 25%,#ffefd5 50%,#e6e6fa 75%,#ffd1dc 100%); background-size:400% 400%; animation:gradientFlow 15s ease infinite; z-index:700; padding:80px 20px 40px; }
         .photo-screen.show { display:block; }
         @keyframes gradientFlow { 0%{ background-position:0% 50%; } 50%{ background-position:100% 50%; } 100%{ background-position:0% 50%; } }
@@ -232,8 +221,6 @@
         .photo-next-btn { display:block; margin:30px auto; padding:12px 30px; background:linear-gradient(45deg,#9b6dff,#ff6dc7); border:none; border-radius:50px; color:white; font-size:1.2rem; cursor:pointer; font-weight:bold; box-shadow:0 12px 26px -10px rgba(155,109,255,0.7), inset 0 1px 0 rgba(255,255,255,0.5); transition:transform 0.4s var(--premium-ease), box-shadow 0.4s var(--premium-ease); border:2px solid rgba(255,255,255,0.7); text-align:center; max-width:300px; }
         .photo-next-btn:hover { transform:translateY(-2px) scale(1.06); box-shadow:0 20px 34px -12px rgba(155,109,255,0.85); }
         .photo-next-btn:active { transform:scale(0.96); }
-
-        /* ── VIDEO ── */
         .video-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; overflow-y:auto; background:linear-gradient(135deg,#a8edea 0%,#fed6e3 100%); z-index:600; padding:60px 20px 40px; }
         .video-screen.show { display:flex; }
         .video-screen h2 { font-family:'Dancing Script',cursive; font-size:2.5rem; color:#b0306e; text-shadow:2px 2px 8px rgba(255,255,255,0.8); margin-bottom:2rem; text-align:center; }
@@ -247,8 +234,6 @@
         .video-next-btn { display:block; margin:40px auto 20px; padding:12px 30px; background:linear-gradient(45deg,#ff69b4,#ff99cc); border:none; border-radius:50px; color:white; font-size:1.2rem; cursor:pointer; font-weight:bold; box-shadow:0 12px 26px -10px rgba(255,105,180,0.6), inset 0 1px 0 rgba(255,255,255,0.5); transition:transform 0.4s var(--premium-ease), box-shadow 0.4s var(--premium-ease); border:2px solid rgba(255,255,255,0.7); max-width:300px; }
         .video-next-btn:hover { transform:translateY(-2px) scale(1.06); box-shadow:0 20px 34px -12px rgba(255,105,180,0.85); }
         .video-next-btn:active { transform:scale(0.96); }
-
-        /* ── LETTER ── */
         .letter-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#fdfbfb 0%,#ebedee 100%); z-index:500; padding:20px; box-sizing:border-box; overflow-y:auto; }
         .letter-screen.show { display:flex; }
         .letter-container { width:100%; max-width:600px; box-sizing:border-box; background:linear-gradient(145deg, rgba(255,255,255,0.98), rgba(255,250,252,0.94)); padding:clamp(1.25rem,5vw,2rem); border-radius:30px; box-shadow:0 30px 55px -20px rgba(120,80,140,0.4), inset 0 1px 0 rgba(255,255,255,0.9); text-align:center; margin:auto; display:none; border:1px solid rgba(255,255,255,0.7); }
@@ -273,8 +258,6 @@
         .letter-return-btn { margin-top:20px; padding:clamp(10px,3vw,12px) clamp(18px,6vw,30px); background:linear-gradient(45deg,#ff69b4,#ff99cc); border:none; border-radius:50px; color:white; font-size:clamp(0.95rem,3.6vw,1.2rem); cursor:pointer; font-weight:bold; box-shadow:0 12px 26px -10px rgba(255,105,180,0.6), inset 0 1px 0 rgba(255,255,255,0.5); transition:transform 0.4s var(--premium-ease), box-shadow 0.4s var(--premium-ease); border:2px solid rgba(255,255,255,0.7); display:inline-block; text-decoration:none; max-width:100%; white-space:normal; line-height:1.3; }
         .letter-return-btn:hover { transform:translateY(-2px) scale(1.06); box-shadow:0 20px 34px -12px rgba(255,105,180,0.85); }
         .letter-return-btn:active { transform:scale(0.96); }
-
-        /* ── SECRET ── */
         .secret-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#ffe6f0,#ffe0f0); z-index:550; padding:20px; box-sizing:border-box; overflow-y:auto; -webkit-overflow-scrolling:touch; }
         .secret-screen.show { display:flex; }
         .secret-container { max-width:600px; width:100%; box-sizing:border-box; background:linear-gradient(145deg, rgba(255,255,255,0.92), rgba(255,250,253,0.86)); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); padding:clamp(1.25rem,5vw,2rem); border-radius:30px; box-shadow:0 28px 50px -18px rgba(120,80,140,0.45), inset 0 1px 0 rgba(255,255,255,0.85); text-align:center; border:1px solid rgba(255,255,255,0.75); margin:auto; }
@@ -285,8 +268,6 @@
         @keyframes btnPop { 0%{ opacity:0; transform:scale(0.8); } 100%{ opacity:1; transform:scale(1); } }
         .soulmate-btn:hover { transform:translateY(-2px) scale(1.06); box-shadow:0 20px 34px -12px rgba(155,109,255,0.9); }
         .soulmate-btn:active { transform:scale(0.96); }
-
-        /* ── LIGHTBOX ── */
         .lightbox { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10001; justify-content:center; align-items:center; padding:20px; perspective:1200px; touch-action:pan-y; }
         .lightbox.show { display:flex; }
         .lightbox img { max-width:90%; max-height:90%; border-radius:10px; border:3px solid white; box-shadow:0 0 50px rgba(255,255,255,0.3); transform-style:preserve-3d; touch-action:none; user-select:none; -webkit-user-drag:none; }
@@ -313,7 +294,6 @@
         <source src="https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- Hidden YouTube player used for the birthday song (audio only) -->
     <div id="ytPlayerWrap" aria-hidden="true">
         <div id="ytPlayer"></div>
     </div>
@@ -541,7 +521,7 @@
             <p>Every moment spent with you has been magical. Let's cherish these precious memories Othoy...</p>
         </div>
         <div class="photo-container">
-            <!-- ═══ আসল ছবি ═══ -->
+            
             <div class="photo-card" onclick="openLightbox('https://res.cloudinary.com/dpctt0wao/image/upload/v1786824168/zy6ndwpdsdbrry4eojcus.png')">
                 <img src="https://res.cloudinary.com/dpctt0wao/image/upload/v1786824168/zy6ndwpddbrsry4eojcus.png" alt="What is time" class="photo-img">
                 <div class="photo-date">A Magical Reflection 💖</div>
@@ -558,7 +538,6 @@
                 <div class="photo-caption">You're truly one of the sweetest girls I know, and I feel lucky to have a friend like you❤️</div>
             </div>
 
-            <!-- ═══ 🎬 DEMO ছবি (placeholder — পরে আপনার নিজের URL বসান) ═══ -->
             <div class="photo-card" onclick="openLightbox('https://picsum.photos/seed/birthday1/800/600')">
                 <img src="https://picsum.photos/seed/birthday1/800/600" alt="Demo 1" class="photo-img">
                 <div class="photo-date">Demo Memory 1 🌸</div>
@@ -582,7 +561,7 @@
         <h2>A Special Video Message</h2>
         <div class="video-container">
             <div class="video-grid">
-                <!-- ═══ আসল ভিডিও ═══ -->
+                
                 <div class="video-card">
                     <h3>Happy Birthday Othoy❤️🎂</h3>
                     <div class="video-wrapper">
@@ -600,7 +579,6 @@
                     </div>
                 </div>
 
-                <!-- ═══ 🎬 DEMO ভিডিও (public sample videos — পরে আপনার নিজের URL বসান) ═══ -->
                 <div class="video-card">
                     <h3>🎬 Demo Video — Big Buck Bunny</h3>
                     <div class="video-wrapper">
@@ -653,9 +631,7 @@
         </div>
     </div>
 
-    <script>
-        // EmailJS initialization
-        (function() {
+    <script>        (function() {
             try { if (typeof emailjs !== "undefined") emailjs.init("MV90CKf_ZoIgGoU9w"); } catch (_) {}
         })();
 
@@ -673,10 +649,6 @@
             CONFIG.name = decodeURIComponent(urlParams.get('name'));
         }
 
-        /* ─────────────────────────────────────────────────────────────
-           YouTube IFrame Player — hidden audio for the birthday song
-           Video: https://youtu.be/73Hld4gpaPA
-           ───────────────────────────────────────────────────────────── */
         const YT_VIDEO_ID = '73Hld4gpaPA';
         let ytPlayer = null;
         let ytPlayerReady = false;
@@ -690,7 +662,7 @@
                 playerVars: {
                     autoplay: 0,
                     loop: 1,
-                    playlist: YT_VIDEO_ID,   // required so loop works
+                    playlist: YT_VIDEO_ID,
                     controls: 0,
                     disablekb: 1,
                     fs: 0,
@@ -723,7 +695,6 @@
                 ytPlayer.setVolume(100);
                 ytPlayer.playVideo();
             } catch (e) {
-                // browser blocked it — will retry on next user tap
             }
         }
 
@@ -741,8 +712,6 @@
                 try { ytPlayer.pauseVideo(); } catch (e) {}
             }
         }
-
-        /* ───────────────────────────────────────────────────────────── */
 
         function createFloatingElement() {
             const container = document.getElementById('floatingElements');
@@ -1083,8 +1052,6 @@
             typeNextChar();
         }
 
-        // Audio: no visible button. First user interaction unlocks audio context,
-        // and every subsequent autoplay attempt (birthday track) succeeds on top of that.
         function handleGlobalClick() {
             if (!audioAllowed) {
                 audioAllowed = true;

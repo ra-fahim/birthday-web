@@ -9,8 +9,6 @@ export type TemplateDefinition = {
   originalHtml?: string;
 };
 
-// Single source of truth for templates that are actually installed and visible.
-// A template only appears anywhere in the product when it is registered here.
 export const templateCatalog: TemplateDefinition[] = [
   {
     slug: 'master',

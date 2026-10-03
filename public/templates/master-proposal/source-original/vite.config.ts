@@ -8,14 +8,13 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
-      base: './', // relative asset paths — required for GitHub Pages subpath deploys (e.g. user.github.io/RepoName/)
+      base: './',
       server: {
         port: 3000,
         host: '0.0.0.0',
       },
       plugins: [
         react(),
-        // Aggressive image optimization
         ViteImageOptimizer({
           png: {
             quality: 80,
@@ -35,13 +34,10 @@ export default defineConfig(({ mode }) => {
             quality: 80,
           },
         }),
-        // PWA with aggressive caching
         VitePWA({
           registerType: 'autoUpdate',
           workbox: {
-            // Don't precache videos (too large), use runtime caching instead
             globPatterns: ['**/*.{js,css,html,ico,png,jpg,webp,avif,svg}'],
-            // Ignore large video files from precaching
             globIgnores: ['**/*.mp4', '**/*.webm'],
             runtimeCaching: [
               {
@@ -51,7 +47,7 @@ export default defineConfig(({ mode }) => {
                   cacheName: 'google-fonts-cache',
                   expiration: {
                     maxEntries: 10,
-                    maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                    maxAgeSeconds: 60 * 60 * 24 * 365,
                   },
                   cacheableResponse: {
                     statuses: [0, 200],
@@ -65,7 +61,7 @@ export default defineConfig(({ mode }) => {
                   cacheName: 'images-cache',
                   expiration: {
                     maxEntries: 100,
-                    maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                    maxAgeSeconds: 60 * 60 * 24 * 30,
                   },
                 },
               },
@@ -76,7 +72,7 @@ export default defineConfig(({ mode }) => {
                   cacheName: 'videos-cache',
                   expiration: {
                     maxEntries: 20,
-                    maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                    maxAgeSeconds: 60 * 60 * 24 * 30,
                   },
                   rangeRequests: true,
                 },
@@ -99,13 +95,11 @@ export default defineConfig(({ mode }) => {
             ],
           },
         }),
-        // Brotli compression
         viteCompression({
           algorithm: 'brotliCompress',
           ext: '.br',
           threshold: 1024,
         }),
-        // Gzip fallback
         viteCompression({
           algorithm: 'gzip',
           ext: '.gz',
@@ -121,7 +115,6 @@ export default defineConfig(({ mode }) => {
         }
       },
       build: {
-        // Optimize chunk splitting for better caching
         rollupOptions: {
           output: {
             manualChunks: {
@@ -130,7 +123,6 @@ export default defineConfig(({ mode }) => {
             },
           },
         },
-        // Increase chunk size warning limit
         chunkSizeWarningLimit: 1000,
       },
     };

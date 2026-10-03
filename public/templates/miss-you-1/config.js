@@ -1,6 +1,3 @@
-/* ==========================================
-   Configuration
-   ========================================== */
 const __runtime = (() => {
   try {
     const raw = new URLSearchParams(window.location.search).get("config");

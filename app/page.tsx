@@ -16,7 +16,6 @@ export default async function Home(){
  return <main className="premium-site">
   <PublicNavbar user={u} />
 
-
   <section className="hero premium-container">
    <div className="hero-copy">
     <div className="eyebrow"><span>✦</span> DIGITAL EXPERIENCES FOR REAL FEELINGS</div>

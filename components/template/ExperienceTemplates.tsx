@@ -61,9 +61,6 @@ export function getMissYouDefaults() {
 }
 
 function MasterProposalTemplate({ content, editorMode, onElementSelect, onHistoryState }: { content: BirthdayContent; editorMode?: boolean; onElementSelect?: (selection: { key: string; label: string; index?: number; value?: string; kind?: string }) => void; onHistoryState?: (state: { canBack?: boolean; canForward?: boolean; screen?: string }) => void }) {
-  // The template (a separate Vite app inside the iframe) reads ALL of its content from this config.
-  // It is sent with BB_SITE_CONFIG on request and after every edit; the app re-renders live without
-  // reloading, so the current position in the page is kept while typing.
   const config = React.useMemo(() => {
     const { genericEdits: _ignored, ...rest } = { ...getMasterProposalDefaults(), ...(content.templateConfig || {}) } as Record<string, unknown>;
     return rest;

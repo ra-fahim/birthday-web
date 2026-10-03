@@ -3,12 +3,6 @@ import { sendEmail } from '@/lib/mail';
 
 export const runtime = 'nodejs';
 
-// Public endpoint used by the Master Proposal (Valentine) template's
-// "Send Ticket" button. The template runs in a sandboxed iframe on the
-// visitor's device and cannot hold SMTP credentials, so it posts the ticket
-// here and the server sends it automatically over the same SMTP connection
-// used elsewhere in the app (see lib/mail.ts).
-
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_LEN = 20000;
 

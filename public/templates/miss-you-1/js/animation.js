@@ -1,7 +1,3 @@
-// ===========================
-// Animation Timing
-// ===========================
-
 function nextFrame() {
   return new Promise((resolve) => requestAnimationFrame(resolve));
 }
@@ -43,10 +39,6 @@ function startFrameLoop(step, interval = 16) {
   };
 }
 
-// ===========================
-// Animation Config
-// ===========================
-
 const AnimationConfig = {
   SCALE_FACTOR: 0.95,
   SEED_MOVE_SPEED: 2,
@@ -60,10 +52,6 @@ const AnimationConfig = {
   FALLING_SPAWN_CHANCE: 0.22,
   TIME_UPDATE_INTERVAL: 1000
 };
-
-// ===========================
-// Animation Phase Functions
-// ===========================
 
 function getCanvasPoint(event, canvas) {
   const source = event.touches ? event.touches[0] : event;
@@ -159,10 +147,6 @@ function startHeartJumpAnimation(tree) {
 
   document.addEventListener("visibilitychange", handleVisibilityChange);
 }
-
-// ===========================
-// Typewriter Effect
-// ===========================
 
 function charDelay(char, base) {
   if ("…".includes(char)) return base * 12;

@@ -26,7 +26,6 @@ export const BloomGarden: React.FC = () => {
   const [clickCount, setClickCount] = useState(0);
 
   const handlePlant = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Get click position relative to the container
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -35,9 +34,9 @@ export const BloomGarden: React.FC = () => {
       id: Date.now(),
       x,
       y,
-      type: Math.floor(Math.random() * 3), // 0: Flower, 1: Flower2, 2: Heart
+      type: Math.floor(Math.random() * 3),
       color: COLORS[Math.floor(Math.random() * COLORS.length)],
-      rotation: Math.random() * 60 - 30, // Random rotation between -30 and 30 deg
+      rotation: Math.random() * 60 - 30,
     };
 
     setFlowers(prev => [...prev, newFlower]);
@@ -68,7 +67,6 @@ export const BloomGarden: React.FC = () => {
         className="relative w-full h-[400px] bg-white/40 dark:bg-black/20 rounded-xl border border-love-accent/20 dark:border-love-dark-accent/10 shadow-inner overflow-hidden cursor-crosshair touch-none"
         onClick={handlePlant}
       >
-        {/* Grass/Bottom decoration */}
         <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-t from-green-100/30 to-transparent dark:from-green-900/10 pointer-events-none" />
 
         <AnimatePresence>

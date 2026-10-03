@@ -30,11 +30,10 @@ export const LoveNotes: React.FC = () => {
   const [isShaking, setIsShaking] = useState(false);
 
   const pullNote = () => {
-    if (currentNote) return; // Don't pull if one is already open
+    if (currentNote) return;
     
     setIsShaking(true);
     
-    // Shake animation duration
     setTimeout(() => {
       setIsShaking(false);
       const randomNote = NOTES[Math.floor(Math.random() * NOTES.length)];
@@ -59,7 +58,6 @@ export const LoveNotes: React.FC = () => {
 
       <div className="relative h-[400px] flex items-center justify-center">
         
-        {/* The Jar Container */}
         <motion.div
           className="relative cursor-pointer group"
           animate={isShaking ? { 
@@ -71,12 +69,9 @@ export const LoveNotes: React.FC = () => {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          {/* Jar Body Visualization */}
           <div className="w-48 h-64 border-4 border-love-accent/30 dark:border-love-dark-accent/30 rounded-[2rem] bg-white/20 dark:bg-white/5 backdrop-blur-sm relative overflow-hidden flex items-center justify-center shadow-xl">
-             {/* Lid */}
              <div className="absolute -top-4 left-0 right-0 h-8 bg-love-accent/50 dark:bg-love-dark-accent/50 rounded-t-lg mx-4" />
              
-             {/* Paper Notes inside */}
              {!currentNote && (
                <>
                  <div className="absolute bottom-4 left-6 w-12 h-8 bg-love-pink/50 dark:bg-love-dark-accent/20 rotate-12 rounded shadow-sm" />
@@ -86,7 +81,6 @@ export const LoveNotes: React.FC = () => {
                </>
              )}
              
-             {/* Label */}
              <div className="bg-love-card dark:bg-love-dark-card px-4 py-2 rounded shadow border border-love-accent/20">
                <span className="font-serif italic text-love-text dark:text-love-dark-text">For You</span>
              </div>
@@ -99,7 +93,6 @@ export const LoveNotes: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* The Note Overlay */}
         <AnimatePresence>
           {currentNote && (
             <motion.div
@@ -109,7 +102,6 @@ export const LoveNotes: React.FC = () => {
               transition={{ type: "spring", damping: 15 }}
               className="absolute z-20 w-72 h-72 md:w-80 md:h-80 bg-love-card dark:bg-love-dark-card shadow-2xl rounded-sm p-8 flex flex-col items-center justify-center transform rotate-2 border border-love-accent/10 dark:border-love-dark-accent/10"
             >
-              {/* Tape Effect */}
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-24 h-6 bg-love-accent/20 dark:bg-love-dark-accent/20 opacity-50 rotate-1" />
 
               <Heart className="w-8 h-8 text-love-accent dark:text-love-dark-accent mb-6 opacity-80" fill="currentColor" />
@@ -138,7 +130,6 @@ export const LoveNotes: React.FC = () => {
           )}
         </AnimatePresence>
         
-        {/* Backdrop for note */}
         <AnimatePresence>
            {currentNote && (
              <motion.div 

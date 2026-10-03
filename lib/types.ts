@@ -39,7 +39,6 @@ export const defaultContent:BirthdayContent={
  language:'en',translations:{},googlePhotosEnabled:false
 };
 
-/** Default receiver / sender for the Wedding Proposal template (new sites and "Reset"). */
 export const WEDDING_PROPOSAL_DEFAULT_NAME='Anarkoli';
 export const WEDDING_PROPOSAL_DEFAULT_SENDER='Salim';
 export function weddingProposalDefaults():Partial<BirthdayContent>{

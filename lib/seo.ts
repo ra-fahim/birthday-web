@@ -4,9 +4,6 @@ import { normalizeAppUrl } from '@/lib/app-url';
 export const SITE_NAME = 'Wishes';
 export const SITE_URL = normalizeAppUrl(process.env.NEXT_PUBLIC_APP_URL) || 'http://localhost:3000';
 
-// ---- Keyword groups -------------------------------------------------------
-// English, Banglish and Bangla spellings, grouped by occasion. Used for the
-// <meta keywords> tag and to power per-page / per-category descriptions.
 export const KEYWORDS = {
   birthday: [
     'birthday wish', 'birthday wishes', 'happy birthday website', 'birthday wish website', 'birthday surprise website',
@@ -80,7 +77,6 @@ export const CATEGORY_SEO: Record<string, { title: string; description: string; 
 
 type MetaInput = { title: string; description: string; path?: string; keywords?: string[]; noindex?: boolean };
 
-/** Builds consistent metadata (title, description, keywords, canonical, OG, Twitter) for a page. */
 export function pageMeta({ title, description, path = '', keywords = [], noindex = false }: MetaInput): Metadata {
   const url = `${SITE_URL}${path}`;
   const merged = Array.from(new Set([...keywords, ...ALL_KEYWORDS]));

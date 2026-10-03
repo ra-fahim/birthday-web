@@ -3,14 +3,6 @@ import { NextResponse, type NextRequest } from 'next/server';
 const COOKIE = 'bb_session';
 const REFRESH_COOKIE = `${COOKIE}_refresh`;
 
-// Supabase access tokens are short-lived JWTs (usually ~1 hour). Without this,
-// the cookie itself lives for 30 days but the token inside it silently expires,
-// so every request after ~1 hour looks "logged out" and bounces to /login even
-// though the person never actually logged out. This decodes the token's `exp`
-// claim (no signature check needed — we're only deciding whether to refresh,
-// Supabase still validates the token for real on every API call) and, if it's
-// expired or about to expire, swaps in a fresh access/refresh token pair
-// before the request reaches any page or API route.
 function getExpiry(token: string): number | null {
   try {
     const payload = token.split('.')[1];
@@ -26,7 +18,6 @@ async function maintenanceResponse(req: NextRequest): Promise<NextResponse | nul
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return null;
   const { pathname } = req.nextUrl;
-  // Admin routes and auth stay reachable so an admin can always turn maintenance back off.
   if (pathname.startsWith('/admin') || pathname.startsWith('/api') || pathname.startsWith('/login') || pathname.startsWith('/signup')) return null;
   try {
     const r = await fetch(`${url.replace(/\/$/, '')}/rest/v1/settings?select=value&key=eq.maintenance_mode&limit=1`, {
@@ -45,8 +36,6 @@ async function maintenanceResponse(req: NextRequest): Promise<NextResponse | nul
 }
 
 export async function middleware(req: NextRequest) {
-  // Fallback: when the Google callback URL is missing from Supabase's Redirect URLs list,
-  // Supabase sends the person to the Site URL as "/?code=...". Finish the login from there.
   if (req.nextUrl.pathname === '/' && req.nextUrl.searchParams.get('code') && req.cookies.get('bb_google_verifier')) {
     const to = req.nextUrl.clone();
     to.pathname = '/api/auth/google/callback';
@@ -60,10 +49,10 @@ export async function middleware(req: NextRequest) {
 
   const access = req.cookies.get(COOKIE)?.value;
   const refresh = req.cookies.get(REFRESH_COOKIE)?.value;
-  if (!refresh) return res; // never logged in, or fully logged out — nothing to refresh
+  if (!refresh) return res;
 
   const exp = access ? getExpiry(access) : null;
-  const stillValid = exp !== null && exp > Date.now() + 60_000; // 60s safety buffer
+  const stillValid = exp !== null && exp > Date.now() + 60_000;
   if (stillValid) return res;
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -91,8 +80,6 @@ export async function middleware(req: NextRequest) {
     res.cookies.set(COOKIE, d.access_token, opts);
     if (d.refresh_token) res.cookies.set(REFRESH_COOKIE, d.refresh_token, opts);
   } catch {
-    // Network/refresh failure — fall through and let the page's own auth
-    // check handle it (worst case, the person is asked to log in again).
   }
 
   return res;
@@ -100,7 +87,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    // Run on everything except static assets, the public template, and image files.
     '/((?!_next/static|_next/image|favicon.ico|master-template.html|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

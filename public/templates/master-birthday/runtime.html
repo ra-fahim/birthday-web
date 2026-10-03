@@ -16,10 +16,9 @@
     <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
-    <!-- YouTube IFrame Player API (for birthday song) -->
+    
     <script src="https://www.youtube.com/iframe_api"></script>
-    <style>
-        :root {
+    <style>        :root {
             --premium-ease: cubic-bezier(.16, 1, .3, 1);
             --premium-ease-out: cubic-bezier(.2, .8, .2, 1);
             --glass-rim: rgba(255, 255, 255, 0.55);
@@ -28,8 +27,6 @@
 
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:'Quicksand',sans-serif; overflow-x:hidden; color:#4a4a4a; min-height:100vh; }
-
-        /* ── Cinematic film grain over everything (subtle, colour-safe) ── */
         body::before {
             content:'';
             position:fixed; inset:0;
@@ -61,8 +58,6 @@
         .magic-sparkles::after { animation-delay:-4s; transform:rotate(45deg); }
         @keyframes sparkleLayer { 0%{ transform:translateY(0); } 100%{ transform:translateY(-50px); } }
         @keyframes softPulse { 0%,100%{ transform:scale(1); opacity:1; } 50%{ transform:scale(1.08); opacity:0.92; } }
-
-        /* Hidden YouTube player (audio only) */
         #ytPlayerWrap { position:fixed; top:-9999px; left:-9999px; width:1px; height:1px; pointer-events:none; opacity:0; }
         .bb-audio-toggle { position:fixed; right:max(18px, env(safe-area-inset-right)); bottom:max(18px, env(safe-area-inset-bottom)); z-index:10050; width:46px; height:46px; border:1px solid rgba(255,255,255,.72); border-radius:50%; padding:0; background:rgba(40,20,60,.72); color:#fff; font:600 18px 'Quicksand',sans-serif; box-shadow:0 10px 24px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.18); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; }
         .bb-audio-toggle i { pointer-events:none; font-size:18px; line-height:1; }
@@ -155,8 +150,6 @@
         .enter-btn { padding:1rem 2rem; font-size:1.2rem; background:linear-gradient(45deg,#ff69b4,#ff99cc); border:none; border-radius:50px; color:white; cursor:pointer; box-shadow:0 10px 24px -8px rgba(255,105,180,0.6), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -2px 4px rgba(0,0,0,0.12); transition:transform 0.4s var(--premium-ease), box-shadow 0.4s var(--premium-ease); font-family:'Comic Neue',cursive; font-weight:700; text-shadow:1px 1px 2px rgba(0,0,0,0.3); }
         .enter-btn:hover { transform:translateY(-2px) scale(1.06); box-shadow:0 18px 32px -10px rgba(255,105,180,0.75), inset 0 1px 0 rgba(255,255,255,0.6); }
         .enter-btn:active { transform:translateY(0) scale(0.96); }
-
-        /* ── CAKE SCREEN ── */
         .cake-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); backdrop-filter:blur(10px); z-index:800; padding:20px; text-align:center; }
         .cake-screen.show { display:flex; }
 
@@ -269,8 +262,6 @@
         .cake-next-btn { margin-top:20px; padding:12px 30px; background:linear-gradient(45deg,#9b6dff,#ff6dc7); border:none; border-radius:50px; color:white; font-size:1.2rem; cursor:pointer; font-weight:bold; box-shadow:0 12px 26px -10px rgba(155,109,255,0.7), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -2px 4px rgba(0,0,0,0.12); transition:transform 0.4s var(--premium-ease), box-shadow 0.4s var(--premium-ease); display:inline-block; border:2px solid rgba(255,255,255,0.6); }
         .cake-next-btn:hover { transform:translateY(-2px) scale(1.06); box-shadow:0 20px 34px -12px rgba(155,109,255,0.85), inset 0 1px 0 rgba(255,255,255,0.6); }
         .cake-next-btn:active { transform:scale(0.96); }
-
-        /* ── REASONS ── */
         .reasons-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(-45deg,#ffe6e6,#e6e6ff,#ffebf5); background-size:400% 400%; animation:gradientBG 15s ease infinite; z-index:750; padding:20px; }
         .reasons-screen.show { display:flex; }
         .reasons-header h1 { font-family:'Bubblegum Sans',cursive; font-size:clamp(2.5rem,8vw,3.5rem); color:#ff69b4; text-shadow:2px 2px 4px rgba(255,105,180,0.3); margin-bottom:2rem; animation:bounce 1s ease infinite; text-align:center; }
@@ -293,8 +284,6 @@
         .reasons-btn.story-mode { background:linear-gradient(45deg,#9b6dff,#ff6dc7); transform:scale(1.06); animation:pulse 2s infinite; }
         .reasons-btn.story-mode:hover { transform:scale(1.14); }
         @keyframes pulse { 0%,100%{ transform:scale(1.06); } 50%{ transform:scale(1.16); } }
-
-        /* ── PHOTO ── */
         .photo-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; overflow-y:auto; background:linear-gradient(135deg,#ffd1dc 0%,#e6e6fa 25%,#ffefd5 50%,#e6e6fa 75%,#ffd1dc 100%); background-size:400% 400%; animation:gradientFlow 15s ease infinite; z-index:700; padding:80px 20px 40px; }
         .photo-screen.show { display:block; }
         @keyframes gradientFlow { 0%{ background-position:0% 50%; } 50%{ background-position:100% 50%; } 100%{ background-position:0% 50%; } }
@@ -312,8 +301,6 @@
         .photo-next-btn { display:block; margin:30px auto; padding:12px 30px; background:linear-gradient(45deg,#9b6dff,#ff6dc7); border:none; border-radius:50px; color:white; font-size:1.2rem; cursor:pointer; font-weight:bold; box-shadow:0 12px 26px -10px rgba(155,109,255,0.7), inset 0 1px 0 rgba(255,255,255,0.5); transition:transform 0.4s var(--premium-ease), box-shadow 0.4s var(--premium-ease); border:2px solid rgba(255,255,255,0.7); text-align:center; max-width:300px; }
         .photo-next-btn:hover { transform:translateY(-2px) scale(1.06); box-shadow:0 20px 34px -12px rgba(155,109,255,0.85); }
         .photo-next-btn:active { transform:scale(0.96); }
-
-        /* ── VIDEO ── */
         .video-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; overflow-y:auto; background:linear-gradient(135deg,#a8edea 0%,#fed6e3 100%); z-index:600; padding:60px 20px 40px; }
         .video-screen.show { display:flex; }
         .video-screen h2 { font-family:'Dancing Script',cursive; font-size:2.5rem; color:#b0306e; text-shadow:2px 2px 8px rgba(255,255,255,0.8); margin-bottom:2rem; text-align:center; }
@@ -327,8 +314,6 @@
         .video-next-btn { display:block; margin:40px auto 20px; padding:12px 30px; background:linear-gradient(45deg,#ff69b4,#ff99cc); border:none; border-radius:50px; color:white; font-size:1.2rem; cursor:pointer; font-weight:bold; box-shadow:0 12px 26px -10px rgba(255,105,180,0.6), inset 0 1px 0 rgba(255,255,255,0.5); transition:transform 0.4s var(--premium-ease), box-shadow 0.4s var(--premium-ease); border:2px solid rgba(255,255,255,0.7); max-width:300px; }
         .video-next-btn:hover { transform:translateY(-2px) scale(1.06); box-shadow:0 20px 34px -12px rgba(255,105,180,0.85); }
         .video-next-btn:active { transform:scale(0.96); }
-
-        /* ── LETTER ── */
         .letter-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#fdfbfb 0%,#ebedee 100%); z-index:500; padding:20px; box-sizing:border-box; overflow-y:auto; }
         .letter-screen.show { display:flex; }
         .letter-container { width:100%; max-width:720px; max-height:calc(100svh - 32px); overflow-y:auto; -webkit-overflow-scrolling:touch; box-sizing:border-box; background:linear-gradient(145deg, rgba(255,255,255,0.98), rgba(255,250,252,0.94)); padding:clamp(1.25rem,5vw,2rem); border-radius:30px; box-shadow:0 30px 55px -20px rgba(120,80,140,0.4), inset 0 1px 0 rgba(255,255,255,0.9); text-align:center; margin:auto; display:none; border:1px solid rgba(255,255,255,0.7); }
@@ -361,13 +346,11 @@
             .letter-content{font-size:clamp(.98rem,4.2vw,1.2rem);}
             .letter-content p{font-size:clamp(1.45rem,6.4vw,2rem);}
         }
-        /* ── SECRET ── */
         .secret-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#ffe6f0,#ffe0f0); z-index:550; padding:20px; box-sizing:border-box; overflow-y:auto; -webkit-overflow-scrolling:touch; }
         .secret-screen.show { display:flex; }
         .secret-container { max-width:600px; width:100%; box-sizing:border-box; background:linear-gradient(145deg, rgba(255,255,255,0.92), rgba(255,250,253,0.86)); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); padding:clamp(1.25rem,5vw,2rem); border-radius:30px; box-shadow:0 28px 50px -18px rgba(120,80,140,0.45), inset 0 1px 0 rgba(255,255,255,0.85); text-align:center; border:1px solid rgba(255,255,255,0.75); margin:auto; }
         .secret-photo { width:100%; max-height:min(400px,45vh); object-fit:cover; border-radius:24px; box-shadow:0 18px 34px -14px rgba(120,80,140,0.5); cursor:pointer; transition:transform 0.4s var(--premium-ease); border:3px solid white; animation:photoReveal 0.8s ease-out; display:block; }
         .secret-photo:hover { transform:scale(1.02); }
-        /* ===== Name puzzle screen (Letter -> Puzzle -> Secret) ===== */
         .pz-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#ffe6f0,#ffe0f0); z-index:550; padding:20px; box-sizing:border-box; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; }
         .pz-screen.show { display:flex; }
         .pz-orb { position:absolute; border-radius:50%; filter:blur(70px); pointer-events:none; opacity:.35; animation:pzOrb 18s ease-in-out infinite; }
@@ -436,8 +419,6 @@
         .soulmate-btn:active { transform:scale(0.96); }
         .bb-editor-link-edit { display:none; margin-top:12px; padding:8px 12px; border:1px dashed rgba(155,109,255,.65); border-radius:999px; background:rgba(255,255,255,.82); color:#6b4fb3; font:700 11px 'Quicksand',sans-serif; cursor:pointer; text-decoration:none; }
         body.bb-editor-active .bb-editor-link-edit { display:inline-flex; align-items:center; justify-content:center; }
-
-        /* ── LIGHTBOX ── */
         .lightbox { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10001; justify-content:center; align-items:center; padding:20px; perspective:1200px; touch-action:pan-y; }
         .lightbox.show { display:flex; }
         .lightbox img { max-width:90%; max-height:90%; border-radius:10px; border:3px solid white; box-shadow:0 0 50px rgba(255,255,255,0.3); transform-style:preserve-3d; touch-action:none; user-select:none; -webkit-user-drag:none; }
@@ -455,11 +436,7 @@
             .photo-container { grid-template-columns:1fr; }
             .video-grid { grid-template-columns:1fr; }
         }
-        /* Until the real birthday date arrives from the host, don't paint the countdown:
-           otherwise a past date flashes the countdown screen before jumping to Greeting. */
         html.bb-wait-content #countdownScreen { visibility: hidden !important; }
-    
-        /* ===== Unified, clearly-clickable buttons (solid body + 3D edge + icon; no hazy overlay) ===== */
         .enter-btn, .reasons-btn, .cake-next-btn, .photo-next-btn, .video-next-btn, .letter-return-btn, .soulmate-btn, .pz-btn, .mic-enable-btn {
             border:2px solid rgba(255,255,255,.95) !important;
             text-shadow:none !important;
@@ -496,8 +473,7 @@
         .mic-enable-btn { --bb-btn-icon:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2.2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M12%202a3%203%200%200%200-3%203v7a3%203%200%200%200%206%200V5a3%203%200%200%200-3-3Z'/%3E%3Cpath%20d='M19%2010v2a7%207%200%200%201-14%200v-2M12%2019v3'/%3E%3C/svg%3E"); }
         .table-knife { filter:drop-shadow(0 3px 4px rgba(0,0,0,.35)); }
 </style>
-    <script>
-    (function(){try{
+    <script>    (function(){try{
         var q=new URLSearchParams(location.search);
         if(q.get('edit')==='1'||q.get('bbEdit')==='1'||q.get('demo')==='1'||q.get('bbDemo')==='1'||q.get('catalog')==='1'||q.get('bbCatalog')==='1') return;
         document.documentElement.classList.add('bb-wait-content');
@@ -512,7 +488,6 @@
         <source src="https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- Hidden YouTube player used for the birthday song (audio only) -->
     <div id="ytPlayerWrap" aria-hidden="true">
         <div id="ytPlayer"></div>
     </div>
@@ -862,9 +837,7 @@
         </div>
     </div>
 
-    <script>
-        // EmailJS initialization
-        (function() {
+    <script>        (function() {
             try { if (typeof emailjs !== "undefined") emailjs.init("MV90CKf_ZoIgGoU9w"); } catch (_) {}
         })();
 
@@ -885,14 +858,10 @@
         if (BB_EDITOR_MODE) {
             document.documentElement.dataset.bbEditor = '1';
             document.body.classList.add('bb-editor-active');
-            // Edit mode starts on the Countdown screen and uses the current/default
-            // configured date-time. It is intentionally not a 10-second simulation.
             window.__BB_EDITOR_COUNTDOWN_END_AT = null;
             window.__BB_EDITOR_COUNTDOWN_COMPLETED = false;
         }
         window.__BB_PREVIEW_MODE = BB_PREVIEW_MODE;
-        // Preview is also deterministic: it always starts from 10 seconds.
-        // Only the published/live page uses the real birthday clock.
         if (BB_PREVIEW_MODE) {
             window.__BB_PREVIEW_COUNTDOWN_END_AT = null;
             window.__BB_PREVIEW_COUNTDOWN_COMPLETED = false;
@@ -902,10 +871,6 @@
             CONFIG.name = decodeURIComponent(urlParams.get('name'));
         }
 
-        /* ─────────────────────────────────────────────────────────────
-           YouTube IFrame Player — hidden audio for the birthday song
-           Video: https://youtu.be/73Hld4gpaPA
-           ───────────────────────────────────────────────────────────── */
         const YT_VIDEO_ID = 'AfybMbBSwaA';
         let ytPlayer = null;
         let ytPlayerReady = false;
@@ -951,7 +916,6 @@
                 ytPlayer.setVolume(100);
                 ytPlayer.playVideo();
             } catch (e) {
-                // browser blocked it — will retry on next user tap
             }
         }
 
@@ -969,8 +933,6 @@
                 try { ytPlayer.pauseVideo(); } catch (e) {}
             }
         }
-
-        /* ───────────────────────────────────────────────────────────── */
 
         function createFloatingElement() {
             const container = document.getElementById('floatingElements');
@@ -1207,9 +1169,6 @@
         function __bbActivateScreen(id, displayMode='flex') {
             const el = document.getElementById(id);
             if (!el) return;
-            // Switch every OTHER screen fully off. After the fade-out a screen used to stay
-            // in the page at opacity 0 with pointer-events on, covering the new screen so
-            // none of its buttons/candles/cards could be clicked (live site + Preview).
             ['countdownScreen','greetingScreen','cakeScreen','reasonsScreen','photoScreen','videoScreen','letterScreen','puzzleScreen','secretScreen'].forEach(other => {
                 if (other === id) return;
                 const o = document.getElementById(other);
@@ -1333,14 +1292,9 @@
             typeNextChar();
         }
 
-        // Audio: no visible button. First user interaction unlocks audio context,
-        // and every subsequent autoplay attempt (birthday track) succeeds on top of that.
         function handleGlobalClick() {
             if (!audioAllowed) audioAllowed = true;
 
-            // In demo mode, soundtrack music is deliberately locked until the
-            // 10-second demo countdown finishes. This prevents wishing/track
-            // audio from leaking into the countdown screen.
             if (window.__BB_FORCE_DEMO || window.__BB_CATALOG_MODE) return;
 
             const now = new Date();
@@ -1382,12 +1336,6 @@
             return zonedDateTimeToDate(safeDate, time, state?.timezone || 'Asia/Dhaka');
         }
 
-        // A published birthday has three states:
-        // 1) countdown until the configured target,
-        // 2) greeting for exactly 24 hours after the target,
-        // 3) the next year's countdown after that 24-hour window ends.
-        // The first saved year is treated as the anchor; after the 24-hour
-        // greeting window, the cycle advances one year at a time.
         function getBirthdayCycle(date = new Date()) {
             const configuredYear = Number(normalizeBirthdayDate(state?.birthdayDate).slice(0, 4));
             let targetYear = Number.isFinite(configuredYear) && configuredYear > 0 ? configuredYear : new Date().getFullYear();
@@ -1494,8 +1442,6 @@
         }
 
         function updateCountdown() {
-            // The authoritative countdown implementation lives inside the
-            // state bridge below so it can access the current editor content.
             try {
                 return window.__BB_REALTIME_COUNTDOWN_HANDLER?.();
             } catch (_) {}
@@ -1521,7 +1467,6 @@
 
         function showWishMoment() {
             const now = new Date();
-            // Never start soundtrack audio automatically inside a demo/preview.
             if (!window.__BB_FORCE_DEMO && !window.__BB_PREVIEW_MODE && !window.__BB_CATALOG_MODE && isBirthday(now) && !birthdayAudioPlayed) {
                 playBirthdayAudio();
             }
@@ -1547,7 +1492,6 @@
         }
 
         function requestMicAuto() {
-            // Catalog demos stay permission-free, but live/preview birthday sites can request the microphone.
             if (window.__BB_FORCE_DEMO || micAutoRequested || cakeCut || candlesBlown === totalCandles) return;
             micAutoRequested = true;
             startMicrophone();
@@ -1569,9 +1513,6 @@
             const today = new Date();
             const dateKey = getDateKey(today);
 
-            // Template demos are always fresh interactive showcases. Never
-            // inherit candle/cake state from a previous demo session or from
-            // another standalone render in the same browser.
             if (window.__BB_FORCE_DEMO) {
                 cakeCut = false;
                 candlesBlown = 0;
@@ -1695,7 +1636,6 @@
         }
 
         function saveState() {
-            // Demo state intentionally stays in-memory so every demo opens fresh.
             if (window.__BB_FORCE_DEMO) return;
             const today = new Date();
             const dateKey = getDateKey(today);
@@ -1783,7 +1723,7 @@
                         for (let i = 0; i < dataArray.length; i++) { sum += dataArray[i]; if (dataArray[i] > peak) peak = dataArray[i]; }
                         const avg = sum / dataArray.length;
                         const nowMs = Date.now();
-                        const loudEnough = avg > 18 || peak > 95; // AGC is off now, so thresholds are a little lower
+                        const loudEnough = avg > 18 || peak > 95;
                         if (loudEnough && nowMs - lastBlowAt > 500) {
                             lastBlowAt = nowMs;
                             blowMultipleCandles(2 + Math.floor(Math.random() * 2));
@@ -2099,8 +2039,6 @@
         }
 
         function onCutPointerUp() {
-            // A tap/pointer-up must NEVER cut the cake by itself. The cake is only
-            // cut when the knife is active and the visitor drags it across the cake.
             if (!cutDragActive) return;
             cutDragActive = false;
             if (!cakeCut) resetSliceLine();
@@ -2143,9 +2081,6 @@
 
             if (targetIndex < 0) return;
             if (targetIndex >= reasons.length) {
-                // These used to call isEditorMode / editorShowScreen, which don't exist, so the
-                // last "Click Here" threw an error and never reached the photo screen.
-                // The editor arrows handle their own navigation; live + Preview move on here.
                 if (window.__BB_EDITOR_MODE && !window.__BB_PREVIEW_MODE) return;
                 goToPhotoScreen();
                 return;
@@ -2162,9 +2097,6 @@
             document.getElementById('reasonCounter').textContent =
                 `Reason ${targetIndex + 1} of ${reasons.length}`;
 
-            // currentReasonIndex stores the next reason that the live button
-            // should reveal. This also lets the editor Previous/Next buttons
-            // move one reason at a time without losing saved edits.
             currentReasonIndex = targetIndex + 1;
 
             const btn = document.getElementById('reasonsBtn');
@@ -2278,9 +2210,6 @@
             }, 900);
         };
 
-        // Letter -> Name puzzle -> Secret photo.
-        // If the puzzle is switched off (or the name has fewer than 2 letters)
-        // the letter button goes straight to the secret photo as before.
         let __bbNavLock = false;
         function __bbNavUnlockLater() { setTimeout(function () { __bbNavLock = false; }, 700); }
         window.goToPuzzleScreen = function() {
@@ -2316,15 +2245,8 @@
             window.open('https://www.instagram.com/rafahimn', '_blank');
         };
 
-        // IMPORTANT: do not declare `function confetti` here. A global function declaration
-        // replaces window.confetti (the canvas-confetti library), then calls itself forever
-        // ("Maximum call stack size exceeded") and aborts candle-blowing / cake-cutting code.
-        // If the library failed to load (blocked CDN), fall back to a harmless no-op instead.
         if (typeof window.confetti !== 'function') { window.confetti = function () {}; }
 
-        // Countdown scheduling is initialized after the runtime state exists.
-        // This guard keeps the early bootstrap script from aborting before the
-        // state/config bridge (declared in the next script block) is ready.
         try { if (typeof updateCountdown === 'function') updateCountdown(); } catch (_) {}
 
         window.addEventListener('beforeunload', function() {
@@ -2335,27 +2257,16 @@
         });
     </script>
 
-<script>
-(function () {
+<script>(function () {
   'use strict';
   const DEFAULT = {"recipientName":"Anarkoli","senderName":"","age":17,"birthdayDate":"2030-01-08","birthdayTime":"00:00","timezone":"Asia/Dhaka","pageTitle":"Something's Coming 💫","browserTitle":"Loading... 💫","ogTitle":"Something's Coming 💫","ogDescription":"Tap to open when the time is right ✨","ogImage":"","customSlug":"","countdown":{"title":"Something special is unlocking...⌛","message":"⏰ Something is coming soon...","audioUrl":"https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3","audioEnabled":true},"wishingAudioUrl":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","greeting":{"heading":"Happy Birthday Anarkoli..❤️🎂💫","text":"Hey You Know What! You're the most adorable human i ever met! 💖","enterButton":"Click to enter your world 💕"},"cake":{"cakeText":"happy","birthdayText":"birthday","recipientName":"Anarkoli","ageCandleCount":24,"wishTitle":"Close your eyes and make a wish...","wishSubtitle":"Then blow out the candles 🕯️","micHint":"🎤 Blow into your mic to blow out the candles, or tap them","cakeStatus":"🎉 Cake cut! Happy Birthday! 🎉","cutInstruction":"🔪 Press and drag anywhere on the cake — cut it your way","nextButton":"Enter your storyline 💫","microphoneEnabled":true,"soundEffects":true,"vibration":true},"reasons":{"heading":"Happy birthday princess 👑","note":"","items":[{"id":"reason-1","text":"You're such a kind and wonderful person, and I feel lucky to share such a good bond with you.","emoji":"🌟"},{"id":"reason-2","text":"May your day be filled with love, laughter, and endless joy.","emoji":"💗"},{"id":"reason-3","text":"Wishing you success, happiness, and everything your heart desires.","emoji":"💕"},{"id":"reason-4","text":"Stay the amazing girl you are—always spreading positivity around. Have the happiest year ahead! 🥳","emoji":"🌟"}],"buttonText":"Click Here... 💕","finalButtonText":"You're the BESTEST ! 💖"},"memories":{"heading":"The Beautiful Moments ","subtitle":"Every moment spent with you has been magical. Let's cherish these precious memories Anarkoli...","nextButton":"Again Your Storylane 🎥","items":[{"id":"memory-1","url":"https://picsum.photos/seed/anime1/800/600","title":"A Magical Reflection 💖","caption":"A reflection of pure grace, elegance, and unmatched beauty. 🌹👑","date":"A Magical Reflection 💖","alt":"Anime 1"},{"id":"memory-2","url":"https://picsum.photos/seed/anime2/800/600","title":"Lost in Anime Lore","caption":"May your journey ahead be filled with happiness, success, and endless smiles😊💕","date":"Lost in Anime Lore","alt":"Anime 2"},{"id":"memory-3","url":"https://picsum.photos/seed/anime3/800/600","title":"Her Smile Says It All","caption":"You're truly one of the sweetest girls I know, and I feel lucky to have a person like you❤️","date":"Her Smile Says It All","alt":"Anime 3"},{"id":"memory-4","url":"https://picsum.photos/seed/anime4/800/600","title":"One More Beautiful Memory","caption":"A little extra memory to make this story even more special. ✨💖","date":"One More Beautiful Memory","alt":"Anime 4"}]},"videos":{"title":"A Special Video Message","nextButton":"See your letter 💌","items":[{"id":"video-1","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4","title":"Happy Birthday Anarkoli ❤️🎂","caption":"A little birthday video message just for this special story. 🎥💖","poster":"","alt":"Happy Birthday video"},{"id":"video-2","source":"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4","title":"Another Special Memory 🎬","caption":"A second demo video slot so you can test adding and editing more than one video.","poster":"","alt":"Second demo video"}]},"soundtrack":{"items":[{"id":"track-1","title":"Birthday wishing audio","artist":"","sourceType":"youtube","url":"https://youtube.com/shorts/AfybMbBSwaA?si=1DXBJcLnIL-89zya","cover":""}]},"letter":{"title":"A Letter for My favourite chapter..  💌","paragraphs":["Every laugh, every chat, and every moment we once shared will always hold a special place in my heart.💫","Even though time and things have changed, I'm still grateful for the bond we had and the beautiful energy you brought into my life.","On your birthday, I sincerely wish you endless happiness, peace, and success in everything you do.🌸","You deserve all the joy in the world—keep shining as you always have.✨","Happy Birthday💝"],"signature":"","buttonText":"Again, Happy Birthday Anarkoli.."},"puzzle":{"enabled":true,"word":"","name":"","badge":"Word Puzzle","title":"Arrange the Secret Word","subtitle":"Rearrange the letters below to reveal the hidden word.","hint":"","hintButton":"Hint","resetButton":"Reset","lettersLabel":"Letters","wrongMessage":"✖ Not quite right — the letters will return","resetMessage":"↻ Letters reshuffled — try again!","winBadge":"Name Revealed","winTitle":"Happy Birthday","winMessage":"Wishing you the most magical day,\n{name}\nMay this year bring you everything your heart desires — love, laughter, and dreams fulfilled. 💖","continueButton":"Continue"},"secret":{"image":"https://picsum.photos/seed/anime4/800/600","imageAlt":"Secret Memory","buttonText":"See Your Friend","buttonIcon":"instagram","socialPlatform":"Instagram","socialUrl":"https://www.instagram.com/rafahimn"},"theme":{"main":"#ff69b4","secondary":"#9b6dff","accent":"#d4145a","button":"#ff69b4","text":"#4a4a4a","glow":"#ffb6d9","overlay":"linear-gradient(135deg, rgba(255,192,203,0.3), rgba(147,112,219,0.3))","backgroundImage":"","backgroundVideo":"https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp4","mode":"light","fontPreset":"original","animationIntensity":"full"},"effects":{"butterflies":true,"flowers":true,"hearts":true,"sparkles":true,"customCursor":true,"confetti":true,"smoke":true,"soundEffects":true,"vibration":true,"microphone":true}};
-  // Reset/default target is controlled by lib/master-birthday.ts (2030-01-08).
   DEFAULT.birthdayDate = '2030-01-08';
   DEFAULT.birthdayTime = '00:00';
   const BB_RUNTIME_PARAMS = new URLSearchParams(location.search);
   window.__BB_CATALOG_MODE = BB_RUNTIME_PARAMS.get('catalog') === '1' || BB_RUNTIME_PARAMS.get('bbCatalog') === '1';
   let state = JSON.parse(JSON.stringify(DEFAULT));
-  // The countdown helpers (getConfiguredBirthdayTarget / getBirthdayCycle / updateCountdown)
-  // live in the page's first script, outside this closure. Without this bridge they throw
-  // "state is not defined", the error is swallowed, and the countdown stays at 00:00:00:00
-  // on the editor canvas, the preview and the published website.
   try { Object.defineProperty(window, 'state', { configurable: true, get: function(){ return state; } }); } catch (_) {}
   try { window.zonedDateTimeToDate = zonedDateTimeToDate; } catch (_) {}
-  // Same bridge for the other closure-scoped values that the first script reads.
-  // Pause the simulated 10-second countdown (Preview / Demo) while this template is scrolled
-  // out of view or the tab is hidden. Without this the timer keeps running off-screen, so
-  // scrolling back finds the Greeting already open instead of the countdown. The real
-  // published birthday clock is not touched.
   (function(){
     var inView=true, last=Date.now();
     try{
@@ -2366,7 +2277,7 @@
     setInterval(function(){
       var now=Date.now(), dt=now-last; last=now;
       if(inView && !document.hidden) return;
-      if(dt>1000) dt=250; // timer throttling in background tabs: don't over-shift
+      if(dt>1000) dt=250;
       try{
         if(window.__BB_PREVIEW_MODE && !window.__BB_PREVIEW_COUNTDOWN_COMPLETED && window.__BB_PREVIEW_COUNTDOWN_END_AT) window.__BB_PREVIEW_COUNTDOWN_END_AT+=dt;
         if(window.__bbShiftDemoTarget) window.__bbShiftDemoTarget(dt);
@@ -2384,10 +2295,7 @@
   let currentTrackIndex = 0;
   let bbSiteKey = '';
   let bgAudio = null;
-  // Catalog previews are always silent. Demo mode can opt into audio explicitly;
-  // published experiences default to music ON.
   let musicEnabled = !window.__BB_FORCE_DEMO && !window.__BB_EDITOR_MODE && !window.__BB_CATALOG_MODE;
-  // Editor mode is silent; Preview is interactive and can use the configured audio.
 
   let spotifyFrame = null;
   let youtubeFrame = null;
@@ -2541,8 +2449,6 @@
     setText('#countdownScreen .countdown-title', state.countdown.title || DEFAULT.countdown.title);
     setText('#countdownMessage', state.countdown.message || '⏰ Something is coming soon...');
     const ca = q('#countdownAudio');
-    // Countdown audio follows the configured setting on the live site, but is
-    // forcibly muted in demo/preview mode so opening a template never creates sound.
     if (ca) ca.muted = !state.countdown.audioEnabled || !!window.__BB_CATALOG_MODE || (!!window.__BB_FORCE_DEMO && !musicEnabled) || (!!window.__BB_EDITOR_MODE && !window.__BB_PREVIEW_MODE);
   }
 
@@ -2789,11 +2695,6 @@
     const link=q('#secretButtonLink'); if(link){link.title=String(state.secret.socialUrl||'');link.setAttribute('data-bb-value',String(state.secret.socialUrl||''));}
   }
 
-
-  // ===== Name puzzle (Letter -> Puzzle -> Secret) =====================
-  // Owned by this runtime so Edit / Preview / Live / Demo all share one flow.
-  // Navigation helpers (goToPuzzleScreen / goToSecretScreen) live in the first
-  // script block; they call window.__bbPuzzle.enter() when the screen opens.
   const PZ_MAX = 20;
   let PZ_MARK, PZ_ALNUM, PZ_VIRAMA;
   try { PZ_MARK = new RegExp('[\\p{M}\\u200c\\u200d]', 'u'); PZ_ALNUM = new RegExp('[\\p{L}\\p{N}]', 'u'); }
@@ -2810,18 +2711,15 @@
     }
     return out;
   }
-  // The answer can be ANY word. Priority: puzzle.word -> (legacy) puzzle.name -> recipient name.
   function pzRawName() {
     return String(state.puzzle?.word || '').trim() || String(state.puzzle?.name || '').trim() || String(state.recipientName || '').trim() || String(state.cake?.recipientName || '').trim();
   }
   function pzTrim(v) { v = String(v || ''); return v.replace(/[\s.\u2026\u00b7,!?\-_~]+$/g, '') || v; }
   function pzDisplayWord() { return pzTrim(pzRawName()); }
-  // {name} on the success page = the recipient (or legacy puzzle name); {word} = the puzzle answer.
   function pzDisplayName() {
     return pzTrim(String(state.puzzle?.name || '').trim() || String(state.recipientName || '').trim() || String(state.cake?.recipientName || '').trim() || pzRawName());
   }
   const PZ_OLD_DEFAULT_HINT = '\u2726 Hint: A name that shines brighter than gold \u2726';
-  // Auto hint: built from the word itself, so any word gets a useful hint.
   function pzAutoHint() {
     const l = pz.target && pz.target.length ? pz.target : pzLetters();
     if (!l.length) return '';
@@ -2878,7 +2776,6 @@
   function pzActivateKey(fn) { return e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } }; }
   function pzRender() {
     const slotsEl = q('#pzSlots'), tilesEl = q('#pzTiles'); if (!slotsEl || !tilesEl) return;
-    // Balanced rows: one row when it fits, otherwise split evenly (e.g. 8 -> 4+4, 12 -> 6+6).
     try {
       const n = pz.slots.length, wide = window.matchMedia('(min-width:600px)').matches, one = wide ? 8 : 5;
       const rows = Math.max(1, Math.ceil(n / one));
@@ -2911,7 +2808,6 @@
       }
       tilesEl.appendChild(t);
     });
-    // Every letter box / tile opens the "Puzzle word" edit box while editing.
     qa('#pzSlots .pz-slot, #pzTiles .pz-tile').forEach(el => el.setAttribute('data-bb-key', 'mb.puzzle.word'));
     try { markEditableTargets(); } catch (_) {}
   }
@@ -3018,7 +2914,6 @@
     set('#pzWinBadge', p.winBadge); set('#pzWinTitle', p.winTitle); set('#pzContinueBtn', p.continueButton);
     pzBuildWinMessage();
     q('#pzEditorNote')?.classList.toggle('show', !!window.__BB_EDITOR_MODE && p.enabled === false);
-    // If the name changed (editor live update) rebuild the board for the new name.
     const letters = pzLetters();
     if (letters.join('|') !== pz.sig || !pz.tiles.length) { pzReset(letters); }
     set('#pzHint', pzHintLine());
@@ -3053,16 +2948,12 @@
     if(window.__BB_EDITOR_MODE && !window.__BB_PREVIEW_MODE){ musicEnabled=false; syncAudioToggle(); return; }
     musicEnabled = !!enabled;
     if(!musicEnabled) {
-      // Explicitly clearing these guards lets a later user ON action resume
-      // the existing player instead of leaving it permanently marked as played.
       birthdayAudioPlayed = false;
       pendingPlay = false;
       countdownAudioPlayed = false;
       try{window.pauseBirthdayAudio?.();}catch(_){}
       try{const ca=q('#countdownAudio'); if(ca){ ca.pause(); ca.muted=true; }}catch(_){}
     } else {
-      // During the 10-second demo countdown, resume the countdown audio only
-      // if the toggle is turned back on while still inside its last 10 seconds.
       try{
         const ca=q('#countdownAudio');
         const now=Date.now();
@@ -3096,8 +2987,6 @@
     if(type==='spotify'){
       const src=spotifyEmbed(track.url); if(!src)return; spotifyFrame=document.createElement('iframe');spotifyFrame.src=src;spotifyFrame.title='Spotify soundtrack';spotifyFrame.allow='autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';spotifyFrame.style.cssText='position:fixed;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none';document.body.appendChild(spotifyFrame);
     } else if(type==='youtube'){
-      // Do not load/play the YouTube source here. The wishing audio starts only
-      // after the countdown unlocks and only through playBirthdayAudio().
       return;
     } else {
       const direct=safeUrl(track.url); if(direct){ bgAudio.src=direct; bgAudio.load(); }
@@ -3155,44 +3044,24 @@
     if(incoming.birthday && !cfg.birthdayDate){const d=new Date(incoming.birthday);if(!Number.isNaN(d.getTime())){state.birthdayDate=d.toISOString().slice(0,10);state.birthdayTime=d.toTimeString().slice(0,5);}}
     applyBasics();applyTheme();applyEffects();applyCountdown();applyGreeting();applyCake();applyReasons();applyMemories();applyVideos();applyLetter();applyPuzzle();applySecret();applyTrackEngine();markEditableTargets();
     syncAudioToggle();
-    // Published birthday pages start with music enabled and should attempt autoplay
-    // as soon as the configured birthday is already active. Browsers may still block
-    // unmuted autoplay; the persistent icon remains the explicit user-gesture fallback.
     if(!window.__BB_FORCE_DEMO && !window.__BB_PREVIEW_MODE && !window.__BB_EDITOR_MODE && !window.__BB_CATALOG_MODE && getBirthdayCycle(new Date()).inGreetingWindow && !birthdayAudioPlayed){
       setTimeout(()=>{ try{ window.playBirthdayAudio?.(); }catch(_){} }, 0);
     }
-    // Reconcile the visible screen immediately after state arrives. This keeps
-    // a published birthday from briefly showing stale 00s when the birthday is
-    // already inside its 24-hour greeting window.
     if(!demoStarted) setTimeout(()=>{ try{ updateCountdown(); }catch(_){} },0);
     if(demoStarted && !window.__BB_PREVIEW_HOST_MODE) startDemoCountdown();
   }
 
-  // State-aware countdown handler. This must live in the same scope as `state`
-  // and `getBirthdayCycle`; the old implementation was in the first script
-  // block and therefore could not see those lexical variables, which caused
-  // the canvas to remain stuck at 00:00:00:00.
   window.__BB_REALTIME_COUNTDOWN_HANDLER = function(){
 
             if (window.__BB_PARENT_CLOCK_LOCK && (window.__BB_EDITOR_MODE || window.__BB_PREVIEW_MODE)) return;
 
-            // Demo mode owns the countdown completely. The normal annual
-            // birthday clock must never overwrite the demo's 10-second timer.
             if (window.__BB_FORCE_DEMO) return;
 
             const now = new Date();
 
-            // Builder Preview follows the real birthday state only for the special
-            // 24-hour greeting window. When the birthday is actively being celebrated,
-            // Preview opens directly on Greeting. Otherwise Preview is a simulation and
-            // starts from the final 10 seconds, regardless of how far away (or past) the
-            // configured birthday is. The published/live page below remains the only
-            // place that continuously follows the real annual birthday cycle.
             if (window.__BB_PREVIEW_MODE && state?.birthdayDate) {
                 const previewCycle = getBirthdayCycle(now);
                 if (previewCycle.inGreetingWindow) {
-                    // Already moved to Greeting once: don't yank the viewer back on every tick,
-                    // otherwise Enter / Next / every other button appears dead in Preview.
                     if (countdownFinished && window.__BB_PREVIEW_COUNTDOWN_COMPLETED) return;
                     window.__BB_PREVIEW_COUNTDOWN_COMPLETED = true;
                     window.__BB_PREVIEW_COUNTDOWN_END_AT = null;
@@ -3232,11 +3101,6 @@
                 return;
             }
 
-            // Edit mode is a live editing canvas: it starts on the countdown screen
-            // using the current/default editor data (default is 8 Jan 2030), and any
-            // date/time change is reflected immediately. The editor must NOT jump to
-            // Greeting when the real-world birthday window changes; Previous/Next owns
-            // screen navigation while editing.
             if (window.__BB_EDITOR_MODE && !window.__BB_PREVIEW_MODE) {
                 const activeEditorScreen = typeof currentEditorScreen === 'function' ? currentEditorScreen() : 'countdown';
                 if (activeEditorScreen !== 'countdown') return;
@@ -3294,9 +3158,6 @@
             document.getElementById('greetingScreen').classList.remove('show');
             document.getElementById('countdownScreen').classList.remove('hide');
 
-            // Published/live mode uses the active yearly occurrence. The target
-            // remains fixed through the 24-hour greeting window, then advances
-            // to the same month/day/time in the next year.
             const birthday = cycle.target;
             const diff = birthday - now;
             const totalSecondsLeft = Math.max(0, Math.ceil(diff / 1000));
@@ -3321,8 +3182,6 @@
         
   };
 
-  // Authoritative real-time ticker. The editor canvas and published page both
-  // need a continuously updating clock; Demo/Catalog owns its own 250ms timer.
   if (window.__BB_COUNTDOWN_TICKER) clearInterval(window.__BB_COUNTDOWN_TICKER);
   window.__BB_COUNTDOWN_TICKER = setInterval(() => {
     try {
@@ -3338,10 +3197,6 @@
     demoTimer=null;
     window.__BB_FORCE_DEMO = true;
 
-    // Builder Preview is intentionally deterministic: regardless of whether
-    // the edited birthday is minutes away, months away, or already passed,
-    // Preview always plays the final 10 seconds and then opens Greeting.
-    // This is separate from the published/live yearly birthday cycle below.
     window.__BB_DEMO_UNLOCKED = false;
     musicEnabled = !window.__BB_EDITOR_MODE && !BB_PREVIEW_MODE && !window.__BB_CATALOG_MODE;
     birthdayAudioPlayed = false;
@@ -3352,13 +3207,10 @@
     try{q('#countdownAudio')?.pause?.();}catch(_){}
     try{q('#countdownAudio') && (q('#countdownAudio').muted = true);}catch(_){}
     syncAudioToggle();
-    // Every Demo open starts from a fresh 10-second countdown, regardless of
-    // any previous screen state or content message delivered by the editor.
     const demoScreens=['countdownScreen','greetingScreen','cakeScreen','reasonsScreen','photoScreen','videoScreen','letterScreen','puzzleScreen','secretScreen'];
     demoScreens.forEach(id=>{ const el=q('#'+id); if(!el)return; el.classList.remove('show','hide'); el.style.display='none'; el.style.pointerEvents='none'; });
     const demoCountdown=q('#countdownScreen'); if(demoCountdown){ demoCountdown.classList.remove('hide'); demoCountdown.style.display='flex'; demoCountdown.style.pointerEvents='auto'; }
     let target=demoCountdownEndsAt;
-    // Lets the off-screen pause (below) push the end time forward while the demo is not visible.
     window.__bbShiftDemoTarget=(ms)=>{ if(demoTimer){ target+=ms; demoCountdownEndsAt=target; } };
     const resetDemoScreenVisibility=(activeId)=>{
       demoScreens.forEach(id=>{
@@ -3412,9 +3264,6 @@
       window.BB_CONTENT=data.content||{};bbSiteKey=String(data.siteKey||data.websiteSlug||'');
       applyAll(data.content||{});
       if(window.__BB_PREVIEW_MODE){
-        // Each Preview session is a fresh simulation unless the configured birthday is
-        // currently inside its real 24-hour greeting window, in which case Preview opens
-        // directly on Greeting.
         const dateChanged=previousDate!==String(state?.birthdayDate||'') || previousTime!==String(state?.birthdayTime||'');
         const previewCycle=getBirthdayCycle(new Date());
         if(previewCycle.inGreetingWindow){
@@ -3432,15 +3281,11 @@
         }
         updateCountdown();
       }else if(window.__BB_EDITOR_MODE && !window.__BB_FORCE_DEMO){
-        // Editor countdown is driven by the current/default birthday date/time.
-        // Do not replace it with a simulated 10-second timer, and do not change
-        // the editor's current screen while content is being edited.
         window.__BB_EDITOR_COUNTDOWN_END_AT=null;
         window.__BB_EDITOR_COUNTDOWN_COMPLETED=false;
         countdownFinished=false;
         updateCountdown();
       }else if(!window.__BB_FORCE_DEMO){
-        // Published/live page: authoritative real-time birthday cycle.
         updateCountdown();
       }
       return;
@@ -3458,7 +3303,6 @@
     }
     if(data.type==='BB_PREVIEW_MODE'){
       if(data.enabled && window.__BB_PREVIEW_HOST_MODE){
-        // Already previewing: the host re-sends this on every content change; don't restart.
         if(receivedContent){ updateCountdown(); }
         return;
       }
@@ -3504,23 +3348,15 @@
       }
       return;
     }
-    // Demo audio can be toggled by the demo host. Editor mode always remains silent.
     if(data.type==='BB_DEMO_PLAY_AUDIO'){ return; }
     if(data.type==='BB_DEMO_AUDIO_ENABLED'){ setMusicEnabled(data.enabled !== false); return; }
     if(data.type==='BB_SET_AUDIO_ENABLED'){ setMusicEnabled(data.enabled !== false); }
     if(data.type==='BB_EDITOR_MODE'){
-      // The editor host re-sends this message after EVERY content change. Only the first
-      // switch into editor mode may reset to Countdown; repeats must keep the screen the
-      // person is currently editing.
       const editorAlreadyOn = !!window.__BB_EDITOR_MODE_APPLIED && !!data.enabled;
       window.__BB_EDITOR_MODE_APPLIED = !!data.enabled;
       window.__BB_EDITOR_MODE=!!data.enabled;
       document.documentElement.dataset.bbEditor=data.enabled?'1':'0'; document.body.classList.toggle('bb-editor-active', !!data.enabled);
       if(data.enabled){
-        // Editor mode always opens on the Countdown screen. The countdown itself
-        // uses the current editor/default date-time (default: 8 Jan 2030) and
-        // updates live whenever the user changes that date/time. It never uses a
-        // 10-second timer and it never auto-navigates to Greeting.
         window.__BB_EDITOR_COUNTDOWN_END_AT = null;
         window.__BB_EDITOR_COUNTDOWN_COMPLETED = false;
         musicEnabled=false;
@@ -3542,8 +3378,6 @@
   });
 
   const EDITOR_TARGET_SELECTOR='[data-bb-key],.pz-slot,.pz-tile,#pzWinMsg,#pzWinBadge,h1,h2,h3,h4,p,text,button,img,video,.photo-card,.photo-date,.photo-caption,.video-card,.bb-video-caption,.bb-editor-audio-control,.bb-editor-link-edit,.bb-inline-edit-control,.reason-card,.reason-card .reason-text,.countdown-box,.count-item,.count-number';
-  // Cake text (happy / birthday / name): one dashed, clearly visible click area around all three
-  // lines. Clicking ANY of them (the name included) opens the same "Cake text" edit box.
   function layoutCakeEditOverlay(){
     const svg=q('#cakeSvg'); if(!svg) return;
     let g=svg.querySelector('#cakeEditOverlay');
@@ -3559,9 +3393,8 @@
       const tt=document.createElementNS(NS,'text'); tt.textContent='\u270E Click to edit';
       tag.appendChild(tr); tag.appendChild(tt);
       g.appendChild(hit); g.appendChild(tag);
-      svg.appendChild(g); // last child = above the cut wedge and every other cake shape
+      svg.appendChild(g);
     }
-    // bounding box of the three lines (fallback = fixed area when the screen is hidden / not measurable)
     let x1=185,y1=92,x2=355,y2=214;
     try{
       const boxes=['#cakeHappyText','#cakeBirthdayText','#cakeNameText'].map(sel=>q(sel)).filter(Boolean).map(el=>el.getBBox()).filter(b=>b&&b.width>0&&b.height>0);
@@ -3645,9 +3478,6 @@
     return null;
   }
 
-  // Canvas editing is direct: click the text/media itself to edit it.
-  // All template interactions are intentionally blocked while editing so a
-  // button never navigates away before its label can be changed.
   function postEditorSelection(selection){
     try{ window.parent?.postMessage?.({type:'BB_ELEMENT_SELECTED',selection},'*'); }catch(_){}
   }
@@ -3660,8 +3490,6 @@
     if(envelope) {
       e.stopImmediatePropagation();
       e.preventDefault();
-      // In Edit Mode the envelope is only a visitor interaction and stays disabled.
-      // Previous/Next navigation opens the actual editable letter directly.
       return;
     }
     const sel=editorSelectionForTarget(target);
@@ -3669,9 +3497,6 @@
     e.preventDefault();
     if(e.type==='click' && sel) postEditorSelection(sel);
   }
-  // Mobile: preventDefault() on touchstart cancels the browser's follow-up click,
-  // so taps never selected anything. Touch is handled as an explicit "tap":
-  // touchstart only blocks the template, touchend (small movement) selects.
   let bbTouch=null, bbLastTap=0;
   function guardEditorTouchStart(e){
     if(!window.__BB_EDITOR_MODE) return;
@@ -3679,7 +3504,6 @@
     if(target?.closest?.('[data-bb-editor-nav]')) return;
     const t=e.touches&&e.touches[0];
     bbTouch=t?{x:t.clientX,y:t.clientY,target,time:Date.now()}:null;
-    // Keep touchstart observable by the scroll-forwarder so the parent builder can scroll.
   }
   function guardEditorTouchEnd(e){
     if(!window.__BB_EDITOR_MODE) return;
@@ -3690,10 +3514,10 @@
     const t=e.changedTouches&&e.changedTouches[0];
     if(!start||!t) return;
     const moved=Math.hypot(t.clientX-start.x,t.clientY-start.y);
-    if(moved>12||Date.now()-start.time>800) return; // scroll / long press, not a tap
+    if(moved>12||Date.now()-start.time>800) return;
     if(target?.closest?.('#envelopeEl')){ if(e.cancelable) e.preventDefault(); return; }
     const sel=editorSelectionForTarget(target);
-    if(e.cancelable) e.preventDefault(); // no ghost click afterwards
+    if(e.cancelable) e.preventDefault();
     if(sel){ bbLastTap=Date.now(); postEditorSelection(sel); }
   }
   function guardEditorClick(e){
@@ -3705,7 +3529,6 @@
   document.addEventListener('touchstart',guardEditorTouchStart,{capture:true,passive:true});
   document.addEventListener('touchend',guardEditorTouchEnd,{capture:true,passive:false});
 
-  // Ensure navigation state is visible to the editor without changing the source flow.
   const pushHistory=window.updateHistory;
   const editorScreenOrder=['countdown','greeting','cake','reasons','photo','video','letter','puzzle','puzzleWin','secret'];
   let editorHistoryIndex=0;
@@ -3727,9 +3550,6 @@
     if(!window.__BB_EDITOR_MODE) return;
     const delta=direction<0?-1:1;
 
-    // Reasons are a single editor screen with four internal steps. While the
-    // canvas is on Reasons, Previous/Next moves through Reason 1 → 2 → 3 → 4
-    // before leaving for Cake/Photos. Existing text edits stay in BB_CONTENT.
     const screen = editorScreenOrder[editorHistoryIndex];
     if(screen==='reasons'){
       const displayed = Math.max(0, currentReasonIndex - 1);
@@ -3764,9 +3584,6 @@
     if(next===editorHistoryIndex){ postEditorHistoryState(); return; }
     editorHistoryIndex=next;
     const nextScreen=editorScreenOrder[editorHistoryIndex];
-    // Reset the interactive state only when entering a screen through the
-    // editor arrows. This keeps edits intact while restoring each screen's
-    // original first-view behavior (Reason 1 / closed envelope / fresh cake).
     if(nextScreen==='reasons') {
       currentReasonIndex=0;
       isTransitioning=false;
@@ -3775,7 +3592,6 @@
     }
     if(nextScreen==='letter') { try { resetEnvelope?.(); } catch(_) {} }
     if(nextScreen==='cake') { try { loadCakeState?.(); } catch(_) {} }
-    // Puzzle has two editor pages: the game, then the "puzzle solved" page.
     showScreen(nextScreen==='puzzleWin' ? 'puzzle' : nextScreen);
     if(nextScreen==='puzzle' || nextScreen==='puzzleWin'){
       try { window.__bbPuzzle?.showWin(nextScreen==='puzzleWin'); } catch(_) {}
@@ -3801,17 +3617,11 @@
   window.addEventListener('hashchange',postEditorHistoryState);
   postEditorHistoryState();
 
-  // Default standalone behavior for this runtime copy.
   setTimeout(()=>{try{if(!receivedContent) applyAll(DEFAULT);}catch(e){console.error('Master Birthday init failed',e);} if(!receivedContent && !window.__BB_CATALOG_MODE && BB_FORCE_DEMO){demoStarted=true;startDemoCountdown();}},0);
 })();
 
 </script>
-<script>
-/* Builder: keep the editor page scrollable when a finger/wheel is over the template.
-   The embedded template owns its own scrolling only when an actually-scrollable
-   child can consume the gesture. Otherwise the gesture is forwarded to the parent
-   editor page. */
-(function(){
+<script>(function(){
 if(window.__bbScrollFwd)return;window.__bbScrollFwd=1;
 var isActive=function(){return false;};
 var y0=null,target=null,mode=0,lastForwarded=0;
@@ -3826,9 +3636,6 @@ function movable(el,dy){
     }
     el=el.parentElement;
   }
-  // The runtime frequently locks the iframe viewport on the countdown screen.
-  // In that state there is intentionally no internal scroll target, so the parent
-  // editor must remain the scroll owner.
   return false;
 }
 
@@ -3846,8 +3653,6 @@ function scrollParent(dy){
     var current=Math.max(se?.scrollTop||0,body?.scrollTop||0);
     var next=Math.max(0,Math.min(max,current+dy));
     if(Math.abs(next-current)<0.5)return false;
-    // Direct assignment is deliberate: it works even while this iframe gesture is
-    // being prevented and avoids browser differences around behavior:'instant'.
     if(se)se.scrollTop=next;
     if(body)body.scrollTop=next;
     return true;
@@ -3859,8 +3664,6 @@ function scrollParent(dy){
 window.addEventListener('touchstart',function(e){
   var t=e.touches&&e.touches[0];
   if(!t||e.touches.length>1||!isActive()){y0=null;target=null;mode=0;return;}
-  // Use the touch coordinates directly. Adding frameElement.getBoundingClientRect().top
-  // double-counts movement once the parent page itself starts scrolling.
   y0=t.clientY;
   target=e.target;
   mode=0;
@@ -3874,7 +3677,6 @@ window.addEventListener('touchmove',function(e){
   if(mode===0)mode=movable(target,dy)?1:2;
   if(mode===2&&e.cancelable){
     e.preventDefault();
-    // Forward at most once per animation frame to keep the parent page smooth.
     var now=performance.now();
     if(now-lastForwarded>=8){lastForwarded=now;scrollParent(dy);}
   }

@@ -8,10 +8,9 @@ export const InAppBrowserGuard: React.FC = () => {
     useEffect(() => {
         const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
 
-        // Patterns for common in-app browsers
         const inAppPatterns = [
-            /FBAN/, // Facebook App
-            /FBAV/, // Facebook App
+            /FBAN/,
+            /FBAV/,
             /Instagram/,
             /Line/,
             /Twitter/,

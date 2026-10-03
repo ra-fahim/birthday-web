@@ -1,12 +1,8 @@
--- Birthday Builder SaaS - Supabase-only database
--- Run this entire file in Supabase SQL Editor.
 create extension if not exists pgcrypto;
 
--- Supabase Storage bucket used by the application upload API.
 insert into storage.buckets (id, name, public)
 values ('birthday-builder', 'birthday-builder', true)
 on conflict (id) do update set public = excluded.public;
-
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -28,8 +24,6 @@ create table if not exists public.templates (
 create table if not exists public.template_categories (
   id uuid primary key default gen_random_uuid(), name text unique not null, slug text unique not null, description text, active boolean not null default true, sort integer not null default 0, created_at timestamptz not null default now()
 );
--- Seed the built-in template catalog so it exists as real rows (needed for
--- admin features like Template Spotlight, which read from this table).
 insert into public.templates (slug,name,category,description) values
   ('master','Master Template','master','Original HTML experience'),
   ('romantic','Romantic','romantic','Soft romantic style'),
@@ -112,13 +106,10 @@ create index if not exists analytics_events_created_at_idx on public.analytics_e
 create index if not exists gallery_website_id_idx on public.gallery(website_id);
 create index if not exists media_user_id_idx on public.media(user_id);
 
--- Login hardening: brute-force lockout tracking (safe to re-run).
 alter table public.profiles add column if not exists failed_login_attempts integer not null default 0;
 alter table public.profiles add column if not exists login_locked_until timestamptz;
 create index if not exists profiles_email_idx on public.profiles(email);
 
--- Member approval workflow: existing rows backfill to approved=true, new
--- signups default to pending unless bypassed via admin email or invite link.
 alter table public.profiles add column if not exists approved boolean not null default true;
 create index if not exists profiles_approved_idx on public.profiles(approved);
 
@@ -130,7 +121,6 @@ create trigger on_auth_user_created after insert on auth.users for each row exec
 
 create or replace function public.increment_website_views(p_website_id uuid) returns void language sql security definer set search_path=public as $$ update public.websites set views=views+1,updated_at=now() where id=p_website_id; $$;
 
--- updated_at triggers
  drop trigger if exists profiles_updated_at on public.profiles; create trigger profiles_updated_at before update on public.profiles for each row execute function public.set_updated_at();
  drop trigger if exists websites_updated_at on public.websites; create trigger websites_updated_at before update on public.websites for each row execute function public.set_updated_at();
  drop trigger if exists templates_updated_at on public.templates; create trigger templates_updated_at before update on public.templates for each row execute function public.set_updated_at();
@@ -139,7 +129,6 @@ create or replace function public.increment_website_views(p_website_id uuid) ret
  drop trigger if exists demo_sites_updated_at on public.demo_sites; create trigger demo_sites_updated_at before update on public.demo_sites for each row execute function public.set_updated_at();
  drop trigger if exists website_content_updated_at on public.website_content; create trigger website_content_updated_at before update on public.website_content for each row execute function public.set_updated_at();
 
--- RLS: browser clients are denied by default; authenticated users can own their records.
 DO $$ BEGIN
   EXECUTE 'drop policy if exists profiles_self on public.profiles';
   EXECUTE 'drop policy if exists websites_owner on public.websites';
@@ -186,22 +175,14 @@ create policy templates_public_read on public.templates for select using(active=
 create policy categories_public_read on public.template_categories for select using(active=true);
 create policy demo_public_read on public.demo_sites for select using(active=true);
 
--- Starter categories/templates; safe to re-run.
 insert into public.template_categories(name,slug,description,sort) values
 ('Master','master','Original birthday HTML-based template',0),('Romantic','romantic','Romantic birthday experiences',1),('Cute','cute','Cute and playful experiences',2),('Luxury','luxury','Premium visual style',3),('Anime','anime','Anime-inspired style',4),('Gaming','gaming','Gaming style',5),('Minimal','minimal','Clean minimal style',6),('Elegant','elegant','Elegant style',7),('Festival','festival','Celebration style',8)
 on conflict(slug) do nothing;
 
-
--- Birthday Builder Phase 1/3/4 features. Safe to run repeatedly.
 alter table public.websites drop column if exists custom_domain;
 alter table public.websites add column if not exists referral_code text;
 create unique index if not exists websites_referral_code_idx on public.websites(referral_code) where referral_code is not null;
 
--- Note: recipient identity is tracked via metadata->>'recipientKey' (matching
--- an id inside websites.content.recipients) rather than a separate lookup
--- table, since a recipient link can be created and edited entirely inside
--- the JSON content without a DB round-trip. recipient_id below is kept as a
--- plain nullable column for forward-compatibility but isn't populated yet.
 create table if not exists public.recipient_events (
   id uuid primary key default gen_random_uuid(),
   website_id uuid not null references public.websites(id) on delete cascade,

@@ -14,8 +14,6 @@ export async function uploadFile(file: File, folder: string, websiteId: string):
   return j.url as string;
 }
 
-// Single-file uploader for music/video: no URL field, just pick a file and it
-// uploads straight to storage.
 export function SingleMediaUpload({
   kind,
   url,

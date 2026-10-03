@@ -1,10 +1,3 @@
-// Lets the Studio (parent window) turn this iframe into a "click to edit"
-// canvas. When the parent enables editor mode, every element carrying
-// data-bb-key gets a hover outline; double-clicking one tells the parent
-// which config field it represents (BB_ELEMENT_SELECTED) so the Studio can
-// open the right editor for it. Opened directly (no parent, no postMessage),
-// none of this activates and the page behaves exactly like the original.
-
 export interface BBSelection {
   key: string;
   label: string;
@@ -58,7 +51,5 @@ export function initEditorBridge() {
     document.body.classList.toggle('bb-editor-mode', editorModeOn);
   });
   document.addEventListener('click', handleClick, true);
-  // Let the parent know we're ready to receive BB_EDITOR_MODE even if it
-  // sent it before our listener was attached.
   window.parent?.postMessage({ type: 'BB_EDITOR_READY' }, '*');
 }

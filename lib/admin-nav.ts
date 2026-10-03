@@ -17,7 +17,6 @@ export const ADMIN_MODULES: [string, string][] = [
   ['Maintenance Mode', '/admin/maintenance'],
 ];
 
-/** Grouped navigation used by the admin sidebar: [group, [[label, href, icon], ...]] */
 export const ADMIN_GROUPS: [string, [string, string, string][]][] = [
   ['Overview', [
     ['Dashboard', '/admin', '🏠'],

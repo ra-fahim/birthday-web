@@ -16,7 +16,6 @@ export const FinalLetter: React.FC = () => {
   const signoff = letter?.signoff?.trim() || 'Forever yours';
   return (
     <div className="relative max-w-2xl w-full bg-love-card dark:bg-love-dark-card p-8 md:p-16 shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-love-pink/30 dark:border-love-dark-accent/20 text-center transition-colors duration-700">
-      {/* Decorative corners */}
       <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-love-accent/30 dark:border-love-dark-accent/30" />
       <div className="absolute top-4 right-4 w-4 h-4 border-t border-r border-love-accent/30 dark:border-love-dark-accent/30" />
       <div className="absolute bottom-4 left-4 w-4 h-4 border-b border-l border-love-accent/30 dark:border-love-dark-accent/30" />

@@ -58,7 +58,6 @@ export default function PublishPage() {
     try {
       const s = slug.trim();
       const content = site.content || {};
-      // Keep the editor's own custom-slug field in step so a later auto-save doesn't revert the link.
       const mb = content.templateConfig?.masterBirthday;
       const nextContent = mb ? { ...content, templateConfig: { ...content.templateConfig, masterBirthday: { ...mb, customSlug: s } } } : content;
       const r = await fetch('/api/websites/' + id, {

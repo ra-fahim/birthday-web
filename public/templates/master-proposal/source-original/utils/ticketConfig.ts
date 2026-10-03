@@ -1,9 +1,3 @@
-// Reads the site-owner-configured ticket settings from the `config` query
-// param the platform injects when this template is rendered inside the
-// Studio/site iframe (see ExperienceTemplates.tsx -> MasterProposalTemplate).
-// Falls back to the original template's own defaults when no config is
-// present (e.g. when the template is opened directly).
-
 export interface TicketConfig {
   recipientEmail: string;
   toName: string;

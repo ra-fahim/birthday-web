@@ -58,11 +58,6 @@ export default function MasterBirthdayTemplate({ content, demo = false, preview 
     return () => frame.removeEventListener('load', send);
   }, [resolvedContent, websiteSlug, siteKey, recipientId, editorMode, demo, preview]);
 
-  // Countdown state is owned by the embedded Master Birthday runtime. Keeping a single
-  // source of truth avoids the editor host and iframe racing to write different values.
-  // The runtime receives BB_CONTENT/BB_EDITOR_MODE/BB_PREVIEW_MODE above and updates
-  // countdown, greeting, audio and yearly-cycle state from the same data.
-
   useEffect(() => {
     const handler = (event: MessageEvent) => {
       const frame = frameRef.current;

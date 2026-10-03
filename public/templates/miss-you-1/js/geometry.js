@@ -1,7 +1,3 @@
-// ===========================
-// Geometry Primitives
-// ===========================
-
 function randomInt(min, max) {
   return min + Math.floor(Math.random() * (max - min + 1));
 }
@@ -27,10 +23,6 @@ function inHeart(x, y, r) {
   return (nx ** 2 + ny ** 2 - 1) ** 3 - nx ** 2 * ny ** 3 < 0;
 }
 
-// ===========================
-// Point — 2D coordinate
-// ===========================
-
 class Point {
   constructor(x = 0, y = 0) {
     this.x = x;
@@ -42,10 +34,6 @@ class Point {
     this.y = y;
   }
 }
-
-// ===========================
-// Heart — parametric heart curve sampled into points
-// ===========================
 
 class Heart {
   constructor() {

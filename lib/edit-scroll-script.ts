@@ -1,9 +1,3 @@
-/**
- * Editor-only helper that runs INSIDE a template iframe. Phone/tablet: when a finger
- * drags over the template and the template itself cannot scroll any further, the page
- * (parent) is scrolled instead, so the builder page never "sticks" under the finger.
- * Plain ES5, injected as text (no backticks / template placeholders).
- */
 export const EDIT_SCROLL_JS = `(function(){
 if(window.__bbScrollFwd)return;window.__bbScrollFwd=1;
 var isActive=function(){return false;};
@@ -49,7 +43,6 @@ window.addEventListener('touchcancel',function(){y0=null;},{capture:true,passive
 window.__bbScrollFwdSet=function(fn){isActive=fn;};
 })();`;
 
-/** Script text that installs the helper and tells it when to be active. */
 export function editScrollSnippet(activeExpr: string): string {
   return EDIT_SCROLL_JS + '\nwindow.__bbScrollFwdSet(function(){return !!(' + activeExpr + ');});\n';
 }

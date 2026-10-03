@@ -24,7 +24,6 @@ export const BucketList: React.FC = () => {
   const BUCKET_ITEMS: BucketItem[] = siteConfig.bucketList?.length
     ? siteConfig.bucketList.map((text, i) => ({ id: String(i), text, icon: DEFAULT_BUCKET_ITEMS[i % DEFAULT_BUCKET_ITEMS.length].icon }))
     : DEFAULT_BUCKET_ITEMS;
-  // We use state to track checked items (persists only for session, which is fine for this gesture)
   const [checkedItems, setCheckedItems] = useState<string[]>([]);
 
   const toggleItem = (id: string) => {
@@ -66,7 +65,6 @@ export const BucketList: React.FC = () => {
                   : 'bg-white/50 border-love-accent/10 hover:border-love-accent/30 dark:bg-white/5 dark:border-love-dark-accent/10'}
               `}
             >
-              {/* Checkbox Icon */}
               <div className={`
                 flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300
                 ${isChecked 
@@ -76,7 +74,6 @@ export const BucketList: React.FC = () => {
                 {isChecked ? <Check className="w-5 h-5" /> : item.icon}
               </div>
 
-              {/* Text */}
               <span className={`
                 font-sans text-sm md:text-base transition-all duration-300
                 ${isChecked 
@@ -86,7 +83,6 @@ export const BucketList: React.FC = () => {
                 <span {...(editor ? bb('bucketList', `Bucket list item ${index + 1}`, index) : {})}>{item.text}</span>
               </span>
 
-              {/* Subtle background fill animation */}
               <div className={`absolute inset-0 bg-love-accent/5 dark:bg-love-dark-accent/5 transform origin-left transition-transform duration-500 ${isChecked ? 'scale-x-100' : 'scale-x-0'}`} />
             </motion.div>
           );

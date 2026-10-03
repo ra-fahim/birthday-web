@@ -1,7 +1,3 @@
-// ===========================
-// Stage & Tree Configuration
-// ===========================
-
 const StageConfig = {
   width: 1100,
   height: 680
@@ -11,22 +7,21 @@ const TreeRenderConfig = {
   radiusDecay: 0.97
 };
 
-/* Cherry blossom color palette */
 const CHERRY_COLORS = [
-  "rgb(255, 183, 197)",  // soft pink
-  "rgb(255, 165, 190)",  // pink
-  "rgb(255, 150, 175)",  // mid pink
-  "rgb(255, 130, 160)",  // deeper pink
-  "rgb(255, 200, 210)",  // very light pink
-  "rgb(255, 210, 170)",  // peach
-  "rgb(255, 190, 130)",  // light orange
-  "rgb(255, 175, 110)",  // orange
-  "rgb(255, 225, 140)",  // light yellow
-  "rgb(255, 215, 100)",  // yellow
-  "rgb(255, 200, 180)",  // cream
-  "rgb(255, 160, 180)",  // rose
-  "rgb(255, 145, 165)",  // warm pink
-  "rgb(255, 205, 195)",  // blush
+  "rgb(255, 183, 197)",
+  "rgb(255, 165, 190)",
+  "rgb(255, 150, 175)",
+  "rgb(255, 130, 160)",
+  "rgb(255, 200, 210)",
+  "rgb(255, 210, 170)",
+  "rgb(255, 190, 130)",
+  "rgb(255, 175, 110)",
+  "rgb(255, 225, 140)",
+  "rgb(255, 215, 100)",
+  "rgb(255, 200, 180)",
+  "rgb(255, 160, 180)",
+  "rgb(255, 145, 165)",
+  "rgb(255, 205, 195)",
 ];
 
 function cherryColor() {
@@ -91,10 +86,6 @@ const TreeShape = {
   bloom: { num: 1400, width: 1080, height: 650 },
   footer: { width: 1200, height: 5, speed: 10 }
 };
-
-// ===========================
-// Seed — the initial clickable heart
-// ===========================
 
 class Seed {
   constructor(tree, point, scale = 1, color = "#FF0000", config = {}) {
@@ -186,10 +177,6 @@ class Seed {
   }
 }
 
-// ===========================
-// Footer — the ground line
-// ===========================
-
 class Footer {
   constructor(tree, width, height, speed = 2) {
     this.tree = tree;
@@ -218,10 +205,6 @@ class Footer {
     if (length < width) this.length += this.speed;
   }
 }
-
-// ===========================
-// Branch — bezier segment that grows
-// ===========================
 
 class Branch {
   constructor(tree, p1, p2, p3, radius, steps = 100, children = []) {
@@ -267,10 +250,6 @@ class Branch {
     this.step++;
   }
 }
-
-// ===========================
-// Bloom — a small petal
-// ===========================
 
 class Bloom {
   constructor(tree, point, figure, color = cherryColor(),
@@ -325,10 +304,6 @@ class Bloom {
   }
 }
 
-// ===========================
-// Tree
-// ===========================
-
 function getTreeShiftX() {
   const value = getComputedStyle(document.documentElement).getPropertyValue("--tree-shift-x");
   return parseFloat(value) || AnimationConfig.TREE_SHIFT_X;
@@ -338,7 +313,6 @@ function toPoint([x, y]) {
   return new Point(x, y);
 }
 
-/* Ellipse canopy test — replaces inHeart() */
 function inCanopy(dx, dy, rx, ry) {
   return (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry) <= 1;
 }
@@ -405,9 +379,6 @@ class Tree {
   canGrow() { return this.branches.length > 0; }
   grow() { this.branches.forEach((b) => b?.grow()); }
 
-  /* ==========================================
-     Cherry blossom canopy — ellipse instead of heart
-     ========================================== */
   createBloom(figure) {
     const cx = this.width / 2 - 20;
     const cy = this.height * 0.40;
@@ -416,7 +387,6 @@ class Tree {
     const maxAttempts = 60;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      // Bias towards the center using sqrt for even distribution
       const a = Math.random() * Math.PI * 2;
       const r = Math.sqrt(Math.random());
       const x = cx + Math.cos(a) * r * rx;
@@ -442,7 +412,6 @@ class Tree {
     }
   }
 
-  /* Falling petals — cherry blossom colors */
   createFallingBloom() {
     const figure = this.seed.heart.figure;
     const crown = {

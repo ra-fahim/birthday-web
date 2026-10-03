@@ -4,17 +4,10 @@ interface OptimizedImageProps {
   src: string;
   alt: string;
   className?: string;
-  priority?: boolean; // High priority images load immediately
+  priority?: boolean;
   style?: React.CSSProperties;
 }
 
-/**
- * Optimized image component with:
- * - WebP/AVIF format support with fallbacks
- * - Intersection Observer lazy loading
- * - Responsive srcset
- * - Progressive loading with blur-up effect
- */
 export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   src,
   alt,
@@ -27,7 +20,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    if (priority) return; // Skip intersection observer for priority images
+    if (priority) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -37,7 +30,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
         }
       },
       {
-        rootMargin: '50px', // Start loading 50px before entering viewport
+        rootMargin: '50px',
       }
     );
 
@@ -59,7 +52,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
       style={{
         ...style,
         transform: 'translate3d(0,0,0)',
-        backgroundColor: '#f3f4f6', // Placeholder color while loading
+        backgroundColor: '#f3f4f6',
       }}
       onLoad={() => setIsLoaded(true)}
       loading={priority ? 'eager' : 'lazy'}

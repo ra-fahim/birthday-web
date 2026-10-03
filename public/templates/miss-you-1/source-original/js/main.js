@@ -1,7 +1,3 @@
-// ===========================
-// Show Letter & Start Clock
-// ===========================
-
 function showLoveLetter() {
   const letter = document.getElementById("letter");
   const clockBox = document.getElementById("clock-box");
@@ -15,10 +11,6 @@ function startClock(config) {
   timeElapse(startMs, digits);
   setInterval(() => timeElapse(startMs, digits), AnimationConfig.TIME_UPDATE_INTERVAL);
 }
-
-// ===========================
-// Main Initialization
-// ===========================
 
 async function startApp() {
   initContent(CONFIG);

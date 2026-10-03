@@ -20,8 +20,6 @@ export async function getSessionUser(){
   const auth=await authFetch('user'); if(!auth?.id)return null;
   const rows=await supabaseRest<any[]>(`profiles?select=*&id=eq.${encodeURIComponent(auth.id)}&limit=1`).catch(()=>[]);
   let p=rows?.[0];
-  // Bootstrap: whoever signs up/logs in with the email in ADMIN_EMAIL is
-  // treated as an admin, even if their profile row predates that setting.
   const adminEmail=process.env.ADMIN_EMAIL?.trim().toLowerCase();
   const userEmail=(auth.email||p?.email||'').toLowerCase();
   if(adminEmail && userEmail && adminEmail===userEmail && p?.role!=='admin'){
@@ -32,10 +30,6 @@ export async function getSessionUser(){
 }
 export async function requireUser(){const u=await getSessionUser();if(!u)throw new Error('UNAUTHORIZED');return u}
 export async function requireAdmin(){const u=await requireUser();if(u.role!=='admin')throw new Error('FORBIDDEN');return u}
-// Member-approval gate: only blocks when an admin has BOTH turned the
-// approval system on AND not approved this particular member yet. Flipping
-// the setting off immediately unblocks everyone, regardless of their
-// individual `approved` flag.
 export async function isApprovalRequired(){
   const rows=await supabaseRest<any[]>(`settings?select=value&key=eq.approval_system&limit=1`).catch(()=>[]);
   return !!rows?.[0]?.value?.enabled;

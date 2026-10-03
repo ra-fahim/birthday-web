@@ -58,9 +58,6 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
   const site = await db.website.findFirst({ where: u.role === 'admin' ? { id: params.id } : { id: params.id, userId: u.id } });
   if (!site) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  // Collect every object linked to this website: media rows plus URLs stored in
-  // the editable content JSON. This makes deletion safe even for older uploads
-  // created before media.website_id was populated.
   const storagePaths = new Set<string>();
   collectUrls(site.content, storagePaths);
   const media = await db.media.findMany({ where: { websiteId: site.id } });
@@ -75,9 +72,6 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
 
   await Promise.all(Array.from(storagePaths).map(path => supabaseStorageDelete('birthday-builder', path).catch(()=>{})));
 
-  // Child records with website_id cascade at the DB level, while the explicit
-  // media/gallery/music/video cleanup also handles databases created before the
-  // latest cascade migrations were applied.
   await Promise.all([
     db.media.deleteMany({ where: { websiteId: site.id } }),
     db.gallery.deleteMany({ where: { websiteId: site.id } }),

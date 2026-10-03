@@ -1,6 +1,3 @@
-/* ==========================================
-   Configuration
-   ========================================== */
 const CONFIG = {
   couple: {
     name1: "Anarkoli",
@@ -42,9 +39,6 @@ const CONFIG = {
   seedText: "Miss You"
 };
 
-/* ==========================================
-   Main Application
-   ========================================== */
 (function () {
   'use strict';
 
@@ -167,16 +161,12 @@ const CONFIG = {
     g.shadowBlur = 0;
   }
 
-  /* ==========================================
-     TREE — Full Cherry Blossom (matches screenshot)
-     ========================================== */
   const TREE_BASE_X = 550;
   const TREE_BASE_Y = STAGE_H - 60;
 
   const BRANCH_DURATION = 380;
   const LEAF_DURATION   = 600;
 
-  // Leaf palette — pinks, peaches, oranges, soft yellows
   const LEAF_COLORS = [
     '#ffb3d1', '#ffcce0', '#ffd1dc', '#ffb8d1', '#ffa8c8',
     '#ff9ec4', '#ff85a2', '#ff7a9a', '#ff95b3', '#ffc2d6',
@@ -214,7 +204,6 @@ const CONFIG = {
         width, depth, delay
       });
 
-      // === Dense leaf clusters on outer branches ===
       if (depth <= 3) {
         let clusterSize, spreadRadius;
         if (depth === 1)      { clusterSize = 26; spreadRadius = 42; }
@@ -240,11 +229,9 @@ const CONFIG = {
       const nextDepth = depth - 1;
       const nextWidth = width * 0.68;
 
-      // Two main branches
       growBranch(endX, endY, len * shrink, angle - spread, nextWidth, nextDepth, nextDelay);
       growBranch(endX, endY, len * shrink, angle + spread, nextWidth, nextDepth, nextDelay);
 
-      // Extra branches for fuller canopy
       if (depth > 5 && Math.random() > 0.35) {
         growBranch(endX, endY, len * shrink * 0.9,
           angle + (Math.random() - 0.5) * 0.6,
@@ -257,10 +244,8 @@ const CONFIG = {
       }
     }
 
-    // Big trunk, deep recursion for a lush canopy
     growBranch(TREE_BASE_X, TREE_BASE_Y, 120, -Math.PI / 2, 26, 10, 0);
 
-    // Compute total duration
     treeMaxTime = 0;
     for (const b of treeBranches) {
       const t = b.delay + BRANCH_DURATION;
@@ -281,7 +266,6 @@ const CONFIG = {
   function drawTreeAtTime(elapsed) {
     staticCtx.clearRect(0, 0, STAGE_W, STAGE_H);
 
-    // Pink glow behind tree canopy
     const baseGrad = staticCtx.createRadialGradient(
       TREE_BASE_X, TREE_BASE_Y - 260, 0,
       TREE_BASE_X, TREE_BASE_Y - 260, 380
@@ -291,7 +275,6 @@ const CONFIG = {
     staticCtx.fillStyle = baseGrad;
     staticCtx.fillRect(0, 0, STAGE_W, STAGE_H);
 
-    // Base glow at trunk
     const trunkGlow = staticCtx.createRadialGradient(
       TREE_BASE_X, TREE_BASE_Y, 0,
       TREE_BASE_X, TREE_BASE_Y, 140
@@ -301,7 +284,6 @@ const CONFIG = {
     staticCtx.fillStyle = trunkGlow;
     staticCtx.fillRect(TREE_BASE_X - 140, TREE_BASE_Y - 140, 280, 280);
 
-    // ===== Branches =====
     staticCtx.lineCap = 'round';
     staticCtx.lineJoin = 'round';
     for (const b of treeBranches) {
@@ -323,7 +305,6 @@ const CONFIG = {
     }
     staticCtx.shadowBlur = 0;
 
-    // ===== Leaves =====
     for (const l of treeLeaves) {
       if (elapsed < l.delay) continue;
       const p = Math.min((elapsed - l.delay) / LEAF_DURATION, 1);
@@ -343,9 +324,6 @@ const CONFIG = {
     staticCtx.shadowBlur = 0;
   }
 
-  /* ==========================================
-     Falling Hearts
-     ========================================== */
   const canvasHearts = [];
 
   function spawnCanvasHeart() {

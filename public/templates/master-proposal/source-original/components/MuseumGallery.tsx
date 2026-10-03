@@ -5,27 +5,18 @@ import { OptimizedImage } from './OptimizedImage';
 import { getYouTubeId, youtubeThumbnail } from '../utils/youtube';
 import { useSiteConfig, useEditorMode, bb, t } from '../utils/siteConfig';
 
-// Types for our museum items
 type MediaType = 'image' | 'video';
 
 interface MuseumItem {
   id: string;
   type: MediaType;
-  url: string; // Image URL, or video URL — any of: local file (/museum-gallery/x.mp4),
-  // a direct hosted link (Cloudinary etc.), or a YouTube link (watch/shorts/youtu.be).
-  thumbnail?: string; // Optional for videos — auto-filled from YouTube if url is a YouTube link.
+  url: string;
+  thumbnail?: string;
   title: string;
   date?: string;
   description: string;
 }
 
-// -----------------------------------------------------------------------------
-// Add your photos/videos here. `url` accepts:
-//   - a local file placed in public/museum-gallery/ (e.g. '/museum-gallery/1.jpg')
-//   - a direct Cloudinary/hosted file URL (e.g. 'https://res.cloudinary.com/.../1.jpg')
-//   - for videos only, a YouTube link (e.g. 'https://youtu.be/XXXXXXXXXXX') — no need
-//     to add a `thumbnail`, it's pulled from YouTube automatically.
-// -----------------------------------------------------------------------------
 const DEFAULT_MUSEUM_ITEMS: MuseumItem[] = [
   {
     id: '1',
@@ -137,11 +128,10 @@ const Lightbox: React.FC<{ item: MuseumItem | null; onClose: () => void }> = ({ 
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 10 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className={`relative bg-white dark:bg-zinc-900 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] w-full ${item.type === 'video' ? 'max-w-4xl' : 'max-w-3xl' // Broader for visual consistency on video
+          className={`relative bg-white dark:bg-zinc-900 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] w-full ${item.type === 'video' ? 'max-w-4xl' : 'max-w-3xl'
             }`}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Close button */}
           <button
             type="button"
             onClick={onClose}
@@ -151,7 +141,6 @@ const Lightbox: React.FC<{ item: MuseumItem | null; onClose: () => void }> = ({ 
             <X className="w-5 h-5" />
           </button>
 
-          {/* Media Area - Specific handling for Image vs Video */}
           <div className="bg-black flex items-center justify-center relative w-full overflow-hidden shrink-0">
             {item.type === 'image' ? (
               <div className="relative w-full flex justify-center py-4 bg-black/50">
@@ -187,7 +176,6 @@ const Lightbox: React.FC<{ item: MuseumItem | null; onClose: () => void }> = ({ 
             )}
           </div>
 
-          {/* Content Area */}
           <div className="p-6 text-center overflow-y-auto bg-white dark:bg-zinc-900 flex-none">
             <h3 className="font-serif text-2xl md:text-3xl text-gray-900 dark:text-white mb-2">
               {item.title}
@@ -209,9 +197,6 @@ const Lightbox: React.FC<{ item: MuseumItem | null; onClose: () => void }> = ({ 
   );
 };
 
-// -----------------------------------------------------------------------------
-// Frame Component 
-// -----------------------------------------------------------------------------
 import { useInView } from 'framer-motion';
 
 const MuseumFrame: React.FC<{
@@ -231,7 +216,6 @@ const MuseumFrame: React.FC<{
       className="group relative flex flex-col"
       style={{ willChange: 'transform, opacity' }}
     >
-      {/* Premium editorial memory card — replaces the old literal gold photo frame. */}
       <div className="relative overflow-hidden rounded-[28px] border border-white/55 bg-white/65 p-2 shadow-[0_24px_70px_rgba(55,30,42,0.14)] backdrop-blur-xl transition-all duration-700 group-hover:-translate-y-1 group-hover:shadow-[0_30px_90px_rgba(55,30,42,0.20)] dark:border-white/10 dark:bg-white/[0.07]">
         <div className="relative overflow-hidden rounded-[22px] border border-black/5 bg-[#161214] dark:border-white/10">
           <div className="relative w-full aspect-[4/5]" {...bb('museum', `Memory ${index + 1} — photo / video`, index)}>
@@ -279,7 +263,6 @@ const MuseumFrame: React.FC<{
           </div>
         </div>
 
-        {/* Fine highlight edge */}
         <div className="pointer-events-none absolute inset-[2px] rounded-[26px] border border-white/25 dark:border-white/10" />
       </div>
 
@@ -307,7 +290,6 @@ const MuseumFrame: React.FC<{
   );
 };
 
-// Grid video: thumbnail + play icon; click is handled by parent (opens lightbox)
 const VideoPlayer: React.FC<{ url: string; thumbnail?: string }> = ({ url, thumbnail }) => {
   const [shouldLoad, setShouldLoad] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -315,7 +297,7 @@ const VideoPlayer: React.FC<{ url: string; thumbnail?: string }> = ({ url, thumb
   const posterSrc = thumbnail || (youtubeId ? youtubeThumbnail(youtubeId) : undefined);
 
   useEffect(() => {
-    if (youtubeId) return; // YouTube: just show the poster image, no <video> preload needed
+    if (youtubeId) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -323,7 +305,7 @@ const VideoPlayer: React.FC<{ url: string; thumbnail?: string }> = ({ url, thumb
           observer.disconnect();
         }
       },
-      { rootMargin: '100px' } // Start loading 100px before viewport
+      { rootMargin: '100px' }
     );
 
     if (videoRef.current) {

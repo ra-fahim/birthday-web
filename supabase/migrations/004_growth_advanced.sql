@@ -1,4 +1,3 @@
--- Birthday Builder Phase 1/3/4 features. Safe to run repeatedly.
 insert into public.templates (slug,name,category,description) values
   ('master','Master Template','master','Original HTML experience'),
   ('romantic','Romantic','romantic','Soft romantic style'),
@@ -11,20 +10,12 @@ insert into public.templates (slug,name,category,description) values
   ('festival','Festival','festival','Colorful celebration style')
 on conflict (slug) do nothing;
 
--- Custom domains were removed as a feature; drop the column/index if a
--- previous run of this migration already added them.
 alter table public.websites drop column if exists custom_domain;
 drop index if exists websites_custom_domain_idx;
 
 alter table public.websites add column if not exists referral_code text;
 create unique index if not exists websites_referral_code_idx on public.websites(referral_code) where referral_code is not null;
 
--- Note: recipient identity is tracked via metadata->>'recipientKey' (matching
--- an id inside websites.content.recipients) rather than a separate lookup
--- table, since a recipient link can be created and edited entirely inside
--- the JSON content without a DB round-trip. recipient_id below is kept as a
--- plain nullable column for forward-compatibility but isn't populated yet.
--- Drop the old recipient_links table and its FK if a previous run created them.
 alter table if exists public.recipient_events drop constraint if exists recipient_events_recipient_id_fkey;
 alter table if exists public.collaborative_wishes drop constraint if exists collaborative_wishes_recipient_id_fkey;
 alter table if exists public.reactions drop constraint if exists reactions_recipient_id_fkey;

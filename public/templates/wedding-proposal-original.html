@@ -11,11 +11,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
-<style>
-/* ============================================================
-   THEME
-============================================================ */
-:root{
+<style>:root{
   --red:#ff2d55;
   --red-deep:#c9002b;
   --glow:#ff5c8a;
@@ -39,10 +35,6 @@ html,body{
   cursor:crosshair;
 }
 body{ position:fixed; inset:0; }
-
-/* ============================================================
-   AURORA BACKGROUND
-============================================================ */
 .aurora{
   position:fixed; inset:0; z-index:0;
   overflow:hidden; filter:blur(90px);
@@ -76,10 +68,6 @@ body{ position:fixed; inset:0; }
   position:fixed; inset:0; z-index:5; pointer-events:none; opacity:.05;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
-
-/* ============================================================
-   CANVASES + CURSOR
-============================================================ */
 canvas{ position:fixed; inset:0; display:block; pointer-events:none; }
 #bg{ z-index:1; }
 #fx{ z-index:6; }
@@ -92,10 +80,6 @@ canvas{ position:fixed; inset:0; display:block; pointer-events:none; }
   transition:opacity .4s ease; will-change:transform;
 }
 @media (hover:none){ .cursor-glow{ display:none; } }
-
-/* ============================================================
-   SOUND BUTTON
-============================================================ */
 .sound-btn{
   position:fixed; top:18px; right:18px; z-index:60;
   width:46px; height:46px; border-radius:50%;
@@ -108,10 +92,6 @@ canvas{ position:fixed; inset:0; display:block; pointer-events:none; }
 }
 .sound-btn:hover{ transform:scale(1.1); background:rgba(255,45,85,.22); box-shadow:0 0 24px rgba(255,45,85,.5); }
 .sound-btn.muted{ opacity:.5; }
-
-/* ============================================================
-   SCREENS
-============================================================ */
 .screen{
   position:fixed; inset:0; z-index:20;
   display:flex; align-items:center; justify-content:center;
@@ -121,8 +101,6 @@ canvas{ position:fixed; inset:0; display:block; pointer-events:none; }
 }
 .screen.is-active{ opacity:1; visibility:visible; }
 .card, .intro-inner, .tap-wrap, .finale-inner{ pointer-events:auto; }
-
-/* --- Glass Card --- */
 .card{
   position:relative;
   width:min(92vw, 640px);
@@ -153,10 +131,6 @@ canvas{ position:fixed; inset:0; display:block; pointer-events:none; }
   -webkit-mask-composite:xor; mask-composite:exclude;
   pointer-events:none; opacity:.8;
 }
-
-/* ============================================================
-   INTRO
-============================================================ */
 .intro-inner{ text-align:center; max-width:640px; }
 
 .eyebrow{
@@ -181,10 +155,6 @@ canvas{ position:fixed; inset:0; display:block; pointer-events:none; }
   margin-top:26px; font-size:.75rem; letter-spacing:.16em;
   color:rgba(255,232,240,.35); text-transform:uppercase;
 }
-
-/* ============================================================
-   BUTTONS
-============================================================ */
 .btn{
   position:relative;
   padding:16px 40px;
@@ -218,10 +188,6 @@ canvas{ position:fixed; inset:0; display:block; pointer-events:none; }
   backdrop-filter:blur(10px);
 }
 .btn-ghost:hover{ background:rgba(255,255,255,.13); }
-
-/* ============================================================
-   HUD (Task 1)
-============================================================ */
 .hud{
   position:fixed; top:0; left:0; width:100%; z-index:40;
   display:flex; justify-content:center; padding:26px 16px;
@@ -253,10 +219,6 @@ canvas{ position:fixed; inset:0; display:block; pointer-events:none; }
   box-shadow:0 0 16px var(--gold), 0 0 32px rgba(255,215,110,.7);
   transform:scale(1.35);
 }
-
-/* ============================================================
-   LETTER
-============================================================ */
 .letter-text{
   font-family:'Cormorant Garamond', serif;
   font-size:clamp(1.08rem, 3.7vw, 1.32rem);
@@ -284,10 +246,6 @@ canvas{ position:fixed; inset:0; display:block; pointer-events:none; }
 
 #continueBtn{ opacity:0; transform:translateY(12px); pointer-events:none; transition:all .7s cubic-bezier(.2,.9,.3,1.3); }
 #continueBtn.show{ opacity:1; transform:translateY(0); pointer-events:auto; }
-
-/* ============================================================
-   TASK 2 — HEART TAP
-============================================================ */
 .tap-wrap{ text-align:center; }
 .tap-title{
   font-family:'Cormorant Garamond', serif;
@@ -324,10 +282,6 @@ canvas{ position:fixed; inset:0; display:block; pointer-events:none; }
   text-transform:uppercase; color:var(--muted);
 }
 .tap-count b{ color:var(--gold); font-weight:600; }
-
-/* ============================================================
-   PROPOSAL
-============================================================ */
 .proposal-card h1{
   font-family:'Cormorant Garamond', serif;
   font-size:clamp(1.28rem, 4.3vw, 1.75rem);
@@ -342,10 +296,6 @@ canvas{ position:fixed; inset:0; display:block; pointer-events:none; }
   gap:18px; position:relative; min-height:64px; flex-wrap:wrap;
 }
 #noBtn{ position:relative; z-index:30; }
-
-/* ============================================================
-   FINALE
-============================================================ */
 .finale-inner{ text-align:center; padding:20px; }
 
 .final-title{
@@ -368,7 +318,6 @@ canvas{ position:fixed; inset:0; display:block; pointer-events:none; }
 </head>
 <body>
 
-<!-- ══════════ BACKGROUND LAYERS ══════════ -->
 <div class="aurora">
   <span class="blob b1"></span>
   <span class="blob b2"></span>
@@ -382,7 +331,6 @@ canvas{ position:fixed; inset:0; display:block; pointer-events:none; }
 
 <button class="sound-btn muted" id="soundBtn" aria-label="Toggle sound">🔇</button>
 
-<!-- ══════════ HUD ══════════ -->
 <div class="hud" id="hud">
   <div class="hud-inner">
     <p class="hud-title">Catch the golden pieces of my heart</p>
@@ -390,7 +338,6 @@ canvas{ position:fixed; inset:0; display:block; pointer-events:none; }
   </div>
 </div>
 
-<!-- ══════════ INTRO ══════════ -->
 <section class="screen" id="intro">
   <div class="intro-inner">
     <p class="eyebrow">A little something · made with love</p>
@@ -401,7 +348,6 @@ canvas{ position:fixed; inset:0; display:block; pointer-events:none; }
   </div>
 </section>
 
-<!-- ══════════ LETTER ══════════ -->
 <section class="screen" id="letter">
   <div class="card" id="letterCard">
     <div class="letter-seal">💌</div>
@@ -410,7 +356,6 @@ canvas{ position:fixed; inset:0; display:block; pointer-events:none; }
   </div>
 </section>
 
-<!-- ══════════ TASK 2 ══════════ -->
 <section class="screen" id="heartTap">
   <div class="tap-wrap">
     <h2 class="tap-title">Tap to fill my heart with love</h2>
@@ -442,7 +387,6 @@ canvas{ position:fixed; inset:0; display:block; pointer-events:none; }
   </div>
 </section>
 
-<!-- ══════════ PROPOSAL ══════════ -->
 <section class="screen" id="proposal">
   <div class="card proposal-card" id="proposalCard">
     <p class="eyebrow">One last thing…</p>
@@ -456,7 +400,6 @@ canvas{ position:fixed; inset:0; display:block; pointer-events:none; }
   </div>
 </section>
 
-<!-- ══════════ FINALE ══════════ -->
 <section class="screen" id="finale">
   <div class="finale-inner">
     <h1 class="final-title">I Love You,<br><span class="js-receiver"></span> ❤️</h1>
@@ -467,13 +410,8 @@ canvas{ position:fixed; inset:0; display:block; pointer-events:none; }
   </div>
 </section>
 
-<script>
-/* ============================================================
-   💌  EDIT YOUR NAMES HERE  💌
-============================================================ */
-const RECEIVER_NAME = "Anarkali";
+<script>const RECEIVER_NAME = "Anarkali";
 const SENDER_NAME   = "Selim";
-/* ========================================================== */
 
 const $  = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -484,9 +422,6 @@ const wait  = ms => new Promise(r => setTimeout(r, ms));
 $$('.js-receiver').forEach(el => el.textContent = RECEIVER_NAME);
 $$('.js-sender').forEach(el => el.textContent = SENDER_NAME);
 
-/* ============================================================
-   AUDIO ENGINE (Web Audio API — no external files)
-============================================================ */
 const Sound = {
   ctx:null, master:null, musicGain:null, sfxGain:null,
   musicOn:false, idx:0, timer:null, ready:false,
@@ -539,7 +474,6 @@ const Sound = {
     src.start(t);
   },
 
-  /* ---- SFX ---- */
   pop(){
     this.init(); if(!this.ready) return;
     const t = this.ctx.currentTime;
@@ -571,7 +505,6 @@ const Sound = {
     this.tone(52, t+0.24, 0.28, 0.16, 'sine');
   },
 
-  /* ---- MUSIC ---- */
   startMusic(){
     this.init();
     if(!this.ready || this.musicOn) return;
@@ -595,10 +528,10 @@ const Sound = {
     if(!this.musicOn || !this.ready) return;
     const t = this.ctx.currentTime + 0.06;
     const chords = [
-      [261.63, 329.63, 392.00, 523.25], // C
-      [220.00, 261.63, 329.63, 440.00], // Am
-      [174.61, 220.00, 261.63, 349.23], // F
-      [196.00, 246.94, 293.66, 392.00]  // G
+      [261.63, 329.63, 392.00, 523.25],
+      [220.00, 261.63, 329.63, 440.00],
+      [174.61, 220.00, 261.63, 349.23],
+      [196.00, 246.94, 293.66, 392.00]
     ];
     const ch = chords[this.idx % chords.length];
     ch.forEach((f,i)=>{
@@ -611,7 +544,6 @@ const Sound = {
   }
 };
 
-/* Sound toggle button */
 const soundBtn = $('#soundBtn');
 let soundEnabled = false;
 soundBtn.addEventListener('click', () => {
@@ -621,9 +553,6 @@ soundBtn.addEventListener('click', () => {
   else { Sound.stopMusic(); soundBtn.textContent = '🔇'; soundBtn.classList.add('muted'); }
 });
 
-/* ============================================================
-   CANVAS SETUP
-============================================================ */
 const bg = $('#bg'), bgCtx = bg.getContext('2d');
 const fx = $('#fx'), fxCtx = fx.getContext('2d');
 let W = 0, H = 0, DPR = 1;
@@ -660,9 +589,6 @@ function buildStars(){
 window.addEventListener('resize', resize);
 resize();
 
-/* ============================================================
-   PARTICLE SYSTEM
-============================================================ */
 const fxParts = [];
 
 function heartPath(ctx, x, y, s){
@@ -747,7 +673,6 @@ function firework(x, y){
   burst(x, y, 22, { speed: 5, gravity: 0.05, gold: true, shape: 'circle' });
 }
 
-/* ambient rising hearts */
 let ambientTimer = 0;
 function ambientSpawn(){
   fxParts.push(new Particle({
@@ -765,9 +690,6 @@ function ambientSpawn(){
   }));
 }
 
-/* ============================================================
-   POINTER / CURSOR
-============================================================ */
 const cursorGlow = $('#cursorGlow');
 let lastTrail = 0;
 
@@ -793,16 +715,12 @@ window.addEventListener('pointermove', e => {
   }
 }, { passive:true });
 
-/* ============================================================
-   RENDER LOOP
-============================================================ */
 let lastT = performance.now();
 
 function render(now){
   const dt = Math.min((now - lastT) / 16.667, 3);
   lastT = now;
 
-  /* ---- BG stars ---- */
   bgCtx.clearRect(0, 0, W, H);
   const ox = (mouse.x - W/2) * 0.014;
   const oy = (mouse.y - H/2) * 0.014;
@@ -816,7 +734,6 @@ function render(now){
   }
   bgCtx.globalAlpha = 1;
 
-  /* ---- FX ---- */
   fxCtx.clearRect(0, 0, W, H);
 
   ambientTimer -= dt;
@@ -836,9 +753,6 @@ function render(now){
 }
 requestAnimationFrame(render);
 
-/* ============================================================
-   GAME 1 — CATCH THE GOLDEN HEARTS
-============================================================ */
 let game1Active = false;
 let score = 0;
 
@@ -903,7 +817,6 @@ function updateGame1(dt){
   goldHearts.forEach(h => { h.update(dt); h.draw(fxCtx); });
 }
 
-/* catch on pointer down */
 window.addEventListener('pointerdown', e => {
   if(!game1Active) return;
   if(e.target.closest('button, .heart-btn, .card, .intro-inner, .finale-inner')) return;
@@ -927,9 +840,6 @@ window.addEventListener('pointerdown', e => {
   }
 });
 
-/* ============================================================
-   SCREEN HELPERS
-============================================================ */
 const scr = {
   intro:    $('#intro'),
   letter:   $('#letter'),
@@ -940,14 +850,10 @@ const scr = {
 const show = el => el.classList.add('is-active');
 const hide = el => el.classList.remove('is-active');
 
-/* ============================================================
-   FLOW
-============================================================ */
 window.addEventListener('load', () => {
   setTimeout(() => show(scr.intro), 200);
 });
 
-/* ---- Intro → Game 1 ---- */
 $('#startBtn').addEventListener('click', async () => {
   Sound.init();
   Sound.startMusic();
@@ -961,7 +867,6 @@ $('#startBtn').addEventListener('click', async () => {
   startGame1();
 });
 
-/* ---- Game 1 → Letter ---- */
 async function winTask1(){
   $('#hud').classList.remove('is-active');
   burst(W/2, H/2, 90, { gold:true, speed:12 });
@@ -973,7 +878,6 @@ async function winTask1(){
   typeLetter();
 }
 
-/* ---- Typewriter ---- */
 const LETTER_TEXT =
   "From the moment you walked into my life, everything changed. " +
   "The colors got brighter, the laughs got louder, and the quiet moments " +
@@ -1007,7 +911,6 @@ async function typeLetter(){
   btn.classList.add('show');
 }
 
-/* click card to skip typing */
 $('#letterCard').addEventListener('click', e => {
   if(e.target.closest('button')) return;
   if(typing) typing = false;
@@ -1022,7 +925,6 @@ $('#continueBtn').addEventListener('click', async () => {
   resetHeart();
 });
 
-/* ---- Task 2 : fill the heart ---- */
 let heartClicks = 0;
 let heartLocked = false;
 
@@ -1061,7 +963,6 @@ $('#heartBtn').addEventListener('pointerdown', e => {
   }
 });
 
-/* ---- Task 2 → Proposal ---- */
 async function goToProposal(){
   burst(W/2, H/2, 160, { gold:true, speed:13 });
   Sound.chime();
@@ -1073,7 +974,6 @@ async function goToProposal(){
   show(scr.proposal);
 }
 
-/* ---- The "No" button ---- */
 const noBtn  = $('#noBtn');
 const yesBtn = $('#yesBtn');
 let noMoves = 0;
@@ -1126,7 +1026,6 @@ function runAway(e){
 noBtn.addEventListener('pointerenter', runAway);
 noBtn.addEventListener('click', runAway);
 
-/* ---- YES ---- */
 yesBtn.addEventListener('click', async () => {
   Sound.chime();
   Sound.boom();
@@ -1142,9 +1041,6 @@ yesBtn.addEventListener('click', async () => {
   finale();
 });
 
-/* ============================================================
-   FINALE
-============================================================ */
 let finaleRunning = false;
 
 async function finale(){
@@ -1158,12 +1054,10 @@ async function finale(){
     { y: 0, opacity: 1, scale: 1, duration: 1.35, ease: 'bounce.out' }
   );
 
-  /* the blast */
   await wait(900);
   burst(W/2, H/2, 260, { gold:true, speed:16, gravity:0.07 });
   Sound.boom();
 
-  /* camera shake */
   gsap.to('#bg, #fx', {
     x: () => rand(-12, 12),
     y: () => rand(-12, 12),
@@ -1171,13 +1065,10 @@ async function finale(){
     onComplete: () => gsap.set('#bg, #fx', { x: 0, y: 0 })
   });
 
-  /* sender name */
   gsap.to('.final-sub', { opacity: 1, duration: 1.6, delay: 0.5, ease: 'power2.out' });
 
-  /* replay button */
   gsap.to('.final-actions', { opacity: 1, duration: 1.2, delay: 1.6 });
 
-  /* fireworks show */
   let n = 0;
   const fw = setInterval(() => {
     firework(rand(W*0.12, W*0.88), rand(H*0.12, H*0.58));
@@ -1185,7 +1076,6 @@ async function finale(){
     if(++n > 9) clearInterval(fw);
   }, 480);
 
-  /* endless hearts */
   setInterval(() => {
     burst(rand(W*0.1, W*0.9), H + 30, 3, { speed: 4, gravity: -0.02, shape: 'heart' });
   }, 700);
@@ -1197,9 +1087,6 @@ $('#replayBtn').addEventListener('click', () => {
   gsap.to('body', { opacity: 0, duration: 0.6, onComplete: () => location.reload() });
 });
 
-/* ============================================================
-   MOBILE TOUCH — soft tap ripple
-============================================================ */
 window.addEventListener('pointerdown', e => {
   if(e.pointerType === 'mouse') return;
   if(e.target.closest('button, .heart-btn')) return;

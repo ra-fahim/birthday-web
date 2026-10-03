@@ -7,7 +7,6 @@ import { InAppBrowserGuard } from './components/InAppBrowserGuard';
 import { STORY_DATA as DEFAULT_STORY_DATA } from './data';
 import { useSiteConfig, useEditorMode, bb, t } from './utils/siteConfig';
 
-// Lazy load heavy components
 const FinalLetter = React.lazy(() => import('./components/FinalLetter').then(module => ({ default: module.FinalLetter })));
 const DatePlanner = React.lazy(() => import('./components/DatePlanner').then(module => ({ default: module.DatePlanner })));
 const BucketList = React.lazy(() => import('./components/BucketList').then(module => ({ default: module.BucketList })));
@@ -17,7 +16,6 @@ const BloomGarden = React.lazy(() => import('./components/BloomGarden').then(mod
 import { MuseumGallery } from './components/MuseumGallery';
 import { BackgroundMusic } from './components/BackgroundMusic';
 
-// Loading Component - Height matches dynamic viewport height to prevent layout shifts on mobile
 const SectionLoader = () => (
   <div className="w-full min-h-[100dvh] flex items-center justify-center text-love-accent/50 dark:text-love-dark-accent/50">
     <div className="animate-pulse flex flex-col items-center gap-2">
@@ -27,7 +25,6 @@ const SectionLoader = () => (
   </div>
 );
 
-// --- THEME DEFINITIONS ---
 type ThemeType = 'blush' | 'lavender' | 'ocean' | 'midnight' | 'sunset' | 'forest' | 'mocha' | 'royal';
 
 const THEMES: Record<ThemeType, any> = {
@@ -83,9 +80,9 @@ const THEMES: Record<ThemeType, any> = {
       '--love-bg': '#EEF2FF',
       '--love-text': '#1E1B4B',
       '--love-pink': '#C7D2FE',
-      '--love-accent': '#6366F1', // Indigo
+      '--love-accent': '#6366F1',
       '--love-card': '#FFFFFF',
-      '--love-dark-bg': '#020617', // Deepest Navy
+      '--love-dark-bg': '#020617',
       '--love-dark-text': '#E0E7FF',
       '--love-dark-accent': '#818CF8',
       '--love-dark-card': '#0F172A',
@@ -98,7 +95,7 @@ const THEMES: Record<ThemeType, any> = {
       '--love-bg': '#FFF1F2',
       '--love-text': '#881337',
       '--love-pink': '#FECDD3',
-      '--love-accent': '#F43F5E', // Rose
+      '--love-accent': '#F43F5E',
       '--love-card': '#FFFFEF',
       '--love-dark-bg': '#4C0519',
       '--love-dark-text': '#FFE4E6',
@@ -113,7 +110,7 @@ const THEMES: Record<ThemeType, any> = {
       '--love-bg': '#F0FDF4',
       '--love-text': '#064E3B',
       '--love-pink': '#A7F3D0',
-      '--love-accent': '#10B981', // Emerald
+      '--love-accent': '#10B981',
       '--love-card': '#FFFFFF',
       '--love-dark-bg': '#022C22',
       '--love-dark-text': '#D1FAE5',
@@ -128,7 +125,7 @@ const THEMES: Record<ThemeType, any> = {
       '--love-bg': '#FDFCF8',
       '--love-text': '#5D4037',
       '--love-pink': '#D7CCC8',
-      '--love-accent': '#8D6E63', // Warm Brown
+      '--love-accent': '#8D6E63',
       '--love-card': '#FAF9F6',
       '--love-dark-bg': '#281E1C',
       '--love-dark-text': '#EFEBE9',
@@ -143,7 +140,7 @@ const THEMES: Record<ThemeType, any> = {
       '--love-bg': '#FAF5FF',
       '--love-text': '#581C87',
       '--love-pink': '#E9D5FF',
-      '--love-accent': '#9333EA', // Purple
+      '--love-accent': '#9333EA',
       '--love-card': '#FFFFFF',
       '--love-dark-bg': '#3B0764',
       '--love-dark-text': '#F3E8FF',
@@ -155,8 +152,6 @@ const THEMES: Record<ThemeType, any> = {
 
 const BackgroundPattern = () => (
   <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-love-bg dark:bg-love-dark-bg">
-    {/* Gradient Base - Optimized for GPU */}
-    {/* We use will-change-transform to inform the browser to promote this to a layer */}
     <motion.div
       initial={{ x: '-25%', y: '-25%' }}
       animate={{
@@ -172,8 +167,6 @@ const BackgroundPattern = () => (
       className="absolute inset-[-50%] w-[200%] h-[200%] bg-gradient-to-br from-love-bg via-love-pink/20 to-love-bg dark:from-love-dark-bg dark:via-love-dark-accent/10 dark:to-love-dark-bg"
     />
 
-    {/* Optimized Orbs - Using Radial Gradients instead of expensive CSS Blur */}
-    {/* Top-Left Orb */}
     <div
       className="absolute top-0 left-0 w-[80vw] h-[80vw] opacity-40 dark:opacity-20 pointer-events-none"
       style={{
@@ -182,7 +175,6 @@ const BackgroundPattern = () => (
       }}
     />
 
-    {/* Bottom-Right Orb */}
     <div
       className="absolute bottom-0 right-0 w-[80vw] h-[80vw] opacity-30 dark:opacity-20 pointer-events-none"
       style={{
@@ -191,7 +183,6 @@ const BackgroundPattern = () => (
       }}
     />
 
-    {/* Fine grain + soft moving light for a more premium editorial feel. */}
     <div className="absolute inset-0 opacity-[0.4] dark:opacity-[0.3]"
       style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E")`,
@@ -226,7 +217,6 @@ const App: React.FC = () => {
   const heroSubtitle = siteConfig.heroSubtitle?.trim() || 'Scroll slowly';
   const STORY_DATA = siteConfig.story?.length ? siteConfig.story : DEFAULT_STORY_DATA;
 
-  // ---- Studio edit mode: Previous / Next walk through the page section by section.
   const EDIT_STEPS = ['Intro', 'Opening', 'Story', 'Museum', 'Comfort corner', 'Date planner', 'Garden', 'Love jar', 'Bucket list', 'Final letter'];
   const EDIT_IDS = ['', 'bb-sec-hero', 'bb-sec-story', 'bb-sec-museum', 'bb-sec-comfort', 'bb-sec-date', 'bb-sec-garden', 'bb-sec-jar', 'bb-sec-bucket', 'bb-sec-letter'];
   const [editStep, setEditStep] = useState(0);
@@ -234,7 +224,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!editor) {
-      // Leaving edit mode (Preview): the visitor experience starts from the very beginning again.
       if (wasEditor.current) { wasEditor.current = false; setEditStep(0); setIsIntroComplete(false); window.scrollTo(0, 0); }
       return;
     }
@@ -245,7 +234,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!editor) return;
-    try { window.parent.postMessage({ type: 'BB_CANVAS_HISTORY_STATE', canBack: editStep > 0, canForward: editStep < EDIT_STEPS.length - 1, screen: EDIT_STEPS[editStep] }, '*'); } catch { /* ignore */ }
+    try { window.parent.postMessage({ type: 'BB_CANVAS_HISTORY_STATE', canBack: editStep > 0, canForward: editStep < EDIT_STEPS.length - 1, screen: EDIT_STEPS[editStep] }, '*'); } catch {  }
     if (editStep === 0) { setIsIntroComplete(false); window.scrollTo(0, 0); return; }
     setIsIntroComplete(true);
     const timer = setTimeout(() => document.getElementById(EDIT_IDS[editStep])?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
@@ -259,7 +248,6 @@ const App: React.FC = () => {
     restDelta: 0.001
   });
 
-  // Handle Dark Mode
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -268,7 +256,6 @@ const App: React.FC = () => {
     }
   }, [isDarkMode]);
 
-  // Handle Theme Change
   useEffect(() => {
     const root = document.documentElement;
     const themeColors = THEMES[currentTheme].colors;
@@ -278,17 +265,14 @@ const App: React.FC = () => {
     });
   }, [currentTheme]);
 
-  // Lock body scroll during intro
   useEffect(() => {
     if (!isIntroComplete) {
-      // Lock scrolling on BOTH html and body for better mobile support
       document.body.style.overflow = 'hidden';
       document.documentElement.style.overflow = 'hidden';
-      document.body.style.height = '100vh'; // Prevent rubber-banding
-      document.documentElement.style.height = '100vh'; // Prevent rubber-banding
+      document.body.style.height = '100vh';
+      document.documentElement.style.height = '100vh';
       window.scrollTo(0, 0);
     } else {
-      // Restore scrolling
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
       document.body.style.height = '';
@@ -306,13 +290,10 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen font-sans selection:bg-love-accent selection:text-white transition-colors duration-700 relative">
 
-      {/* Premium Background Layer */}
       <BackgroundPattern />
 
-      {/* Controls Container */}
       <div className="fixed top-6 right-6 z-[60] flex flex-col items-end gap-3">
 
-        {/* Theme Toggle */}
         <div className="relative">
           <motion.button
             initial={{ opacity: 0 }}
@@ -365,7 +346,6 @@ const App: React.FC = () => {
           </AnimatePresence>
         </div>
 
-        {/* Dark Mode Toggle */}
         <motion.button
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -405,16 +385,13 @@ const App: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Background music — starts only after the intro gate is completed */}
       <BackgroundMusic start={isIntroComplete} src={siteConfig.bgMusicUrl} />
 
-      {/* Progress Bar */}
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 bg-love-accent dark:bg-love-dark-accent origin-left z-50 opacity-50"
         style={{ scaleX }}
       />
 
-      {/* Intro / Hero */}
       <Section id="bb-sec-hero" className="min-h-screen flex flex-col justify-center items-center text-center px-6 relative z-10">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
@@ -457,11 +434,9 @@ const App: React.FC = () => {
         </motion.div>
       </Section>
 
-      {/* Story Sections */}
       {STORY_DATA.map((item, index) => (
         <Section key={index} id={index === 0 ? 'bb-sec-story' : undefined} className="min-h-screen flex flex-col justify-center items-center px-6 md:px-20 py-20 z-10">
           <div className="max-w-3xl text-center flex flex-col items-center">
-            {/* Number with Blur Reveal */}
             <motion.span
               initial={{ opacity: 0, filter: "blur(10px)", y: 10 }}
               whileInView={{ opacity: 1, filter: "blur(0px)", y: 0 }}
@@ -472,7 +447,6 @@ const App: React.FC = () => {
               {item.number || String(index + 1)}
             </motion.span>
 
-            {/* Title with Slide Up & Blur */}
             <motion.h2
               initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
               whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -484,7 +458,6 @@ const App: React.FC = () => {
               {item.title}
             </motion.h2>
 
-            {/* Body with Gentle Fade In */}
             <motion.p
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -505,49 +478,42 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Museum of Our Love — uses raw section to avoid double scroll-reveal opacity gate on mobile */}
       <section id="bb-sec-museum" className="w-full relative flex flex-col items-center px-4 py-20 z-10">
         <div className="bg-love-card/80 dark:bg-love-dark-card/60 backdrop-blur-xl w-full py-10 rounded-3xl border border-love-accent/10 shadow-xl">
           <MuseumGallery />
         </div>
       </section>
 
-      {/* Comfort Corner */}
       <Section id="bb-sec-comfort" className="min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10">
         <React.Suspense fallback={<SectionLoader />}>
           <ComfortCorner />
         </React.Suspense>
       </Section>
 
-      {/* Date Planner Section */}
       <Section id="bb-sec-date" className="min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10">
         <React.Suspense fallback={<SectionLoader />}>
           <DatePlanner />
         </React.Suspense>
       </Section>
 
-      {/* Bloom Garden */}
       <Section id="bb-sec-garden" className="min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10">
         <React.Suspense fallback={<SectionLoader />}>
           <BloomGarden />
         </React.Suspense>
       </Section>
 
-      {/* Love Note Jar */}
       <Section id="bb-sec-jar" className="min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10">
         <React.Suspense fallback={<SectionLoader />}>
           <LoveNotes />
         </React.Suspense>
       </Section>
 
-      {/* Future Bucket List Section */}
       <Section id="bb-sec-bucket" className="min-h-screen flex flex-col justify-center items-center px-4 py-20 z-10">
         <React.Suspense fallback={<SectionLoader />}>
           <BucketList />
         </React.Suspense>
       </Section>
 
-      {/* Final Letter */}
       <Section id="bb-sec-letter" className="min-h-screen flex justify-center items-center px-4 py-20 z-10">
         <React.Suspense fallback={<SectionLoader />}>
           <FinalLetter />
@@ -558,7 +524,6 @@ const App: React.FC = () => {
         <span {...bb('texts.footer', 'Footer line')}>{t(siteConfig, 'footer')}</span>
       </footer>
 
-      {/* In-App Browser Detection */}
       <InAppBrowserGuard />
     </div>
   );

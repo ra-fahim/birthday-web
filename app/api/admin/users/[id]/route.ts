@@ -53,7 +53,6 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
     await db.website.deleteMany({where:{id:site.id}});
   }
   await db.user.deleteMany({where:{id:user.id}});
-  // Also remove the Supabase Auth account when server-side service-role credentials are available.
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/,'');
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (base && serviceKey) {

@@ -12,8 +12,6 @@ function reorder<T>(items: T[], from: number, to: number): T[] {
   return next;
 }
 
-// Drag handle + up/down buttons so reordering doesn't require deleting and
-// retyping an item. Buttons work everywhere; drag is a bonus on desktop.
 function ReorderRow({ index, count, onMove, children }: { index: number; count: number; onMove: (from: number, to: number) => void; children: React.ReactNode }) {
   const dragFrom = useRef<number | null>(null);
   return <div

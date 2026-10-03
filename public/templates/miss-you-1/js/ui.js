@@ -1,7 +1,3 @@
-// ===========================
-// Clock Display
-// ===========================
-
 function createClockDOM(config) {
   const clock = document.getElementById("clock");
   const cfg = config.time;
@@ -56,10 +52,6 @@ function timeElapse(startMs, digits) {
   digits.seconds.textContent = twoDigits(seconds);
 }
 
-// ===========================
-// Responsive Scaling
-// ===========================
-
 function scaleContent() {
   const viewport = document.getElementById("viewport");
   const main = document.getElementById("main");
@@ -67,10 +59,6 @@ function scaleContent() {
   function resize() {
     let scale;
     if (isMobileLayout()) {
-      // On phones the letter + countdown no longer live inside this stage
-      // (see setupMobileLayout), so the tree/canvas art is just a
-      // decorative strip — cap it to a portion of the viewport height
-      // instead of trying to fit the whole 680px-tall stage on screen.
       const maxHeight = window.innerHeight * 0.44;
       scale = Math.min(
         window.innerWidth / StageConfig.width,
@@ -93,16 +81,6 @@ function scaleContent() {
   window.addEventListener("resize", resize);
 }
 
-// ===========================
-// Mobile Layout Adaptation
-// ===========================
-// On narrow phones, scaling the whole 1100x680 stage down to fit the width
-// shrinks the letter + countdown text far below a readable size. Instead,
-// on phones we physically move #letter and #clock-box out of the scaled
-// stage into #mobile-content, a normal below-the-fold block with its own
-// always-legible, viewport-relative CSS (see styles.css). The tree/canvas
-// art stays inside the stage as a compact decorative scene up top.
-
 const MOBILE_BREAKPOINT = 700;
 
 function isMobileLayout() {
@@ -121,10 +99,6 @@ function setupMobileLayout() {
   panel.appendChild(clockBox);
   document.body.classList.add("mobile-layout");
 }
-
-// ===========================
-// Content Initialization
-// ===========================
 
 function initContent(config) {
   const letter = document.getElementById("letter");
@@ -165,10 +139,6 @@ function initContent(config) {
   clockText.appendChild(document.createTextNode(` ${config.couple.together}`));
 }
 
-// ===========================
-// Canvas Initialization
-// ===========================
-
 function initCanvas(id) {
   const canvas = document.getElementById(id);
   const { width: w, height: h } = StageConfig;
@@ -181,13 +151,6 @@ function initCanvas(id) {
   return canvas;
 }
 
-// ===========================
-// Letter Auto-Fit
-// ===========================
-// The letter block sits above the names + countdown. A long (or translated)
-// letter used to overflow and collide with them, so the font is scaled down
-// until the whole text fits inside the reserved area.
-
 const LETTER_FIT = {
   maxFontSize: 16,
   minFontSize: 9,
@@ -198,14 +161,8 @@ const LETTER_FIT = {
 function fitLetter(letter) {
   if (!letter) return;
 
-  // On phones the letter sits in the normal document flow with its own
-  // clamp()-based CSS font size (see styles.css) and can never collide
-  // with anything below it, so the fixed-stage shrink-to-fit logic below
-  // — which is only meaningful for the absolutely-positioned desktop box
-  // — is skipped entirely here.
   if (document.body.classList.contains("mobile-layout")) return;
 
-  // Measure while laid out but invisible, then restore the original state.
   const prevDisplay = letter.style.display;
   const prevVisibility = letter.style.visibility;
   letter.style.display = "block";
@@ -222,7 +179,6 @@ function fitLetter(letter) {
     letter.style.fontSize = size + "px";
   }
 
-  // Very long letters: tighten the line spacing a little as a last resort.
   if (letter.scrollHeight > available) {
     letter.style.lineHeight = "1.2";
   }
@@ -230,12 +186,6 @@ function fitLetter(letter) {
   letter.style.visibility = prevVisibility;
   letter.style.display = prevDisplay || "none";
 }
-
-// ===========================
-// Background Music
-// ===========================
-// The platform lets the owner upload one track; when they do, it replaces the
-// bundled bgm.mp3. Playback still starts on the first click (seed tap).
 
 function applyBackgroundMusic(config) {
   const bgm = document.getElementById("bgm");

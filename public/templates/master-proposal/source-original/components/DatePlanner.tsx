@@ -21,7 +21,6 @@ const FALLBACK_ICONS = [
   <Building2 className="w-6 h-6" />,
 ];
 
-// Student & Budget Friendly Options
 const DEFAULT_DATE_OPTIONS: DateOption[] = [
   {
     id: 'massage',
@@ -71,7 +70,6 @@ const DEFAULT_DATE_OPTIONS: DateOption[] = [
     planDescription: "We'll find a quiet corner at a cute cafe. I'll buy the coffee/boba, you bring the notes. 50% studying, 50% holding hands under the table.",
     budget: "$"
   },
-  // VIP Option: Capital Town Date
   {
     id: 'capitaltown',
     label: 'Capital Town',
@@ -109,7 +107,6 @@ export const DatePlanner: React.FC = () => {
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [isSending, setIsSending] = useState(false);
 
-  // Editing: the first plan ticket is always shown so its text can be clicked and edited.
   const selectedOption = DATE_OPTIONS.find(opt => opt.id === selected) || (editor ? DATE_OPTIONS[0] : undefined);
   const selectedIndex = selectedOption ? DATE_OPTIONS.indexOf(selectedOption) : -1;
 
@@ -121,7 +118,6 @@ export const DatePlanner: React.FC = () => {
     const recipient = config.recipientEmail;
     const subject = `Date Ticket: ${selectedOption.planTitle}`;
 
-    // Straightforward, modern ticket design
     const ticketBody = `
 🎫  OFFICIAL DATE TICKET
 ----------------------------------------
@@ -181,8 +177,6 @@ ${config.fromLabel}
       setToastMessage(`Date ticket sent! "${selectedOption.planTitle}" is on its way to ${config.toName.split(' (')[0]}!`);
       setShowToast(true);
     } catch {
-      // Automatic delivery failed (e.g. no SMTP configured yet) — fall back to
-      // the visitor's own mail app so the ticket is never silently lost.
       const mailtoUrl = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(ticketBody)}`;
       window.location.href = mailtoUrl;
       setToastType('error');
@@ -204,7 +198,6 @@ ${config.fromLabel}
         </p>
       </div>
 
-      {/* Grid Layout: 6 Regular options (3 columns x 2 rows on desktop) + 1 Special (Full width) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
         {DATE_OPTIONS.map((option, optIndex) => (
           <motion.button
@@ -271,14 +264,12 @@ ${config.fromLabel}
               transition={{ type: "spring", damping: 20 }}
               className="relative w-full max-w-md mx-auto"
             >
-              {/* Ticket UI */}
               <div className={`
                  rounded-xl overflow-hidden shadow-2xl border-2 border-dashed relative z-10
                  ${selectedOption.isSpecial
                   ? 'bg-amber-50 dark:bg-[#1a1500] border-amber-400 dark:border-amber-600'
                   : 'bg-love-card dark:bg-love-dark-card border-love-accent/30 dark:border-love-dark-accent/30'}
               `}>
-                {/* Header Strip */}
                 <div className={`
                   p-4 text-white flex justify-between items-center
                   ${selectedOption.isSpecial ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 'bg-love-accent dark:bg-love-dark-accent dark:text-love-dark-bg'}
@@ -288,9 +279,7 @@ ${config.fromLabel}
                   <span className="text-xs font-bold tracking-[0.2em] uppercase">{selectedOption.isSpecial ? 'VIP Date' : 'Date Night'}</span>
                 </div>
 
-                {/* Content */}
                 <div className="p-8 text-center relative">
-                  {/* Watermark */}
                   <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
                     <Heart className="w-48 h-48" />
                   </div>
@@ -302,7 +291,6 @@ ${config.fromLabel}
                     {selectedOption.planDescription}
                   </p>
 
-                  {/* Time Selector */}
                   <div className="mb-6 p-4 bg-love-bg dark:bg-black/20 rounded-lg border border-love-accent/10 dark:border-love-dark-accent/10">
                     <div className="flex items-center justify-center gap-2 mb-2 text-love-accent dark:text-love-dark-accent">
                       <Clock className="w-4 h-4" />
@@ -329,7 +317,6 @@ ${config.fromLabel}
 
                   <div className="w-full h-px bg-love-accent/20 dark:bg-love-dark-accent/20 mb-6" />
 
-                  {/* Action Button */}
                   <motion.button
                     onClick={handleSendTicket}
                     disabled={isSending}
@@ -367,7 +354,6 @@ ${config.fromLabel}
         </AnimatePresence>
       </div>
 
-      {/* Toast Notification */}
       <Toast
         message={toastMessage}
         type={toastType}

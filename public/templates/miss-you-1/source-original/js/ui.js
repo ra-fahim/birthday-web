@@ -1,7 +1,3 @@
-// ===========================
-// Clock Display
-// ===========================
-
 function createClockDOM(config) {
   const clock = document.getElementById("clock");
   const cfg = config.time;
@@ -56,10 +52,6 @@ function timeElapse(startMs, digits) {
   digits.seconds.textContent = twoDigits(seconds);
 }
 
-// ===========================
-// Responsive Scaling
-// ===========================
-
 function scaleContent() {
   const viewport = document.getElementById("viewport");
   const main = document.getElementById("main");
@@ -78,10 +70,6 @@ function scaleContent() {
   resize();
   window.addEventListener("resize", resize);
 }
-
-// ===========================
-// Content Initialization
-// ===========================
 
 function initContent(config) {
   const letter = document.getElementById("letter");
@@ -119,10 +107,6 @@ function initContent(config) {
   clockText.appendChild(createName(config.couple.name2));
   clockText.appendChild(document.createTextNode(` ${config.couple.together}`));
 }
-
-// ===========================
-// Canvas Initialization
-// ===========================
 
 function initCanvas(id) {
   const canvas = document.getElementById(id);

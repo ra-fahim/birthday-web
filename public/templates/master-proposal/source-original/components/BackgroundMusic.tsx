@@ -4,19 +4,12 @@ import { Volume2, VolumeX } from 'lucide-react';
 import { useEditorMode, bb } from '../utils/siteConfig';
 
 interface BackgroundMusicProps {
-  /** Becomes true once the intro gate is finished (the "Yes, forever" moment). */
   start: boolean;
-  /** Audio file URL coming from the platform config. Empty = no music at all. */
   src?: string;
 }
 
 const TARGET_VOLUME = 0.4;
 
-/**
- * One single looping background track for the whole experience.
- * It never renders a playlist — the site owner uploads exactly one file
- * in Wishes Studio (Music tab) and it starts right after the intro gate.
- */
 export const BackgroundMusic: React.FC<BackgroundMusicProps> = ({ start, src }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -25,12 +18,11 @@ export const BackgroundMusic: React.FC<BackgroundMusicProps> = ({ start, src }) 
   const url = (src || '').trim();
   const editor = useEditorMode();
 
-  // Start (or stop) playback with the intro gate.
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !url) return;
 
-    if (!start || editor) { // never autoplay while editing
+    if (!start || editor) {
       audio.pause();
       setIsPlaying(false);
       return;
@@ -46,7 +38,6 @@ export const BackgroundMusic: React.FC<BackgroundMusicProps> = ({ start, src }) 
 
     tryPlay();
 
-    // If the browser still blocks autoplay, retry on the next interaction.
     const retry = () => {
       if (audio.paused && !isMuted) tryPlay();
     };

@@ -39,9 +39,6 @@ export default function WeddingProposalTemplate({ content, editorMode = false, o
     };
   }, []);
 
-  // Always build from the latest content (e.g. when leaving Preview), but do not
-  // rebuild srcDoc on every keystroke: live changes are sent into the running
-  // iframe via BB_CONTENT so its current screen stays where it is.
   const latestContent = useRef<BirthdayContent>(content);
   latestContent.current = content;
   const html = useMemo(() => (source ? buildWeddingHtml(source, latestContent.current, editorMode) : ''), [source, editorMode]);

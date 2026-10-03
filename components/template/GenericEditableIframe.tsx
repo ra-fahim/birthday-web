@@ -252,7 +252,6 @@ export default function GenericEditableIframe({ title, src, srcDoc, content, edi
     frameRef.current?.contentWindow?.postMessage({ type: 'BB_CANVAS_HISTORY', direction }, '*');
   };
 
-  // Latest values for replying when the template itself asks for its content (BB_CONFIG_REQUEST).
   const latest = useRef({ editorMode, genericEdits, extraMessages });
   latest.current = { editorMode, genericEdits, extraMessages };
 
@@ -292,8 +291,6 @@ export default function GenericEditableIframe({ title, src, srcDoc, content, edi
     return () => window.removeEventListener('message', handler);
   }, [onElementSelect, onHistoryState]);
 
-  // The builder canvas already shows the round Previous / Next arrows (onHistoryState is passed),
-  // so this inner bar is only used when the iframe is embedded without them.
   const showEditorNav = editorMode && !onHistoryState;
 
   return (

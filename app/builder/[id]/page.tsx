@@ -15,8 +15,6 @@ import { TimelineEditor, MemoriesEditor, WishlistEditor, GuestbookToggle } from 
 import { templateCatalog } from '@/lib/templates';
 import { getTemplateInspection } from '@/lib/template-inspector';
 
-// Keep the complete occasion list stable even when an occasion has no templates yet.
-// New HTML templates can then be registered under any of these categories later.
 const OCCASIONS = [
   ['birthday', '🎂', 'Birthday'],
   ['anniversary', '💞', 'Anniversary'],
@@ -34,11 +32,6 @@ const OCCASIONS = [
 
 const TEMPLATES = templateCatalog.map((t) => [t.slug, t.name, t.description] as const);
 
-// Only occasions that actually have an installed template show up in the
-// Occasion picker — an empty category is just noise for the person building
-// their site. OCCASIONS itself stays complete so labels/emoji still resolve
-// correctly for older sites already saved under a category that has since
-// lost its last template.
 const AVAILABLE_OCCASIONS = OCCASIONS.filter(([value]) => templateCatalog.some((t) => t.category === value));
 
 function templatesForOccasion(nextOccasion: string) {
@@ -93,9 +86,6 @@ function reorder<T>(items: T[], from: number, to: number): T[] {
   return next;
 }
 
-// Drag handle + up/down buttons shared by both list editors below. Native
-// HTML5 drag-and-drop (no extra library) for people who want to drag, plus
-// buttons for everyone else — dragging is fiddly on a phone.
 function ReorderControls({ index, count, onMove }: { index: number; count: number; onMove: (from: number, to: number) => void }) {
   return <div className="builder-reorder">
     <span className="builder-drag-handle" title="Drag to reorder">⠿</span>
@@ -206,9 +196,6 @@ export default function Builder() {
   const editorMode = !previewMode;
   const [editGroup, setEditGroup] = useState<EditGroupId>('content');
   const [device, setDevice] = useState<'desktop'|'tablet'|'mobile'>('desktop');
-  // The real screen the editor is open on. Phones get the mobile layout, tablets the
-  // tablet layout and computers the desktop layout automatically; the manual
-  // Desktop/Tablet/Mobile switch only exists on a computer, to preview other sizes.
   const [viewport, setViewport] = useState<'desktop'|'tablet'|'mobile'>('desktop');
   const [selectedElement, setSelectedElement] = useState<CanvasSelection | null>(null);
   const [publicUrl, setPublicUrl] = useState('');
@@ -233,8 +220,6 @@ export default function Builder() {
   occasionRef.current = occasion;
   dirtyRef.current = dirty;
 
-  // Keep a CSS variable with the real top bar height so the preview always fills exactly
-  // the remaining screen on phones, tablets and computers (the bar wraps on small screens).
   useLayoutEffect(() => {
     const shell = shellRef.current;
     const bar = shell?.querySelector<HTMLElement>('.builder-topbar');
@@ -291,19 +276,9 @@ export default function Builder() {
       let resolvedTemplate: string;
       let resolvedOccasion: string;
       if (storedTemplateEntry) {
-        // The template itself still exists — trust its own category as the
-        // source of truth. This keeps older sites pointed at the same
-        // template even after a template gets moved to a different
-        // occasion (e.g. Wedding Proposal moving from Proposal to
-        // Wedding); the site's occasion just gets silently corrected to
-        // match instead of the template being swapped out from under them.
         resolvedTemplate = storedTemplateEntry.slug;
         resolvedOccasion = storedTemplateEntry.category;
       } else {
-        // Template no longer installed at all — fall back to whatever the
-        // stored occasion's first installed template is; if none exists
-        // yet, the builder stays explicitly empty instead of showing the
-        // wrong template.
         const occasionTemplates = templatesForOccasion(storedOccasion);
         resolvedTemplate = effectiveRequestedTemplate || occasionTemplates[0]?.slug || '';
         resolvedOccasion = resolvedTemplate ? (templateCatalog.find((t) => t.slug === resolvedTemplate)?.category || storedOccasion) : storedOccasion;
@@ -416,9 +391,6 @@ export default function Builder() {
     const iframe = document.querySelector<HTMLIFrameElement>('.builder-canvas-stage iframe');
     const target = iframe?.contentWindow as (Window & { BB_EDITOR_NAVIGATE?: (delta: number) => void }) | null;
     if (!target) return;
-    // Prefer the same-origin runtime API. Only fall back to the message
-    // bridge when the iframe is still booting so one click never advances
-    // twice.
     try {
       if (typeof target.BB_EDITOR_NAVIGATE === 'function') {
         target.BB_EDITOR_NAVIGATE(delta);
@@ -435,7 +407,6 @@ export default function Builder() {
     if (loaded && templateId && !readGuideSeen()) setGuideOpen(true);
   }, [loaded, templateId]);
 
-  // Always open the editor scrolled to the top so the sticky top bar never covers the preview header.
   useEffect(() => {
     if (loaded) window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   }, [loaded]);
@@ -451,8 +422,6 @@ export default function Builder() {
         const fullyVisible = rect.top >= 84 && rect.bottom <= window.innerHeight - 16;
         if (!fullyVisible) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
       } else {
-        // Phone / tablet: bring the options box into view just below the template box, so the
-        // template stays partly visible while the first fields of the editor are reachable.
         const want = Math.max(top + 8, window.innerHeight - 300);
         if (rect.top > want || rect.top < top - 4) {
           window.scrollTo({ top: Math.max(0, window.scrollY + rect.top - want), behavior: 'smooth' });
@@ -462,7 +431,6 @@ export default function Builder() {
     return () => window.clearTimeout(id);
   }, [selectedElement, editorMode, viewport]);
 
-  // "Done": close the options box and, on phone/tablet, go back up to the template box.
   const closeSelectedElement = useCallback(() => {
     setSelectedElement(null);
     if (viewport === 'desktop') return;
@@ -556,9 +524,6 @@ export default function Builder() {
     };
   }
 
-  // Saves run one at a time, always from the newest content. If another edit lands
-  // while a save is in flight it is queued and sent right after, so the last change
-  // can never be lost or overwritten by an older, slower request.
   async function save(publish = false, silent = false) {
     if (!templateId) { if (!silent) setMsg(`Add a ${currentOccasion[2]} template before publishing.`); return; }
     if (savingRef.current) {
@@ -580,7 +545,6 @@ export default function Builder() {
       if (r.ok) {
         statusRef.current = targetStatus;
         setStatus(targetStatus);
-        // Only clear "unsaved" when nothing was edited while this request was in flight.
         const stillClean = editVersionRef.current === startedVersion;
         if (stillClean) setDirty(false);
         setSyncState(stillClean ? (silent ? 'saved' : 'synced') : 'updating');
@@ -607,8 +571,6 @@ export default function Builder() {
     return () => window.clearTimeout(timer);
   }, [loaded, dirty, c, occasion, templateId, previewMode]);
 
-  // If the tab is hidden/closed (common on phones) while edits are still waiting for the
-  // auto-save timer, send them right away so nothing is lost.
   useEffect(() => {
     const flush = () => {
       if (!dirtyRef.current || !templateIdRef.current || !historyReadyRef.current) return;
@@ -621,8 +583,6 @@ export default function Builder() {
     return () => { document.removeEventListener('visibilitychange', onVisibility); window.removeEventListener('pagehide', flush); };
   }, [id]);
 
-  // "Create Live Link" saves the latest edits as a draft, then opens the publish page
-  // where the customer picks and validates their custom link before going live.
   const goToPublish = async () => {
     if (!templateIdRef.current) { setMsg(`Add a ${currentOccasion[2]} template before publishing.`); return; }
     await saveDraftRef.current?.(false, true);
@@ -648,8 +608,6 @@ export default function Builder() {
   const editableMediaKeys = useMemo(() => new Set(
     templateInspection.media.filter(slot => slot.sourceType === 'file-or-url').map(slot => slot.key)
   ), [templateInspection]);
-  // Media visibility is template-aware: each template only exposes the media
-  // slots its source actually contains.
   const hasGalleryMedia = editableMediaKeys.has('gallery') || editableMediaKeys.has('museum');
   const hasVideoMedia = editableMediaKeys.has('videos') || editableMediaKeys.has('videoUrl') || editableMediaKeys.has('museum');
   const hasMusicMedia = editableMediaKeys.has('soundtrack') || editableMediaKeys.has('musicUrl') || editableMediaKeys.has('bgMusicUrl') || editableMediaKeys.has('countdownAudioUrl') || editableMediaKeys.has('wishingAudioUrl');

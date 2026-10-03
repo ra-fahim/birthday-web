@@ -8,7 +8,6 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       { userAgent: '*', allow: ['/', '/api/og'], disallow },
-      // Let AI/search crawlers read public marketing pages too.
       { userAgent: ['Googlebot', 'Bingbot'], allow: ['/', '/api/og'], disallow },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

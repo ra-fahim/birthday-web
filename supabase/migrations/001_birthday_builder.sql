@@ -1,12 +1,8 @@
--- Birthday Builder SaaS - Supabase-only database
--- Run this entire file in Supabase SQL Editor.
 create extension if not exists pgcrypto;
 
--- Supabase Storage bucket used by the application upload API.
 insert into storage.buckets (id, name, public)
 values ('birthday-builder', 'birthday-builder', true)
 on conflict (id) do update set public = excluded.public;
-
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -105,7 +101,6 @@ create trigger on_auth_user_created after insert on auth.users for each row exec
 
 create or replace function public.increment_website_views(p_website_id uuid) returns void language sql security definer set search_path=public as $$ update public.websites set views=views+1,updated_at=now() where id=p_website_id; $$;
 
--- updated_at triggers
  drop trigger if exists profiles_updated_at on public.profiles; create trigger profiles_updated_at before update on public.profiles for each row execute function public.set_updated_at();
  drop trigger if exists websites_updated_at on public.websites; create trigger websites_updated_at before update on public.websites for each row execute function public.set_updated_at();
  drop trigger if exists templates_updated_at on public.templates; create trigger templates_updated_at before update on public.templates for each row execute function public.set_updated_at();
@@ -114,7 +109,6 @@ create or replace function public.increment_website_views(p_website_id uuid) ret
  drop trigger if exists demo_sites_updated_at on public.demo_sites; create trigger demo_sites_updated_at before update on public.demo_sites for each row execute function public.set_updated_at();
  drop trigger if exists website_content_updated_at on public.website_content; create trigger website_content_updated_at before update on public.website_content for each row execute function public.set_updated_at();
 
--- RLS: browser clients are denied by default; authenticated users can own their records.
 DO $$ BEGIN
   EXECUTE 'drop policy if exists profiles_self on public.profiles';
   EXECUTE 'drop policy if exists websites_owner on public.websites';
@@ -161,7 +155,6 @@ create policy templates_public_read on public.templates for select using(active=
 create policy categories_public_read on public.template_categories for select using(active=true);
 create policy demo_public_read on public.demo_sites for select using(active=true);
 
--- Starter categories/templates; safe to re-run.
 insert into public.template_categories(name,slug,description,sort) values
 ('Master','master','Original birthday HTML-based template',0),('Romantic','romantic','Romantic birthday experiences',1),('Cute','cute','Cute and playful experiences',2),('Luxury','luxury','Premium visual style',3),('Anime','anime','Anime-inspired style',4),('Gaming','gaming','Gaming style',5),('Minimal','minimal','Clean minimal style',6),('Elegant','elegant','Elegant style',7),('Festival','festival','Celebration style',8)
 on conflict(slug) do nothing;

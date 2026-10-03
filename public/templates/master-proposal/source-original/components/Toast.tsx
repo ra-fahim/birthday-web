@@ -30,7 +30,6 @@ export const Toast: React.FC<ToastProps> = ({
     const config = {
         success: {
             icon: <CheckCircle className="w-5 h-5" />,
-            // Enterprise emerald - high contrast in both modes
             lightBg: 'bg-emerald-50',
             darkBg: 'dark:bg-emerald-950',
             lightText: 'text-emerald-900',
@@ -42,7 +41,6 @@ export const Toast: React.FC<ToastProps> = ({
         },
         info: {
             icon: <Music className="w-5 h-5" />,
-            // Enterprise indigo - professional and vibrant
             lightBg: 'bg-indigo-50',
             darkBg: 'dark:bg-indigo-950',
             lightText: 'text-indigo-900',
@@ -54,7 +52,6 @@ export const Toast: React.FC<ToastProps> = ({
         },
         error: {
             icon: <AlertCircle className="w-5 h-5" />,
-            // Enterprise red - clear error indication
             lightBg: 'bg-red-50',
             darkBg: 'dark:bg-red-950',
             lightText: 'text-red-900',
