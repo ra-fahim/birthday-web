@@ -472,7 +472,17 @@
         #pzContinueBtn { --bb-btn-icon:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2.2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M5%2012h14'/%3E%3Cpath%20d='m12%205%207%207-7%207'/%3E%3C/svg%3E"); }
         .mic-enable-btn { --bb-btn-icon:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2.2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M12%202a3%203%200%200%200-3%203v7a3%203%200%200%200%206%200V5a3%203%200%200%200-3-3Z'/%3E%3Cpath%20d='M19%2010v2a7%207%200%200%201-14%200v-2M12%2019v3'/%3E%3C/svg%3E"); }
         .table-knife { filter:drop-shadow(0 3px 4px rgba(0,0,0,.35)); }
-</style>
+
+        /* ===== Editor-only scroll performance (published site / demo unchanged) ===== */
+        html[data-bb-editor="1"] body::before { display:none; }
+        html[data-bb-editor="1"] .photo-screen { animation:none; }
+        html[data-bb-editor="1"] :is(.video-card, .secret-container, .pz-card, .cake-container, .cake-screen, .cake-status) { -webkit-backdrop-filter:none; backdrop-filter:none; }
+        html[data-bb-editor="1"] .video-card { background:rgba(255,255,255,0.55); }
+        html[data-bb-editor="1"] .pz-orb { filter:none; animation:none; }
+        html[data-bb-editor="1"] .pz-orb-a { background:radial-gradient(circle, var(--bb-main,#ff69b4) 0%, transparent 70%); }
+        html[data-bb-editor="1"] .pz-orb-b { background:radial-gradient(circle, var(--bb-secondary,#9b6dff) 0%, transparent 70%); }
+        html[data-bb-editor="1"] :is(.floating-elements, .floating-hearts, .magic-sparkles, .video-bg, .sparkle-trail, .smoke-wisp) { display:none !important; }
+    </style>
     <script>    (function(){try{
         var q=new URLSearchParams(location.search);
         if(q.get('edit')==='1'||q.get('bbEdit')==='1'||q.get('demo')==='1'||q.get('bbDemo')==='1'||q.get('catalog')==='1'||q.get('bbCatalog')==='1') return;
@@ -984,7 +994,7 @@
         let lastSparkleAt = 0;
         function spawnSparkle(x, y) {
             const now = Date.now();
-            if (now - lastSparkleAt < 70) return;
+            if (window.__BB_EDITOR_MODE || now - lastSparkleAt < 70) return;
             lastSparkleAt = now;
             const s = document.createElement('span');
             s.className = 'sparkle-trail';
