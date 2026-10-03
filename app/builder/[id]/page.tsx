@@ -587,6 +587,15 @@ export default function Builder() {
     return () => { document.removeEventListener('visibilitychange', onVisibility); window.removeEventListener('pagehide', flush); };
   }, [id]);
 
+  // "Create Live Link" saves the latest edits as a draft, then opens the publish page
+  // where the customer picks and validates their custom link before going live.
+  const goToPublish = async () => {
+    if (!templateIdRef.current) { setMsg(`Add a ${currentOccasion[2]} template before publishing.`); return; }
+    await saveDraftRef.current?.(false, true);
+    for (let i = 0; i < 40 && (savingRef.current || queuedSaveRef.current); i++) await new Promise(res => setTimeout(res, 100));
+    router.push('/builder/' + id + '/publish');
+  };
+
   const exitBuilder = async () => {
     if (dirtyRef.current && templateIdRef.current) await saveDraftRef.current?.(false, true);
     router.push('/dashboard');
@@ -668,7 +677,7 @@ export default function Builder() {
         <button className="builder-ghost" type="button" onClick={resetEdits} title="Restore this template default content">Reset</button>
         <button className="builder-ghost" onClick={() => { void exitBuilder(); }}>Exit</button>
         <button className="builder-save" onClick={() => save(false)}>{status === 'published' ? 'Save changes' : 'Save draft'}</button>
-        <button className="builder-publish" onClick={() => save(true)}>Create Live Link ↗</button>
+        <button className="builder-publish" onClick={() => { void goToPublish(); }}>Create Live Link ↗</button>
       </div>
     </header>
 

@@ -3,9 +3,10 @@ import type { Metadata } from 'next';
 import { getSessionUser } from '@/lib/auth';
 import PublicNavbar from '@/components/navigation/PublicNavbar';
 import TemplateShowcase from '@/components/home/TemplateShowcase';
+import { pageMeta } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
-export const metadata: Metadata = { title:'Wishly — Create moments they remember', description:'Build beautiful interactive celebration websites in minutes.' };
+export const metadata: Metadata = pageMeta({ title: 'Wishly — Birthday Wish, Proposal & Surprise Website Maker', description: 'Create a personalized birthday wish, proposal, anniversary, sorry or miss-you website in minutes. Wish your girlfriend, boyfriend or friend and share it with one link.', path: '/' });
 
 const chips=[['🎂','Birthday'],['💍','Proposal'],['💕','Anniversary'],['💒','Wedding'],['💌','Miss You'],['🎓','Graduation']];
 const features=[['01','Visual editor','Tap any part of your page and edit it instantly. No complicated forms.'],['02','Your memories, beautifully','Photos, gallery, video, letters, wishes and music all live in one experience.'],['03','Made for phones','Design comfortably from mobile, preview every breakpoint and publish with confidence.']];

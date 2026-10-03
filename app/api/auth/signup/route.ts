@@ -1,16 +1,28 @@
 import {NextResponse} from 'next/server';
-import crypto from 'node:crypto';
 import {signupSchema} from '@/lib/validation';
 import {supabaseRest} from '@/lib/supabase-rest';
-import {setSessionCookie,googleVerifierCookie} from '@/lib/auth';
-function b64(b:Buffer){return b.toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+import {setSessionCookie} from '@/lib/auth';
 export const runtime='nodejs';
 export async function POST(req:Request){try{
- const raw=await req.json(); const v=signupSchema.parse(raw); const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,app=process.env.NEXT_PUBLIC_APP_URL||new URL(req.url).origin;
+ const raw=await req.json(); const v=signupSchema.parse(raw); const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
  if(!url||!key)return NextResponse.json({error:'Supabase Auth is not configured'},{status:500});
- const verifier=b64(crypto.randomBytes(32)),challenge=b64(crypto.createHash('sha256').update(verifier).digest());
- const r=await fetch(`${url.replace(/\/$/,'')}/auth/v1/signup`,{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({email:v.email.toLowerCase(),password:v.password,data:{full_name:v.name},code_challenge:challenge,code_challenge_method:'s256',email_redirect_to:`${app.replace(/\/$/,'')}/auth/callback`}),cache:'no-store'});
- const data=await r.json(); if(!r.ok)return NextResponse.json({error:data?.msg||data?.message||'Unable to create account'},{status:r.status});
+ // No email verification: the account is created already-confirmed through the
+ // Supabase admin API (service role), so Supabase never tries to send a
+ // confirmation email (that send was what failed with "error sending confirmation email").
+ const svc=process.env.SUPABASE_SERVICE_ROLE_KEY; const base=url.replace(/\/$/,'');
+ if(!svc)return NextResponse.json({error:'Supabase server environment is not configured'},{status:500});
+ const email=v.email.toLowerCase();
+ const cr=await fetch(`${base}/auth/v1/admin/users`,{method:'POST',headers:{apikey:svc,Authorization:`Bearer ${svc}`,'Content-Type':'application/json'},body:JSON.stringify({email,password:v.password,email_confirm:true,user_metadata:{full_name:v.name}}),cache:'no-store'});
+ const created=await cr.json().catch(()=>({}));
+ if(!cr.ok){
+  const code=String(created?.error_code||created?.code||''); const m=String(created?.msg||created?.message||'');
+  if(code==='email_exists'||/already (been )?registered|already exists/i.test(m))return NextResponse.json({error:'An account with this email already exists. Please log in.'},{status:409});
+  return NextResponse.json({error:m||'Unable to create account'},{status:cr.status});
+ }
+ // Sign in right away so the person lands in the app with a session.
+ const lr=await fetch(`${base}/auth/v1/token?grant_type=password`,{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({email,password:v.password}),cache:'no-store'});
+ const session=await lr.json().catch(()=>({}));
+ const data:any={user:created,session:lr.ok&&session?.access_token?session:null};
 
  // Member approval: admins and people who signed up through a valid invite
  // link skip the queue. Everyone else starts as pending — whether that
@@ -25,7 +37,7 @@ export async function POST(req:Request){try{
  }
 
  if(data?.user?.id) await supabaseRest('profiles',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:data.user.id,email:data.user.email,name:v.name,role:isAdmin?'admin':'user',approved})}).catch(()=>{});
- const response=NextResponse.json({ok:true,requiresEmailVerification:!data?.session});
- if(data?.session?.access_token)setSessionCookie(response,data.session.access_token,data.session.refresh_token); else response.cookies.set(googleVerifierCookie,verifier,{httpOnly:true,sameSite:'lax',secure:process.env.NODE_ENV==='production',path:'/',maxAge:3600});
+ const response=NextResponse.json({ok:true,requiresEmailVerification:false});
+ if(data.session?.access_token)setSessionCookie(response,data.session.access_token,data.session.refresh_token);
  return response;
 }catch(e:any){return NextResponse.json({error:e?.issues?.[0]?.message||e?.message||'Invalid request'},{status:400})}}

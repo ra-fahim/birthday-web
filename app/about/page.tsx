@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { getSessionUser } from '@/lib/auth';
 import PublicNavbar from '@/components/navigation/PublicNavbar';
+import { pageMeta } from '@/lib/seo';
+export const metadata = pageMeta({ title: 'About Wishly — Wish Website Maker', description: 'Wishly helps you turn birthday wishes, proposals, anniversaries and apologies into beautiful interactive websites you can share with one link.', path: '/about', keywords: [] });
 
 const values = [
   ['01', 'Simple by default', 'Choose a template, click what you want to change, save your work and publish. The interface stays quiet until you need it.'],

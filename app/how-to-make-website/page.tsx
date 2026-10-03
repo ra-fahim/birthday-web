@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import PublicNavbar from '@/components/navigation/PublicNavbar';
 import { getSessionUser } from '@/lib/auth';
+import { pageMeta } from '@/lib/seo';
+export const metadata = pageMeta({ title: 'How to Make a Birthday Wish or Proposal Website — Step by Step', description: 'Learn how to create a birthday wish, proposal or surprise website for your girlfriend, boyfriend or friend: choose a template, edit, preview and publish a custom link.', path: '/how-to-make-website', keywords: ['how to make birthday website', 'how to make wish website', 'how to create proposal website', 'কিভাবে উইশ ওয়েবসাইট বানাবেন'] });
 
 export const dynamic = 'force-dynamic';
 

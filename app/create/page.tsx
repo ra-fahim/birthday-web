@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation';
 import { getSessionUser } from '@/lib/auth';
 import PublicNavbar from '@/components/navigation/PublicNavbar';
 import { templatesByCategory } from '@/lib/templates';
+import { pageMeta } from '@/lib/seo';
+export const metadata = pageMeta({ title: 'Create a Wish Website — Choose an Occasion | Wishly', description: 'Pick an occasion — birthday, proposal, anniversary, wedding, sorry, miss you and more — and start building your wish website.', path: '/create', keywords: [] });
 
 const CATEGORY_META: Record<string, { label: string; emoji: string; description: string }> = {
   birthday: { label: 'Birthday', emoji: '🎂', description: 'Celebrate their day with a beautiful interactive birthday experience.' },

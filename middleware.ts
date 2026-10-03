@@ -45,6 +45,14 @@ async function maintenanceResponse(req: NextRequest): Promise<NextResponse | nul
 }
 
 export async function middleware(req: NextRequest) {
+  // Fallback: when the Google callback URL is missing from Supabase's Redirect URLs list,
+  // Supabase sends the person to the Site URL as "/?code=...". Finish the login from there.
+  if (req.nextUrl.pathname === '/' && req.nextUrl.searchParams.get('code') && req.cookies.get('bb_google_verifier')) {
+    const to = req.nextUrl.clone();
+    to.pathname = '/api/auth/google/callback';
+    return NextResponse.redirect(to);
+  }
+
   const maintenance = await maintenanceResponse(req);
   if (maintenance) return maintenance;
 

@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { getSessionUser } from '@/lib/auth';
 import PublicNavbar from '@/components/navigation/PublicNavbar';
+import { pageMeta } from '@/lib/seo';
+export const metadata = pageMeta({ title: 'Pricing — Create Birthday & Proposal Websites Free | Wishly', description: 'Start free and publish your first birthday wish or proposal website. Upgrade only when you need more.', path: '/pricing', keywords: [] });
 type Plan = { name: string; sub: string; items: string[] };
 const plans: Plan[] = [
   { name: 'Free', sub: 'A beautiful starting point', items: ['1 published experience', 'Master template', 'Basic theme controls', 'Guestbook & reactions'] },
